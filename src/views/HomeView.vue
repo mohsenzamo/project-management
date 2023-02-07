@@ -1,18 +1,31 @@
 <template>
   <div class="home">
     <img alt="Vue logo" src="../assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App"/>
+    {{ count }}
+    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
   </div>
 </template>
 
 <script lang="ts">
-import { Options, Vue } from 'vue-class-component';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import HelloWorld from '@/components/HelloWorld.vue';
+import { useCounterStore } from '@/store/index';
+import { computed } from "vue";
 
-@Options({
+
+export default {
+  name: 'HomePage',
+
   components: {
-    HelloWorld,
+    HelloWorld
   },
-})
-export default class HomeView extends Vue {}
+
+  setup() {
+    const store = useCounterStore();
+
+    return {
+      count: computed(() => store.doubleCount),
+      value: ''
+    };
+  }
+}
 </script>
