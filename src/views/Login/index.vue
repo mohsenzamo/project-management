@@ -10,13 +10,16 @@
                 </template>
                 <template #content>
                     <div class="my-2">
-                        <InputText type="text" placeholder="نام کاربری" />
+                        <InputText type="text" placeholder="نام کاربری" class="w-3/4" />
                     </div>
                     <div class="my-2">
-                        <InputText type="password" placeholder="رمز عبور" />
+                        <InputText type="password" placeholder="رمز عبور" class="w-3/4" />
                     </div>
                     <div class="my-2">
-                        <InputText type="password" placeholder="تکرار رمز عبور" />
+                        <InputText type="password" placeholder="تکرار رمز عبور" class="w-3/4" />
+                    </div>
+                    <div class="my-2 text-right mx-auto w-3/4">
+                        <Button label="ثبت نام" :loading="false" />
                     </div>
                 </template>
                 <template #footer>
@@ -38,14 +41,18 @@
                 </template>
                 <template #content>
                     <div class="my-2">
-                        <InputText type="text" placeholder="نام کاربری" />
+                        <InputText v-model="userName" type="text" placeholder="نام کاربری" class="w-3/4" />
                     </div>
                     <div class="my-2">
-                        <InputText type="password" placeholder="رمز عبور" />
+                        <InputText type="password" placeholder="رمز عبور" class="w-3/4" />
+                    </div>
+                    <div class="my-2 text-right mx-auto w-3/4">
+                        <Button label="ورود" :loading="false" :disabled="!(userName.length > 0)"
+                            @click="goPanel(userName)" />
                     </div>
                 </template>
                 <template #footer>
-                    <p class="mt-4 font-IRANSans text-xs">
+                    <p class="font-IRANSans text-xs">
                         حساب کاربری ندارید؟
                         <span class="text-blue-700 cursor-pointer" @click="formValue = !formValue">ثبت نام کنید</span>
                     </p>
@@ -60,21 +67,35 @@ import { ref } from 'vue'
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
+import Button from 'primevue/button';
+import { useRouter } from 'vue-router';
 
 export default {
-    name: 'CustomName',
+    name: 'LoginPage',
 
     components: {
         Card,
         Avatar,
-        InputText
+        InputText,
+        Button
     },
 
     setup() {
-        const formValue = ref(true)
+        const formValue = ref(false)
+        const userName = ref('')
+        const router = useRouter()
+
+        function goPanel(userName: string) {
+            router.push({
+                name: "UserPanel",
+                params: { id: userName },
+            });
+        }
 
         return {
-            formValue
+            formValue,
+            userName,
+            goPanel
         }
     },
 }
