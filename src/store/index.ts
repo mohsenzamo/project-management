@@ -1,13 +1,26 @@
 import { defineStore } from "pinia";
 
-export const useCounterStore = defineStore("counter", {
-  state: () => ({ count: 4, name: "Eduardo" }),
+interface deskObj {
+  name: string;
+  teammates:
+    | [
+        {
+          fullName: string;
+          phoneNumber: number;
+        }
+      ]
+    | null;
+}
+export const useStore = defineStore("counter", {
+  state: () => ({
+    desk: {} as object,
+  }),
   getters: {
-    doubleCount: (state) => state.count * 2,
+    allDesk: (state) => state.desk,
   },
   actions: {
-    increment() {
-      this.count++;
+    increment(deskItem: any) {
+      this.desk = Object.assign(this.desk, deskItem);
     },
   },
 });

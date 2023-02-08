@@ -1,11 +1,11 @@
 <template>
-    <nav class="bg-red-400 flex justify-between py-1">
+    <nav class="bg-yellow-500 flex justify-between py-1">
         <div class="flex items-center gap-4 justify-start px-4">
             <i class="pi pi-align-justify" style="font-size: 2rem"></i>
             <p>پنل کاربر</p>
 
-            <Dropdown v-if="desksDrop.length > 1" v-model="selectedCity" :options="desksDrop" optionLabel="name"
-                placeholder="میزکار" class="drop-down" />
+            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
+                placeholder="میزکار" class="drop-down" @change="newDeskCall" />
 
 
         </div>
@@ -22,7 +22,16 @@
             <Avatar icon="pi pi-user" class="" size="large" shape="circle" />
         </div>
     </nav>
-    <div class="pt-3 px-2">
+    <div v-if="Object.keys(alldesks).length > 0" class="pt-3 px-2">
+        <p class="">
+            میزکارشما :
+            <span class="pr-1 font-semibold">{{ selectedDesk!.name }}</span>
+        </p>
+        <div class="bg-red-500">
+            <sliderProject></sliderProject>
+        </div>
+    </div>
+    <div v-else class="pt-3 px-2">
         <div class="flex items-center gap-2">
             <p>
                 شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
@@ -30,6 +39,7 @@
             <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="createNewDesk = true" />
         </div>
     </div>
+
     <transition name="modal">
         <popUp v-if="createNewDesk" @close="createNewDesk = false">
             <p class="text-lg font-bold my-3">میزکار جدید ایجاد کنید:</p>
@@ -50,7 +60,8 @@
             </div>
             <div class="flex gap-2">
                 <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewDesk = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success" :disabled="!(deskName.length > 0)" />
+                <Button label="ایجاد" class="p-button-sm p-button-success" :disabled="!(deskName.length > 0)"
+                    @click="createDesk" />
             </div>
         </popUp>
     </transition>
@@ -58,11 +69,13 @@
 
 <script lang="ts">
 import Button from 'primevue/button';
-import { ref } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
-import popUp from '@/components/popUp.vue'
+import popUp from '@/components/popUp.vue';
+import sliderProject from '@/components/sliderProject.vue';
+import { useStore } from '@/store/index';
 
 export default {
     name: 'UserPanel',
@@ -72,23 +85,17 @@ export default {
         InputText,
         Avatar,
         Button,
-        popUp
+        popUp,
+        sliderProject
     },
 
     props: ["id"],
 
     setup() {
-        // {
-        //     name: '',
-        //         teammates: [
-        //             {
-        //                 fullName: '',
-        //                 phoneNumber: null
-        //             }
-        //         ]
-        // }
+        const store = useStore();
 
         const deskName = ref('')
+
         let deskTeammates = ref([{
             fullName: '',
             phoneNumber: null
@@ -108,38 +115,61 @@ export default {
             }
         }
 
-        const desks: any = [
-        ]
-
-        let desksDrop = desks.map((item: any, index: number) => {
-            return { name: item.name, code: index + 1 }
+        let desksDrop = computed(() => {
+            let items: object[] = Object.values(store.allDesk).map((item: any, index: number) => {
+                return { name: item.name, code: item.name }
+            })
+            items.push({ name: 'میزکار جدید', code: 0 })
+            return items
         })
 
-        desksDrop.push({ name: 'میزکار جدید', code: '0' })
-
-        const selectedCity = desksDrop.length > 1 ? desksDrop[0] : null
+        const selectedDesk = ref<any>(desksDrop.value.length > 1 ? desksDrop.value[0] : null)
 
         const createNewDesk = ref(false)
 
-        // function createDesk() {
-        //     desks.push(
-        //         {
-        //             name: deskName.value,
-        //             teammates: deskTeammates.value[0].fullName.length > 0 ? deskTeammates.value : null
-        //         }
-        //     )
-        //     console.log(desks)
-        // }
+        function createDesk() {
+            let teammates: any = []
+            if (deskTeammates.value[0].fullName.length > 0) {
+                teammates = deskTeammates.value.map(item => {
+                    return item
+                })
+            }
+            const deskNameValue = deskName.value
+            let objDesk: any = {}
+            objDesk[deskNameValue] = {
+                name: deskName.value,
+                teammates: teammates
+            }
+            store.increment(objDesk)
+            createNewDesk.value = false
+            selectedDesk.value = { name: deskName.value, code: deskName.value }
+            // new Splide('.splide').mount();
+        }
 
+        watch(createNewDesk, () => {
+            deskTeammates.value = [{
+                fullName: '',
+                phoneNumber: null
+            }]
+            deskName.value = ''
+        })
+
+        function newDeskCall(code: any) {
+            if (code.value.code === 0) {
+                createNewDesk.value = true
+            }
+        }
         return {
-            selectedCity,
+            newDeskCall,
+            selectedDesk,
             desksDrop,
             createNewDesk,
             deskName,
             deskTeammates,
             addTeammate,
             removeTeammate,
-            // createDesk
+            createDesk,
+            alldesks: store.allDesk
         }
     },
 }
