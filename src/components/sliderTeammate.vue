@@ -1,14 +1,9 @@
 <template>
-    <div class="splide splide_project w-full" role="group">
+    <div class="splide splide_teammate w-full" role="group">
         <div class="splide__track">
             <ul class="splide__list">
                 <li v-for="i in 10" :key="i" class="splide__slide">
-                    <Card class="w-44 h-full flex flex-col items-center justify-center text-center">
-                        <template #content>
-                            <p class="mb-2">پروژه جدید</p>
-                            <Button v-if="i % 2 == 0" icon="pi pi-plus" class="p-button-sm p-button-help" />
-                        </template>
-                    </Card>
+                    <Chip label="محسن زهرایی" icon="pi pi-user" />
                 </li>
             </ul>
         </div>
@@ -19,20 +14,18 @@
 import { onMounted } from 'vue';
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
-import Card from 'primevue/card';
-import Button from 'primevue/button';
+import Chip from 'primevue/chip';
 
 export default {
-    name: 'sliderProject',
+    name: 'sliderTeammate',
 
     components: {
-        Card,
-        Button
+        Chip
     },
 
     setup() {
         onMounted(() => {
-            const splide = new Splide('.splide_project', {
+            const splide = new Splide('.splide_teammate', {
                 autoWidth: true,
                 perMove: 1,
                 direction: 'rtl',
@@ -50,7 +43,9 @@ export default {
 }
 </script>
 
-<style lang="scss">
-
+<style lang="scss" scoped>
+.p-chip::v-deep{
+    background-color: #fff;
+}
 </style>
 
