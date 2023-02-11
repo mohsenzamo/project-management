@@ -3,7 +3,7 @@
         <div class="splide__track">
             <ul class="splide__list">
                 <li v-for="i in 10" :key="i" class="splide__slide">
-                    <Card class="w-44 h-full flex flex-col items-center justify-center text-center">
+                    <Card class="w-44 h-full flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100">
                         <template #content>
                             <p class="mb-2">پروژه جدید</p>
                             <Button v-if="i % 2 == 0" icon="pi pi-plus" class="p-button-sm p-button-help" />

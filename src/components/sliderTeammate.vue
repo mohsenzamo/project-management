@@ -43,9 +43,19 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
-.p-chip::v-deep{
-    background-color: #fff;
+<style lang="scss">
+.p-chip {
+    @apply bg-white cursor-pointer;
+
+    &:hover {
+        @apply bg-slate-100;
+    }
+
+}
+
+.p-chip .p-chip-icon {
+    margin-left: .5rem;
+    margin-right: 0;
 }
 </style>
 
