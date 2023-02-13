@@ -87,7 +87,7 @@ export default {
 
         function goPanel(userName: string) {
             router.push({
-                name: "UserDashboard",
+                name: "UserPanel",
                 params: { id: userName },
             });
         }

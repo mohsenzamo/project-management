@@ -5,11 +5,6 @@
                 @click="sideBar = !sideBar"></i>
             <i v-else class="pi pi-align-right cursor-pointer" style="font-size: 2rem" @click="sideBar = !sideBar"></i>
             <p>پنل کاربر</p>
-
-            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
-                placeholder="میزکار" class="drop-down" @change="newDeskCall" />
-
-
         </div>
 
         <div class="flex items-center gap-4 justify-end px-4">
@@ -28,32 +23,34 @@
     <div class="flex">
         <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
             class="w-1/5 bg-white transition-all z-10 h-screen pt-20">
-            <Router-link :to="{ name: 'UserDashboard' }">
-                <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm">
-                    <i class="pi pi-home text-red-600" style="font-size: 1.5rem;"></i>
-                    <span>داشبورد</span>
-                </p>
-            </Router-link>
+            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm cursor-pointer"
+                :class="{ 'bg-gray-400 text-white': componentPage === 'dashboard' }"
+                @click="componentPage = 'dashboard'">
+                <i class="pi pi-home text-red-600" style="font-size: 1.5rem;"></i>
+                <span>داشبورد</span>
+            </p>
             <hr class="bg-gray-400 border-none mt-4" style="height: .1rem;" />
-            <Router-link :to="{ name: 'UserProject' }">
-                <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4">
-                    <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
-                    <span>پروژه ها</span>
-                </p>
-            </Router-link>
-            <Router-link :to="{ name: 'UserTask' }">
+
+            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+                @click="componentPage = 'project'"
+                :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white': componentPage === 'project' }">
+                <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
+                <span>پروژه ها</span>
+            </p>
+            <!-- <Router-link :to="{ name: 'UserTask' }">
                 <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4">
                     <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
                     <span>وضایف</span>
                 </p>
-            </Router-link>
+            </Router-link> -->
         </div>
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-gray-200 transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
-            <RouterView></RouterView>
+            <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
+                @callCreate="createNewDesk = true" />
+            <userProject v-if="componentPage === 'project'"></userProject>
         </div>
     </div>
-
 
     <transition name="modal">
         <popUp v-if="createNewDesk" @close="createNewDesk = false">
@@ -83,23 +80,26 @@
 </template>
 
 <script lang="ts">
-import Button from 'primevue/button';
 import { ref, computed, watch, onMounted } from 'vue'
-import Dropdown from 'primevue/dropdown';
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
-import popUp from '@/components/popUp.vue';
 import { useStore } from '@/store/index';
+import { useRouter } from 'vue-router';
+import userDashboard from '@/components/userDashboard.vue';
+import userProject from '@/components/userProject.vue';
+import popUp from '@/components/popUp.vue';
+import Button from 'primevue/button';
 
 export default {
     name: 'UserPanel',
 
     components: {
-        Dropdown,
-        InputText,
-        Avatar,
         Button,
-        popUp
+        Avatar,
+        userDashboard,
+        userProject,
+        popUp,
+        InputText
     },
 
     props: ["id"],
@@ -107,7 +107,19 @@ export default {
     setup() {
         const store = useStore();
 
+        const checked = ref(true)
+        const sideBar = ref(true)
+
         const deskName = ref('')
+
+        const router = useRouter()
+
+        const componentPage = ref('dashboard')
+
+
+        const createNewDesk = ref(false)
+
+        const selectedDesk = ref<any>(store.desksDrop[0])
 
         let deskTeammates = ref([{
             fullName: '',
@@ -128,18 +140,6 @@ export default {
             }
         }
 
-        let desksDrop = computed(() => {
-            let items: object[] = Object.values(store.allDesk).map((item: any, index: number) => {
-                return { name: item.name, code: item.name }
-            })
-            items.push({ name: 'میزکار جدید', code: 0 })
-            return items
-        })
-
-        const selectedDesk = ref<any>(desksDrop.value.length > 1 ? desksDrop.value[0] : null)
-
-        const createNewDesk = ref(false)
-
         function createDesk() {
             let teammates: any = []
             if (deskTeammates.value[0].fullName.length > 0) {
@@ -147,16 +147,19 @@ export default {
                     return item
                 })
             }
-            const deskNameValue = deskName.value
+
             let objDesk: any = {}
+
+            const deskNameValue = deskName.value
+
             objDesk[deskNameValue] = {
                 name: deskName.value,
                 teammates: teammates
             }
             store.increment(objDesk)
+            store.setCurrentDesk(deskName.value)
+            store.setSelectedDropDesk({ name: store.selectedDesk(deskNameValue).name, code: store.selectedDesk(deskNameValue).name })
             createNewDesk.value = false
-            selectedDesk.value = { name: deskName.value, code: deskName.value }
-            // new Splide('.splide').mount();
         }
 
         watch(createNewDesk, () => {
@@ -165,30 +168,23 @@ export default {
                 phoneNumber: null
             }]
             deskName.value = ''
+            if (store.selectedDesk(store.currentDesk)) {
+                selectedDesk.value = { name: store.selectedDesk(store.currentDesk).name, code: store.selectedDesk(store.currentDesk).name }
+            }
         })
 
-        function newDeskCall(code: any) {
-            if (code.value.code === 0) {
-                createNewDesk.value = true
-            }
-        }
-
-        const checked = ref(true)
-        const sideBar = ref(false)
-
         return {
+            removeTeammate,
+            deskName,
             sideBar,
             checked,
-            newDeskCall,
-            selectedDesk,
-            desksDrop,
+            alldesks: store.allDesk,
+            componentPage,
             createNewDesk,
-            deskName,
             deskTeammates,
             addTeammate,
-            removeTeammate,
             createDesk,
-            alldesks: store.allDesk
+            selectedDesk
         }
     },
 }

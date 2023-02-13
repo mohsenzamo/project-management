@@ -2,7 +2,8 @@
     <div v-if="Object.keys(alldesks).length > 0" class="pt-3 px-2">
         <p class="">
             میزکارشما :
-            <span class="pr-1 font-semibold">{{ selectedDesk!.name }}</span>
+            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
+                placeholder="میزکار" class="drop-down" @change="newDeskCall" />
         </p>
 
         <div class="my-2">
@@ -89,18 +90,17 @@
             <p>
                 شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
             </p>
-            <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="createNewDesk = true" />
+            <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="$emit('callPopup')" />
         </div>
     </div>
+
 </template>
 
 <script lang="ts">
 import Button from 'primevue/button';
 import { ref, computed, watch, onMounted } from 'vue'
 import Dropdown from 'primevue/dropdown';
-import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
-import popUp from '@/components/popUp.vue';
 import { useStore } from '@/store/index';
 import Card from 'primevue/card';
 import sliderProject from '@/components/sliderProject.vue';
@@ -112,102 +112,49 @@ export default {
     name: 'UserDashboard',
 
     components: {
+        Dropdown,
         Avatar,
         Button,
         Card,
         sliderProject,
         sliderTeammate,
         Checkbox,
-        ProgressBar
+        ProgressBar,
     },
 
-    props: ["id"],
-
-    setup() {
+    setup(props: any, context: any) {
         const store = useStore();
-
-        const deskName = ref('')
-
-        let deskTeammates = ref([{
-            fullName: '',
-            phoneNumber: null
-        }])
-
-        function addTeammate() {
-            deskTeammates.value.push({
-                fullName: '',
-                phoneNumber: null
-            })
-        }
-
-        function removeTeammate(index: number) {
-            deskTeammates.value.splice(index, 1)
-            if (deskTeammates.value.length == 0) {
-                addTeammate()
-            }
-        }
-
-        let desksDrop = computed(() => {
-            let items: object[] = Object.values(store.allDesk).map((item: any, index: number) => {
-                return { name: item.name, code: item.name }
-            })
-            items.push({ name: 'میزکار جدید', code: 0 })
-            return items
-        })
-
-        const selectedDesk = ref<any>(desksDrop.value.length > 1 ? desksDrop.value[0] : null)
-
-        const createNewDesk = ref(false)
-
-        function createDesk() {
-            let teammates: any = []
-            if (deskTeammates.value[0].fullName.length > 0) {
-                teammates = deskTeammates.value.map(item => {
-                    return item
-                })
-            }
-            const deskNameValue = deskName.value
-            let objDesk: any = {}
-            objDesk[deskNameValue] = {
-                name: deskName.value,
-                teammates: teammates
-            }
-            store.increment(objDesk)
-            createNewDesk.value = false
-            selectedDesk.value = { name: deskName.value, code: deskName.value }
-            // new Splide('.splide').mount();
-        }
-
-        watch(createNewDesk, () => {
-            deskTeammates.value = [{
-                fullName: '',
-                phoneNumber: null
-            }]
-            deskName.value = ''
-        })
 
         function newDeskCall(code: any) {
             if (code.value.code === 0) {
-                createNewDesk.value = true
+                context.emit('callCreate')
+            } else {
+                console.log(1)
+                store.setSelectedDropDesk({ name: code.value.name, code: code.value.name })
             }
         }
 
+        // const selectedDesk = ref<any>(store.desksDrop.length > 1 ? store.desksDrop[0] : null)
+
+
         const checked = ref(true)
-        const sideBar = ref(false)
+        const sideBar = ref(true)
+
+        const desksDrop = computed(() => {
+            return store.desksDrop
+        })
+
+        const selectedDesk = computed(() => {
+            return store.selectedDropDesk
+        })
 
         return {
-            sideBar,
-            checked,
             newDeskCall,
             selectedDesk,
+            sideBar,
+            checked,
             desksDrop,
-            createNewDesk,
-            deskName,
-            deskTeammates,
-            addTeammate,
-            removeTeammate,
-            createDesk,
-            alldesks: store.allDesk
+            alldesks: store.allDesk,
         }
     },
 }
