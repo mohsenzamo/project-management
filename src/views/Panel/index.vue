@@ -30,9 +30,8 @@
                 <span>داشبورد</span>
             </p>
             <hr class="bg-gray-400 border-none mt-4" style="height: .1rem;" />
-
             <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
-                @click="componentPage = 'project'"
+                @click="Object.values(alldesks).length > 0 ? componentPage = 'project' : null"
                 :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white': componentPage === 'project' }">
                 <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
                 <span>پروژه ها</span>
@@ -48,7 +47,7 @@
             class="bg-gray-200 transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
                 @callCreate="createNewDesk = true" />
-            <userProject v-if="componentPage === 'project'"></userProject>
+            <userProject v-else-if="componentPage === 'project'"></userProject>
         </div>
     </div>
 
@@ -59,7 +58,7 @@
                 <p class="mb-2">جهت دسترسی به امکانات پنل، یک میزِکار جدید برای خود ایجاد کنید:</p>
                 <InputText v-model="deskName" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5" />
             </div>
-            <div class="mb-3">
+            <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <p class="mb-2">همکاران خود را به میزکار جدید دعوت نمایید:</p>
                 <div class="flex gap-2 my-2" v-for="(teammate, index) in deskTeammates" :key="index">
                     <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
@@ -83,7 +82,8 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
-import { useStore } from '@/store/index';
+import { useDeskStore } from '@/store/deskStore';
+import { useTeammateStore } from '@/store/teammateStore';
 import { useRouter } from 'vue-router';
 import userDashboard from '@/components/userDashboard.vue';
 import userProject from '@/components/userProject.vue';
@@ -105,7 +105,9 @@ export default {
     props: ["id"],
 
     setup() {
-        const store = useStore();
+
+        const deskStore = useDeskStore();
+        const teammateStore = useTeammateStore();
 
         const checked = ref(true)
         const sideBar = ref(true)
@@ -119,7 +121,7 @@ export default {
 
         const createNewDesk = ref(false)
 
-        const selectedDesk = ref<any>(store.desksDrop[0])
+        const selectedDesk = ref<any>(deskStore.desksDrop[0])
 
         let deskTeammates = ref([{
             fullName: '',
@@ -141,6 +143,7 @@ export default {
         }
 
         function createDesk() {
+            deskStore.changeLoading(true)
             let teammates: any = []
             if (deskTeammates.value[0].fullName.length > 0) {
                 teammates = deskTeammates.value.map(item => {
@@ -154,12 +157,17 @@ export default {
 
             objDesk[deskNameValue] = {
                 name: deskName.value,
-                teammates: teammates
             }
-            store.increment(objDesk)
-            store.setCurrentDesk(deskName.value)
-            store.setSelectedDropDesk({ name: store.selectedDesk(deskNameValue).name, code: store.selectedDesk(deskNameValue).name })
+
+            deskStore.increment(objDesk)
+            deskStore.setCurrentDesk(deskName.value)
+            deskStore.setSelectedDropDesk({ name: deskStore.selectedDesk(deskNameValue).name, code: deskStore.selectedDesk(deskNameValue).name })
+            teammateStore.addTeammate(deskNameValue, teammates)
+
             createNewDesk.value = false
+            setInterval(() => {
+                deskStore.changeLoading(false)
+            }, 3000);
         }
 
         watch(createNewDesk, () => {
@@ -168,8 +176,8 @@ export default {
                 phoneNumber: null
             }]
             deskName.value = ''
-            if (store.selectedDesk(store.currentDesk)) {
-                selectedDesk.value = { name: store.selectedDesk(store.currentDesk).name, code: store.selectedDesk(store.currentDesk).name }
+            if (deskStore.selectedDesk(deskStore.currentDesk)) {
+                selectedDesk.value = { name: deskStore.selectedDesk(deskStore.currentDesk).name, code: deskStore.selectedDesk(deskStore.currentDesk).name }
             }
         })
 
@@ -178,13 +186,13 @@ export default {
             deskName,
             sideBar,
             checked,
-            alldesks: store.allDesk,
+            alldesks: deskStore.allDesk,
             componentPage,
             createNewDesk,
             deskTeammates,
             addTeammate,
             createDesk,
-            selectedDesk
+            selectedDesk,
         }
     },
 }

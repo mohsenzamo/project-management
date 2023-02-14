@@ -47,7 +47,7 @@
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 import { ref, computed, watch, onMounted } from 'vue'
-import { useStore } from '@/store/index';
+import { useDeskStore } from '@/store/deskStore';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import ProgressBar from 'primevue/progressbar';
@@ -78,7 +78,7 @@ export default {
             splide.mount();
         })
 
-        const store = useStore();
+        const store = useDeskStore();
 
         let desksDrop = computed(() => {
             let items: object[] = Object.values(store.allDesk).map((item: any, index: number) => {

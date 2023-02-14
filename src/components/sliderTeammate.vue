@@ -2,19 +2,31 @@
     <div class="splide splide_teammate w-full" role="group">
         <div class="splide__track">
             <ul class="splide__list">
-                <li v-for="i in 10" :key="i" class="splide__slide">
-                    <Chip label="محسن زهرایی" icon="pi pi-user" />
-                </li>
+                <template v-if="currentTeammate?.length > 0">
+                    <li v-for="teammate in currentTeammate" :key="teammate.fullName" class="splide__slide">
+                        <Chip :label="teammate.fullName" icon="pi pi-user" />
+                    </li>
+                    <li class="splide__slide">
+                        <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" />
+                    </li>
+                </template>
+                <template v-else>
+                    <li class="splide__slide">
+                        <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" />
+                    </li>
+                </template>
             </ul>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { onMounted } from 'vue';
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 import Chip from 'primevue/chip';
+import { computed, onMounted, watch } from 'vue'
+import { useTeammateStore } from '@/store/teammateStore';
+import { useDeskStore } from '@/store/deskStore';
 
 export default {
     name: 'sliderTeammate',
@@ -37,7 +49,25 @@ export default {
 
             splide.mount();
         })
+
+        const deskStore = useDeskStore()
+        const teammateStore = useTeammateStore()
+
+        const selectedDesk: any = computed(() => {
+            return deskStore.selectedDropDesk
+        })
+
+        const currentTeammate = computed(() => {
+            if (selectedDesk.value.code !== 0) {
+                return teammateStore.selectedTeammate(selectedDesk.value.name)
+            } else {
+                return []
+            }
+        })
+
         return {
+            currentTeammate,
+            selectedDesk
         }
     },
 }

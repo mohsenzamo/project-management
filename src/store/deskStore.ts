@@ -2,24 +2,18 @@ import { defineStore } from "pinia";
 
 interface deskObj {
   name: string;
-  teammates:
-    | [
-        {
-          fullName: string;
-          phoneNumber: number;
-        }
-      ]
-    | null;
 }
 
-export const useStore = defineStore("counter", {
+export const useDeskStore = defineStore("useDeskStore", {
   state: () => ({
     allDesks: {} as object,
     currentDesks: "" as string,
     selectedDropDesks: {} as object,
+    desksLoading: false as boolean,
   }),
   getters: {
     allDesk: (state) => state.allDesks,
+    deskLoading: (state) => state.desksLoading,
     currentDesk: (state) => state.currentDesks,
     selectedDropDesk: (state) => state.selectedDropDesks,
     desksDrop: (state) => {
@@ -46,6 +40,9 @@ export const useStore = defineStore("counter", {
     },
     setSelectedDropDesk(desk: object) {
       this.selectedDropDesks = desk;
+    },
+    changeLoading(bool: boolean) {
+      this.desksLoading = bool;
     },
   },
 });
