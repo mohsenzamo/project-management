@@ -13,7 +13,7 @@
 
             <div class="my-2">
                 <p class="mb-2">پروژه ها:</p>
-                <sliderProject></sliderProject>
+                <sliderProject @callPopupProject="$emit('callPopupProject')"></sliderProject>
             </div>
 
             <div class="my-2">
@@ -142,6 +142,7 @@ export default {
                 context.emit('callCreate')
             } else {
                 deskStore.changeLoading(true)
+                deskStore.setCurrentDesk(code.value.name)
                 deskStore.setSelectedDropDesk({ name: code.value.name, code: code.value.name })
                 setInterval(() => {
                     deskStore.changeLoading(false)

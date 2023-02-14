@@ -46,7 +46,7 @@
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-gray-200 transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
-                @callCreate="createNewDesk = true" />
+                @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
             <userProject v-else-if="componentPage === 'project'"></userProject>
         </div>
     </div>
@@ -76,6 +76,28 @@
             </div>
         </popUp>
     </transition>
+
+    <transition name="modal">
+        <popUp v-if="createNewProject" @close="createNewProject = false">
+            <p class="text-lg font-bold my-3">پروژه جدید ایجاد کنید:</p>
+            <div class="mb-3">
+                <p class="mb-2">نام پروژه:</p>
+                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5" />
+            </div>
+            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+                <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
+                <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
+                    <Checkbox name="teammate" :value="teammate" v-model="teammates" />
+                    <p>{{ teammate.fullName }}</p>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewProject = false" />
+                <Button label="ایجاد" class="p-button-sm p-button-success" :disabled="!(projectName.length > 0)"
+                    @click="addProject" />
+            </div>
+        </popUp>
+    </transition>
 </template>
 
 <script lang="ts">
@@ -84,16 +106,19 @@ import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useTeammateStore } from '@/store/teammateStore';
+import { useProjectStore } from '@/store/projectStore';
 import { useRouter } from 'vue-router';
 import userDashboard from '@/components/userDashboard.vue';
 import userProject from '@/components/userProject.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
+import Checkbox from 'primevue/checkbox';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        Checkbox,
         Button,
         Avatar,
         userDashboard,
@@ -105,14 +130,28 @@ export default {
     props: ["id"],
 
     setup() {
+        const teammates = ref([])
+
+        const selectedDeskEE: any = computed(() => {
+            return deskStore.selectedDropDesk
+        })
+
+        const currentTeammate = computed(() => {
+            if (selectedDeskEE.value.code !== 0) {
+                return teammateStore.selectedTeammate(selectedDeskEE.value.name)
+            } else {
+                return []
+            }
+        })
 
         const deskStore = useDeskStore();
         const teammateStore = useTeammateStore();
+        const projectStore = useProjectStore();
 
-        const checked = ref(true)
         const sideBar = ref(true)
 
         const deskName = ref('')
+        const projectName = ref('')
 
         const router = useRouter()
 
@@ -120,6 +159,8 @@ export default {
 
 
         const createNewDesk = ref(false)
+
+        const createNewProject = ref(false)
 
         const selectedDesk = ref<any>(deskStore.desksDrop[0])
 
@@ -181,11 +222,24 @@ export default {
             }
         })
 
+        watch(createNewProject, () => {
+            teammates.value = []
+            projectName.value = ''
+        })
+
+        function addProject() {
+            projectStore.addProject(deskStore.currentDesk, {
+                name: projectName.value,
+                teammate: teammates.value
+            })
+            createNewProject.value = false
+        }
+
         return {
+            addProject,
             removeTeammate,
             deskName,
             sideBar,
-            checked,
             alldesks: deskStore.allDesk,
             componentPage,
             createNewDesk,
@@ -193,6 +247,10 @@ export default {
             addTeammate,
             createDesk,
             selectedDesk,
+            createNewProject,
+            teammates,
+            currentTeammate,
+            projectName
         }
     },
 }
