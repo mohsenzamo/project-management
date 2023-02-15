@@ -107,7 +107,7 @@
 
 <script lang="ts">
 import Button from 'primevue/button';
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue';
 import Dropdown from 'primevue/dropdown';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';

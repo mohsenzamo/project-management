@@ -7,7 +7,8 @@
                     placeholder="میزکار" class="drop-down" @change="newDeskCall" />
             </p>
             <div class="flex gap-2">
-                <InlineMessage v-if="notFoundedProject" severity="warn">پروژه ای با این نام پیدا نشد</InlineMessage>
+                <InlineMessage v-if="notFoundedProject && !projectLoading" severity="warn">پروژه ای با این نام پیدا نشد
+                </InlineMessage>
                 <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch" />
             </div>
         </div>
@@ -87,8 +88,7 @@ export default {
             } else {
                 return []
             }
-        }
-        )
+        })
 
         const foundedProject = ref<any>([])
         const notFoundedProject = ref(false)

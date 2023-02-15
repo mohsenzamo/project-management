@@ -9,6 +9,8 @@ export const useProjectStore = defineStore("useProjectStore", {
   state: () => ({
     allProjects: {} as any,
     projectsLoading: false as boolean,
+    currentProjects: "" as string,
+    selectedDropProjects: {} as object,
   }),
   getters: {
     allProject: (state) => state.allProjects,
@@ -18,6 +20,15 @@ export const useProjectStore = defineStore("useProjectStore", {
         return state.allProjects[projectId];
       };
     },
+    // currentProject: (state) => state.currentProjects,
+    // selectedDropProject: (state) => state.selectedDropProjects,
+    // projectsDrop: (state) => {
+    //   const drops = Object.values(state.allProjects).map((item: any) => {
+    //     return { name: item.name, code: item.name };
+    //   });
+    //   drops.push({ name: "پروژه جدید", code: 0 });
+    //   return drops;
+    // },
   },
   actions: {
     addProject(deskName: string, project: object) {
@@ -30,6 +41,12 @@ export const useProjectStore = defineStore("useProjectStore", {
         this.allProjects = Object.assign(this.allProjects, objProject);
       }
     },
+    // setCurrentProject(projectId: string) {
+    //   this.currentProjects = projectId;
+    // },
+    // setSelectedDropProject(project: object) {
+    //   this.selectedDropProjects = project;
+    // },
     changeLoading(bool: boolean) {
       this.projectsLoading = bool;
     },

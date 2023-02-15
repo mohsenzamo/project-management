@@ -234,11 +234,14 @@ export default {
 
         function addProject() {
             projectStore.changeLoading(true)
+            // const projectNameValue = projectName.value
             projectStore.addProject(deskStore.currentDesk, {
                 name: projectName.value,
                 teammate: teammates.value
             })
             createNewProject.value = false
+            // projectStore.setCurrentProject(projectName.value)
+            // projectStore.setSelectedDropProject({ name: projectStore.selectedProject(projectNameValue).name, code: projectStore.selectedProject(projectNameValue).name })
             setInterval(() => {
                 projectStore.changeLoading(false)
             }, 1000);
