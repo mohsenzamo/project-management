@@ -9,7 +9,7 @@
             <div class="flex gap-2">
                 <InlineMessage v-if="notFoundedProject && !projectLoading" severity="warn">پروژه ای با این نام پیدا نشد
                 </InlineMessage>
-                <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch" />
+                <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch" :disabled="currentProject === undefined || currentProject.length === 0"/>
             </div>
         </div>
         <div v-if="deskLoading || projectLoading" class="w-fit mx-auto mt-40">
