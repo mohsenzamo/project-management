@@ -8,9 +8,11 @@ interface projectObj {
 export const useProjectStore = defineStore("useProjectStore", {
   state: () => ({
     allProjects: {} as any,
+    projectsLoading: false as boolean,
   }),
   getters: {
     allProject: (state) => state.allProjects,
+    projectLoading: (state) => state.projectsLoading,
     selectedProject: (state) => {
       return (projectId: any) => {
         return state.allProjects[projectId];
@@ -27,6 +29,9 @@ export const useProjectStore = defineStore("useProjectStore", {
         objProject[deskName] = [project];
         this.allProjects = Object.assign(this.allProjects, objProject);
       }
+    },
+    changeLoading(bool: boolean) {
+      this.projectsLoading = bool;
     },
   },
 });

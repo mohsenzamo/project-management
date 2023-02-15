@@ -1,101 +1,137 @@
 <template>
     <div class="w-full h-screen p-4">
-        <p class="">
-            پروژه های میزکار :
-            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
-                placeholder="میزکار" class="drop-down" />
-        </p>
-
-        <div class="splide splide_project bg-lime-600 mx-auto mt-20" role="group" style="width: 99%;">
-            <div class="splide__track">
-                <ul class="splide__list">
-                    <li v-for="i in 10" :key="i" class="splide__slide">
-                        <Card>
-                            <template #header>
-                                <div class="bg-red-500 flex justify-center h-20 items-center">
-                                    <i class="pi pi-times" style="font-size: 2rem"></i>
-                                </div>
-                            </template>
-                            <template #title>
-                                اسم پروژه
-                            </template>
-                            <template #content>
-                                <div>
-                                    <p>وضعیت پروژه:</p>
-                                    <ProgressBar :value="60" />
-                                </div>
-                                <div>
-                                    <p>وضایف من:</p>
-                                    <ProgressBar :value="40" />
-                                </div>
-                            </template>
-                            <template #footer>
-                                <div class="flex gap-2">
-                                    <Button icon="pi pi-check" label="ادیت" />
-                                    <Button icon="pi pi-times" label="حذف" class="p-button-secondary"
-                                        style="margin-left: .5em" />
-                                </div>
-                            </template>
-                        </Card>
-                    </li>
-                </ul>
+        <div class="flex justify-between">
+            <p>
+                پروژه های میزکار :
+                <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
+                    placeholder="میزکار" class="drop-down" @change="newDeskCall" />
+            </p>
+            <div class="flex gap-2">
+                <InlineMessage v-if="notFoundedProject" severity="warn">پروژه ای با این نام پیدا نشد</InlineMessage>
+                <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch" />
             </div>
         </div>
+        <div v-if="deskLoading || projectLoading" class="w-fit mx-auto mt-40">
+            <ProgressSpinner />
+        </div>
+        <template v-else>
+            <div v-if="notFoundedProject">
+                <listProject @callPopupProject="$emit('callPopupProject')" :currentProject="[]" />
+            </div>
+            <listProject v-else @callPopupProject="$emit('callPopupProject')"
+                :currentProject="foundedProject.length > 0 ? foundedProject : currentProject" />
+        </template>
     </div>
 </template>
+
 <script lang="ts">
-import Splide from '@splidejs/splide';
-import '@splidejs/splide/dist/css/themes/splide-default.min.css';
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useDeskStore } from '@/store/deskStore';
-import Card from 'primevue/card';
-import Button from 'primevue/button';
-import ProgressBar from 'primevue/progressbar';
+import { useProjectStore } from '@/store/projectStore';
 import Dropdown from 'primevue/dropdown';
+import listProject from './listProject.vue';
+import ProgressSpinner from 'primevue/progressspinner';
+import InputText from 'primevue/inputtext';
+import InlineMessage from 'primevue/inlinemessage';
+
+
 
 export default {
     name: "UserProject",
 
     components: {
         Dropdown,
-        Card,
-        Button,
-        ProgressBar
+        listProject,
+        ProgressSpinner,
+        InputText,
+        InlineMessage
     },
 
-    setup() {
-        onMounted(() => {
-            const splide = new Splide('.splide', {
-                autoWidth: true,
-                perMove: 1,
-                direction: 'rtl',
-                wheel: true,
-                pagination: false,
-                arrows: false,
-                gap: '1rem'
-            });
+    setup(props: any, context: any) {
+        const deskStore = useDeskStore()
+        const projectStore = useProjectStore()
 
-            splide.mount();
+        const desksDrop = computed(() => {
+            return deskStore.desksDrop
         })
 
-        const store = useDeskStore();
-
-        let desksDrop = computed(() => {
-            let items: object[] = Object.values(store.allDesk).map((item: any, index: number) => {
-                return { name: item.name, code: item.name }
-            })
-            items.push({ name: 'میزکار جدید', code: 0 })
-            return items
+        const selectedDesk: any = computed(() => {
+            return deskStore.selectedDropDesk
         })
 
-        const selectedDesk = computed(() => {
-            return store.selectedDropDesk
+        const deskLoading = computed(() => {
+            return deskStore.deskLoading
+        })
+
+        const projectLoading = computed(() => {
+            return projectStore.projectLoading
+        })
+
+        function newDeskCall(code: any) {
+            if (code.value.code === 0) {
+                context.emit('callCreate')
+            } else {
+                deskStore.changeLoading(true)
+                deskStore.setCurrentDesk(code.value.name)
+                deskStore.setSelectedDropDesk({ name: code.value.name, code: code.value.name })
+                setInterval(() => {
+                    deskStore.changeLoading(false)
+                }, 3000);
+            }
+        }
+        const projectSearch = ref('')
+
+        const currentProject = computed(() => {
+            if (selectedDesk.value.code !== 0) {
+                return projectStore.selectedProject(selectedDesk.value.name)
+            } else {
+                return []
+            }
+        }
+        )
+
+        const foundedProject = ref<any>([])
+        const notFoundedProject = ref(false)
+
+        watch(projectSearch, (text) => {
+            projectStore.changeLoading(true)
+            if (text && text.length > 0) {
+                const allProject = currentProject.value
+                foundedProject.value = []
+                notFoundedProject.value = false
+                allProject.forEach((element: any) => {
+                    element.name.startsWith(text) ? foundedProject.value.push(element) : null
+                })
+                if (foundedProject.value.length === 0) {
+                    notFoundedProject.value = true
+                }
+            } else {
+                foundedProject.value = []
+                notFoundedProject.value = false
+            }
+            setInterval(() => {
+                projectStore.changeLoading(false)
+            }, 1000);
         })
 
         return {
-            selectedDesk,
+            foundedProject,
+            notFoundedProject,
             desksDrop,
+            selectedDesk,
+            newDeskCall,
+            deskLoading,
+            currentProject,
+            projectLoading,
+            projectSearch
         }
     },
 }
 </script>
+
+<style lang="scss">
+.p-inline-message .p-inline-message-icon {
+    margin-right: 0;
+    margin-left: .5rem;
+}
+</style>

@@ -36,18 +36,21 @@
                 <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
                 <span>پروژه ها</span>
             </p>
-            <!-- <Router-link :to="{ name: 'UserTask' }">
-                <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4">
-                    <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
-                    <span>وضایف</span>
-                </p>
-            </Router-link> -->
+            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+                @click="(currentProject && currentProject.length > 0) ? componentPage = 'task' : null"
+                :class="{ 'cursor-not-allowed': (currentProject === undefined || currentProject.length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
+                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
+                <span>وضایف</span>
+            </p>
         </div>
+
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-gray-200 transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
                 @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
-            <userProject v-else-if="componentPage === 'project'"></userProject>
+            <userProject v-else-if="componentPage === 'project'" @callPopupProject="createNewProject = true"
+                @callCreate="createNewDesk = true" />
+            <userTask v-else-if="componentPage === 'task'" />
         </div>
     </div>
 
@@ -101,7 +104,7 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, computed, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
@@ -110,6 +113,7 @@ import { useProjectStore } from '@/store/projectStore';
 import { useRouter } from 'vue-router';
 import userDashboard from '@/components/userDashboard.vue';
 import userProject from '@/components/userProject.vue';
+import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
@@ -118,6 +122,7 @@ export default {
     name: 'UserPanel',
 
     components: {
+        userTask,
         Checkbox,
         Button,
         Avatar,
@@ -208,7 +213,7 @@ export default {
             createNewDesk.value = false
             setInterval(() => {
                 deskStore.changeLoading(false)
-            }, 3000);
+            }, 2000);
         }
 
         watch(createNewDesk, () => {
@@ -228,14 +233,28 @@ export default {
         })
 
         function addProject() {
+            projectStore.changeLoading(true)
             projectStore.addProject(deskStore.currentDesk, {
                 name: projectName.value,
                 teammate: teammates.value
             })
             createNewProject.value = false
+            setInterval(() => {
+                projectStore.changeLoading(false)
+            }, 1000);
         }
 
+        const currentProject = computed(() => {
+            if (selectedDesk.value.code !== 0) {
+                console.log(projectStore.selectedProject(selectedDesk.value.name))
+                return projectStore.selectedProject(selectedDesk.value.name)
+            } else {
+                return []
+            }
+        })
+
         return {
+            currentProject,
             addProject,
             removeTeammate,
             deskName,

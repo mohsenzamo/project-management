@@ -6,14 +6,17 @@
                 placeholder="میزکار" class="drop-down" @change="newDeskCall" />
         </p>
 
-        <div v-if="loading" class="w-fit mx-auto mt-40">
+        <div v-if="deskLoading" class="w-fit mx-auto mt-40">
             <ProgressSpinner />
         </div>
         <template v-else>
 
             <div class="my-2">
                 <p class="mb-2">پروژه ها:</p>
-                <sliderProject @callPopupProject="$emit('callPopupProject')"></sliderProject>
+                <div v-if="projectLoading" class="w-fit mx-auto">
+                    <ProgressSpinner />
+                </div>
+                <sliderProject v-else @callPopupProject="$emit('callPopupProject')"></sliderProject>
             </div>
 
             <div class="my-2">
@@ -108,6 +111,7 @@ import { ref, computed, watch, onMounted } from 'vue'
 import Dropdown from 'primevue/dropdown';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
+import { useProjectStore } from '@/store/projectStore';
 import Card from 'primevue/card';
 import sliderProject from '@/components/sliderProject.vue';
 import sliderTeammate from '@/components/sliderTeammate.vue';
@@ -132,9 +136,14 @@ export default {
 
     setup(props: any, context: any) {
         const deskStore = useDeskStore();
+        const projectStore = useProjectStore();
 
-        const loading = computed(() => {
+        const deskLoading = computed(() => {
             return deskStore.deskLoading
+        })
+
+        const projectLoading = computed(() => {
+            return projectStore.projectLoading
         })
 
         function newDeskCall(code: any) {
@@ -149,9 +158,6 @@ export default {
                 }, 3000);
             }
         }
-
-        // const selectedDesk = ref<any>(store.desksDrop.length > 1 ? store.desksDrop[0] : null)
-
 
         const checked = ref(true)
         const sideBar = ref(true)
@@ -171,7 +177,8 @@ export default {
             checked,
             desksDrop,
             alldesks: deskStore.allDesk,
-            loading
+            deskLoading,
+            projectLoading
         }
     },
 }
