@@ -24,8 +24,7 @@
         <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
             class="w-1/5 bg-white transition-all z-10 h-screen pt-20">
             <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm cursor-pointer"
-                :class="{ 'bg-gray-400 text-white': componentPage === 'dashboard' }"
-                @click="componentPage = 'dashboard'">
+                :class="{ 'bg-gray-400 text-white': componentPage === 'dashboard' }" @click="componentPage = 'dashboard'">
                 <i class="pi pi-home text-red-600" style="font-size: 1.5rem;"></i>
                 <span>داشبورد</span>
             </p>
@@ -36,12 +35,12 @@
                 <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
                 <span>پروژه ها</span>
             </p>
-            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
-                @click="(currentProject && currentProject.length > 0) ? componentPage = 'task' : null"
-                :class="{ 'cursor-not-allowed': (currentProject === undefined || currentProject.length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
-                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
-                <span>وضایف</span>
-            </p>
+            <!-- <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+                                                @click="(currentProject && currentProject.length > 0) ? componentPage = 'task' : null"
+                                                :class="{ 'cursor-not-allowed': (currentProject === undefined || currentProject.length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
+                                                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
+                                                <span>وضایف</span>
+                                            </p> -->
         </div>
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
@@ -49,8 +48,8 @@
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
                 @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
             <userProject v-else-if="componentPage === 'project'" @callPopupProject="createNewProject = true"
-                @callCreate="createNewDesk = true" />
-            <userTask v-else-if="componentPage === 'task'" />
+                                                                                                @callCreate="createNewDesk = true" />
+                                                                                            <userTask v-else-if="componentPage === 'task'" />
         </div>
     </div>
 
@@ -100,10 +99,20 @@
                     @click="addProject" />
             </div>
         </popUp>
-    </transition>
+</transition>
 </template>
 
 <script lang="ts">
+
+
+
+
+
+
+
+
+
+
 import { ref, computed, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
@@ -122,7 +131,7 @@ export default {
     name: 'UserPanel',
 
     components: {
-        userTask,
+        // userTask,
         Checkbox,
         Button,
         Avatar,
@@ -135,52 +144,40 @@ export default {
     props: ["id"],
 
     setup() {
-        const teammates = ref([])
+        const teammates = ref<any>([])
+        const deskStore = useDeskStore();
+        const teammateStore = useTeammateStore();
+        const projectStore = useProjectStore();
+        const sideBar = ref(true)
+        const componentPage = ref('dashboard')
+        const createNewDesk = ref(false)
+        const createNewProject = ref(false)
+        const deskName = ref('')
+        const projectName = ref('')
 
-        const selectedDeskEE: any = computed(() => {
-            return deskStore.selectedDropDesk
-        })
+
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+
+        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
         const currentTeammate = computed(() => {
-            if (selectedDeskEE.value.code !== 0) {
-                return teammateStore.selectedTeammate(selectedDeskEE.value.name)
+            if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
+                return selectedDesk.value.teammates
             } else {
                 return []
             }
         })
 
-        const deskStore = useDeskStore();
-        const teammateStore = useTeammateStore();
-        const projectStore = useProjectStore();
-
-        const sideBar = ref(true)
-
-        const deskName = ref('')
-        const projectName = ref('')
-
-        const router = useRouter()
-
-        const componentPage = ref('dashboard')
-
-
-        const createNewDesk = ref(false)
-
-        const createNewProject = ref(false)
-
-        const selectedDesk = ref<any>(deskStore.desksDrop[0])
-
         let deskTeammates = ref([{
             fullName: '',
             phoneNumber: null
         }])
-
         function addTeammate() {
             deskTeammates.value.push({
                 fullName: '',
                 phoneNumber: null
             })
         }
-
         function removeTeammate(index: number) {
             deskTeammates.value.splice(index, 1)
             if (deskTeammates.value.length == 0) {
@@ -188,12 +185,15 @@ export default {
             }
         }
 
+        // const selectedDesk = ref<any>(deskStore.desksDrop[0])
+
+
         function createDesk() {
             deskStore.changeLoading(true)
-            let teammates: any = []
+            let teammatesObj: any = {}
             if (deskTeammates.value[0].fullName.length > 0) {
-                teammates = deskTeammates.value.map(item => {
-                    return item
+                deskTeammates.value.forEach(item => {
+                    teammatesObj[item.fullName] = item
                 })
             }
 
@@ -203,17 +203,18 @@ export default {
 
             objDesk[deskNameValue] = {
                 name: deskName.value,
+                projects: {},
+                teammates: teammatesObj
             }
 
             deskStore.increment(objDesk)
             deskStore.setCurrentDesk(deskName.value)
-            deskStore.setSelectedDropDesk({ name: deskStore.selectedDesk(deskNameValue).name, code: deskStore.selectedDesk(deskNameValue).name })
-            teammateStore.addTeammate(deskNameValue, teammates)
+            deskStore.setSelectedDropDesk({ name: deskName.value, code: deskName.value })
 
             createNewDesk.value = false
             setInterval(() => {
                 deskStore.changeLoading(false)
-            }, 2000);
+            }, 1000);
         }
 
         watch(createNewDesk, () => {
@@ -222,9 +223,9 @@ export default {
                 phoneNumber: null
             }]
             deskName.value = ''
-            if (deskStore.selectedDesk(deskStore.currentDesk)) {
-                selectedDesk.value = { name: deskStore.selectedDesk(deskStore.currentDesk).name, code: deskStore.selectedDesk(deskStore.currentDesk).name }
-            }
+            // if (deskStore.selectedDesk(deskStore.currentDesk)) {
+            //     selectedDesk.value = { name: deskStore.selectedDesk(deskStore.currentDesk).name, code: deskStore.selectedDesk(deskStore.currentDesk).name }
+            // }
         })
 
         watch(createNewProject, () => {
@@ -234,23 +235,33 @@ export default {
 
         function addProject() {
             projectStore.changeLoading(true)
-            // const projectNameValue = projectName.value
-            projectStore.addProject(deskStore.currentDesk, {
-                name: projectName.value,
-                teammate: teammates.value
-            })
+
+            let teammatesObj: any = {}
+            if (teammates.value.length > 0) {
+                teammates.value.forEach((item: any) => {
+                    teammatesObj[item.fullName] = item
+                })
+            }
+
+            deskStore.setProject(deskStore.currentDesk, projectName.value, teammatesObj)
+
             createNewProject.value = false
-            // projectStore.setCurrentProject(projectName.value)
-            // projectStore.setSelectedDropProject({ name: projectStore.selectedProject(projectNameValue).name, code: projectStore.selectedProject(projectNameValue).name })
             setInterval(() => {
                 projectStore.changeLoading(false)
             }, 1000);
         }
 
+        // const currentProject = computed(() => {
+        //     if (selectedDesk.value.code !== 0) {
+        //         return projectStore.selectedProject(selectedDesk.value.name)
+        //     } else {
+        //         return []
+        //     }
+        // })
+
         const currentProject = computed(() => {
-            if (selectedDesk.value.code !== 0) {
-                console.log(projectStore.selectedProject(selectedDesk.value.name))
-                return projectStore.selectedProject(selectedDesk.value.name)
+            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
+                return selectedDesk.value.projects
             } else {
                 return []
             }

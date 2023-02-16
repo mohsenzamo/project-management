@@ -2,7 +2,7 @@
     <div class="splide splide_project mx-auto mt-24" role="group" style="width: 99%;">
         <div class="splide__track">
             <ul class="splide__list">
-                <template v-if="currentProject?.length > 0">
+                <template v-if="Object.values(currentProject).length > 0">
                     <li v-for="project in currentProject" :key="project.name" class="splide__slide">
                         <Card class="w-52 h-72">
                             <template #title>

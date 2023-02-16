@@ -9,8 +9,8 @@ export const useProjectStore = defineStore("useProjectStore", {
   state: () => ({
     allProjects: {} as any,
     projectsLoading: false as boolean,
-    currentProjects: "" as string,
-    selectedDropProjects: {} as object,
+    // currentProjects: "" as string,
+    // selectedDropProjects: {} as object,
   }),
   getters: {
     allProject: (state) => state.allProjects,
@@ -22,12 +22,16 @@ export const useProjectStore = defineStore("useProjectStore", {
     },
     // currentProject: (state) => state.currentProjects,
     // selectedDropProject: (state) => state.selectedDropProjects,
-    // projectsDrop: (state) => {
-    //   const drops = Object.values(state.allProjects).map((item: any) => {
-    //     return { name: item.name, code: item.name };
-    //   });
-    //   drops.push({ name: "پروژه جدید", code: 0 });
-    //   return drops;
+    // projectDrop: (state) => {
+    //   return (projectId: any) => {
+    //     const drops = state.allProjects[projectId].map((item: any) => {
+    //       console.log(item,'item')
+    //       return { name: item.name, code: item.name };
+    //     });
+    //     console.log(drops,1222)
+    //     drops.push({ name: "پروژه جدید", code: 0 });
+    //     return drops;
+    //   };
     // },
   },
   actions: {

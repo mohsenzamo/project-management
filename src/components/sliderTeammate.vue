@@ -2,7 +2,7 @@
     <div class="splide splide_teammate w-full" role="group">
         <div class="splide__track">
             <ul class="splide__list">
-                <template v-if="currentTeammate?.length > 0">
+                <template v-if="Object.values(currentTeammate).length > 0">
                     <li v-for="teammate in currentTeammate" :key="teammate.fullName" class="splide__slide">
                         <Chip :label="teammate.fullName" icon="pi pi-user" />
                     </li>
@@ -17,15 +17,15 @@
                 </template>
             </ul>
         </div>
-    </div>
+</div>
 </template>
 
 <script lang="ts">
+
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 import Chip from 'primevue/chip';
-import { computed, onMounted, watch } from 'vue'
-import { useTeammateStore } from '@/store/teammateStore';
+import { computed, onMounted, ref } from 'vue'
 import { useDeskStore } from '@/store/deskStore';
 
 export default {
@@ -51,23 +51,20 @@ export default {
         })
 
         const deskStore = useDeskStore()
-        const teammateStore = useTeammateStore()
-
-        const selectedDesk: any = computed(() => {
-            return deskStore.selectedDropDesk
-        })
-
+        const currentDesk: any = ref(deskStore.currentDesk)
+        const selectedDesk: any = ref(deskStore.selectedDesk(currentDesk.value))
         const currentTeammate = computed(() => {
-            if (selectedDesk.value.code !== 0) {
-                return teammateStore.selectedTeammate(selectedDesk.value.name)
+            if (Object.values(selectedDesk.value.teammates).length > 0) {
+                return selectedDesk.value.teammates
             } else {
                 return []
             }
         })
 
         return {
+            currentDesk,
+            selectedDesk,
             currentTeammate,
-            selectedDesk
         }
     },
 }

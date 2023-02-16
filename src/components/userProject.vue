@@ -3,13 +3,14 @@
         <div class="flex justify-between">
             <p>
                 پروژه های میزکار :
-                <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
+                <Dropdown v-if="desksDrop.length > 1" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
                     placeholder="میزکار" class="drop-down" @change="newDeskCall" />
             </p>
             <div class="flex gap-2">
                 <InlineMessage v-if="notFoundedProject && !projectLoading" severity="warn">پروژه ای با این نام پیدا نشد
                 </InlineMessage>
-                <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch" :disabled="currentProject === undefined || currentProject.length === 0"/>
+                <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch"
+                    :disabled="currentProject === undefined || currentProject.length === 0" />
             </div>
         </div>
         <div v-if="deskLoading || projectLoading" class="w-fit mx-auto mt-40">
@@ -20,9 +21,9 @@
                 <listProject @callPopupProject="$emit('callPopupProject')" :currentProject="[]" />
             </div>
             <listProject v-else @callPopupProject="$emit('callPopupProject')"
-                :currentProject="foundedProject.length > 0 ? foundedProject : currentProject" />
+                :currentProject="Object.values(foundedProject).length > 0 ? foundedProject : currentProject" />
         </template>
-    </div>
+</div>
 </template>
 
 <script lang="ts">
@@ -34,8 +35,6 @@ import listProject from './listProject.vue';
 import ProgressSpinner from 'primevue/progressspinner';
 import InputText from 'primevue/inputtext';
 import InlineMessage from 'primevue/inlinemessage';
-
-
 
 export default {
     name: "UserProject",
@@ -49,23 +48,24 @@ export default {
     },
 
     setup(props: any, context: any) {
+        const projectSearch = ref('')
+        const foundedProject = ref<any>({})
+        const notFoundedProject = ref(false)
         const deskStore = useDeskStore()
         const projectStore = useProjectStore()
-
-        const desksDrop = computed(() => {
-            return deskStore.desksDrop
-        })
-
-        const selectedDesk: any = computed(() => {
-            return deskStore.selectedDropDesk
-        })
-
-        const deskLoading = computed(() => {
-            return deskStore.deskLoading
-        })
-
-        const projectLoading = computed(() => {
-            return projectStore.projectLoading
+        const desksDrop = computed(() => deskStore.desksDrop)
+        const deskLoading = computed(() => deskStore.deskLoading)
+        const projectLoading = computed(() => projectStore.projectLoading)
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+        const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
+        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
+        const currentProject: any = computed(() => {
+            if (Object.values(selectedDesk.value.projects).length > 0) {
+                console.log(selectedDesk.value.projects)
+                return selectedDesk.value.projects
+            } else {
+                return []
+            }
         })
 
         function newDeskCall(code: any) {
@@ -80,33 +80,20 @@ export default {
                 }, 3000);
             }
         }
-        const projectSearch = ref('')
-
-        const currentProject = computed(() => {
-            if (selectedDesk.value.code !== 0) {
-                return projectStore.selectedProject(selectedDesk.value.name)
-            } else {
-                return []
-            }
-        })
-
-        const foundedProject = ref<any>([])
-        const notFoundedProject = ref(false)
 
         watch(projectSearch, (text) => {
             projectStore.changeLoading(true)
             if (text && text.length > 0) {
-                const allProject = currentProject.value
-                foundedProject.value = []
+                foundedProject.value = {}
                 notFoundedProject.value = false
-                allProject.forEach((element: any) => {
-                    element.name.startsWith(text) ? foundedProject.value.push(element) : null
+                Object.values(currentProject.value).forEach((element: any) => {
+                    element.name.startsWith(text) ? foundedProject.value[element.name] = currentProject.value[element.name] : null
                 })
-                if (foundedProject.value.length === 0) {
+                if (Object.values(foundedProject.value).length === 0) {
                     notFoundedProject.value = true
                 }
             } else {
-                foundedProject.value = []
+                foundedProject.value = {}
                 notFoundedProject.value = false
             }
             setInterval(() => {
@@ -115,6 +102,7 @@ export default {
         })
 
         return {
+            selectedDropDesk,
             foundedProject,
             notFoundedProject,
             desksDrop,

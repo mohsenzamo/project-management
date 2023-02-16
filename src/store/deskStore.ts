@@ -6,7 +6,7 @@ interface deskObj {
 
 export const useDeskStore = defineStore("useDeskStore", {
   state: () => ({
-    allDesks: {} as object,
+    allDesks: {} as any,
     currentDesks: "" as string,
     selectedDropDesks: {} as object,
     desksLoading: false as boolean,
@@ -25,15 +25,24 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     selectedDesk: (state) => {
       return (deskId: any) => {
-        return Object.values(state.allDesks).find(
-          (item) => item.name == deskId
-        );
+        return state.allDesks[deskId];
       };
     },
   },
   actions: {
     increment(deskItem: object) {
       this.allDesks = Object.assign(this.allDesks, deskItem);
+    },
+    setProject(deskId: string, projectName: string, teammates: object) {
+      const objProject: any = {};
+
+      objProject[projectName] = {
+        name: projectName,
+        tasks: {},
+        teammates: teammates,
+      };
+
+      this.allDesks[deskId].projects = Object.assign(this.allDesks[deskId].projects, objProject);
     },
     setCurrentDesk(deskId: string) {
       this.currentDesks = deskId;
