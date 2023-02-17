@@ -23,7 +23,7 @@
             <listProject v-else @callPopupProject="$emit('callPopupProject')"
                 :currentProject="Object.values(foundedProject).length > 0 ? foundedProject : currentProject" />
         </template>
-</div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -61,7 +61,6 @@ export default {
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
         const currentProject: any = computed(() => {
             if (Object.values(selectedDesk.value.projects).length > 0) {
-                console.log(selectedDesk.value.projects)
                 return selectedDesk.value.projects
             } else {
                 return []

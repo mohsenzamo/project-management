@@ -10,10 +10,12 @@ export const useDeskStore = defineStore("useDeskStore", {
     currentDesks: "" as string,
     selectedDropDesks: {} as object,
     desksLoading: false as boolean,
+    tasksLoading: false as boolean,
   }),
   getters: {
     allDesk: (state) => state.allDesks,
     deskLoading: (state) => state.desksLoading,
+    taskLoading: (state) => state.tasksLoading,
     currentDesk: (state) => state.currentDesks,
     selectedDropDesk: (state) => state.selectedDropDesks,
     desksDrop: (state) => {
@@ -42,7 +44,29 @@ export const useDeskStore = defineStore("useDeskStore", {
         teammates: teammates,
       };
 
-      this.allDesks[deskId].projects = Object.assign(this.allDesks[deskId].projects, objProject);
+      this.allDesks[deskId].projects = Object.assign(
+        this.allDesks[deskId].projects,
+        objProject
+      );
+    },
+    setTask(
+      deskId: string,
+      projectId: string,
+      taskName: string,
+      taskDescription: string,
+      responsible: string
+    ) {
+      const objTask: any = {};
+      objTask[taskName] = {
+        name: taskName,
+        description: taskDescription,
+        responsible: responsible,
+        isDone: false
+      };
+      this.allDesks[deskId].projects[projectId].tasks = Object.assign(
+        this.allDesks[deskId].projects[projectId].tasks,
+        objTask
+      );
     },
     setCurrentDesk(deskId: string) {
       this.currentDesks = deskId;
@@ -52,6 +76,9 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     changeLoading(bool: boolean) {
       this.desksLoading = bool;
+    },
+    changeTaskLoading(bool: boolean) {
+      this.tasksLoading = bool;
     },
   },
 });

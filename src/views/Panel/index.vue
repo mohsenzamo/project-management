@@ -32,15 +32,15 @@
             <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
                 @click="Object.values(alldesks).length > 0 ? componentPage = 'project' : null"
                 :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white': componentPage === 'project' }">
-                <i class="pi pi-qrcode text-blue-600" style="font-size: 1.5rem;"></i>
+                <i class="pi pi-folder text-blue-600" style="font-size: 1.5rem;"></i>
                 <span>پروژه ها</span>
             </p>
-            <!-- <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
-                                                @click="(currentProject && currentProject.length > 0) ? componentPage = 'task' : null"
-                                                :class="{ 'cursor-not-allowed': (currentProject === undefined || currentProject.length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
-                                                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
-                                                <span>وضایف</span>
-                                            </p> -->
+            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+                @click="(Object.values(currentProject).length > 0) ? componentPage = 'task' : null"
+                :class="{ 'cursor-not-allowed': (currentProject === undefined || Object.values(currentProject).length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
+                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
+                <span>وضایف</span>
+            </p>
         </div>
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
@@ -48,8 +48,8 @@
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
                 @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
             <userProject v-else-if="componentPage === 'project'" @callPopupProject="createNewProject = true"
-                                                                                                @callCreate="createNewDesk = true" />
-                                                                                            <userTask v-else-if="componentPage === 'task'" />
+                @callCreate="createNewDesk = true" />
+            <userTask v-else-if="componentPage === 'task'" @callPopupTask="createNewTask = true" @callCreate="componentPage = 'dashboard'"/>
         </div>
     </div>
 
@@ -87,11 +87,14 @@
                 <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5" />
             </div>
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
-                <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
-                    <Checkbox name="teammate" :value="teammate" v-model="teammates" />
-                    <p>{{ teammate.fullName }}</p>
-                </div>
+                <template v-if="Object.values(currentTeammate).length > 0">
+                    <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
+                    <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
+                        <Checkbox name="teammate" :value="teammate" v-model="teammates" />
+                        <p>{{ teammate.fullName }}</p>
+                    </div>
+                </template>
+                <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
             <div class="flex gap-2">
                 <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewProject = false" />
@@ -99,20 +102,43 @@
                     @click="addProject" />
             </div>
         </popUp>
-</transition>
+    </transition>
+
+    <transition name="modal">
+        <popUp v-if="createNewTask" @close="createNewTask = false">
+            <p class="text-lg font-bold my-3">پروژه جدید ایجاد کنید:</p>
+            <div class="mb-3">
+                <p class="mb-2">نام تسک:</p>
+                <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-3/5" />
+            </div>
+            <div class="flex gap-12 items-center mb-4">
+                <div>
+                    <p class="mb-2">پروژه مربوط:</p>
+                    <Dropdown v-model="selectedDropProject" :options="projectsDrop" optionLabel="name" placeholder="پروژه"
+                        class="drop-down" />
+                </div>
+                <div v-if="selectedDropProject">
+                    <template v-if="tasksDrop.length > 0">
+                        <p class="mb-2">فرد مسئول:</p>
+                        <Dropdown v-model="selectedDropTeammate" :options="tasksDrop" optionLabel="name" placeholder="همکار"
+                            class="drop-down" />
+                    </template>
+                    <p v-else class="mt-5">همکاری برای این پروژه ثبت نشده است</p>
+                </div>
+            </div>
+            <div>
+                <Textarea v-model="taskDescription" :autoResize="true" rows="5" cols="81" />
+            </div>
+            <div class="flex gap-2">
+                <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewTask = false" />
+                <Button label="ایجاد" class="p-button-sm p-button-success"
+                    :disabled="!(taskName.length > 0 && selectedDropProject && selectedDropTeammate)" @click="addTask" />
+            </div>
+        </popUp>
+    </transition>
 </template>
 
 <script lang="ts">
-
-
-
-
-
-
-
-
-
-
 import { ref, computed, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
@@ -126,19 +152,24 @@ import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import Checkbox from 'primevue/checkbox';
+import RadioButton from 'primevue/radiobutton';
+import Dropdown from 'primevue/dropdown';
+import Textarea from 'primevue/textarea';
 
 export default {
     name: 'UserPanel',
 
     components: {
-        // userTask,
+        userTask,
         Checkbox,
         Button,
         Avatar,
         userDashboard,
         userProject,
         popUp,
-        InputText
+        InputText,
+        Dropdown,
+        Textarea
     },
 
     props: ["id"],
@@ -146,14 +177,18 @@ export default {
     setup() {
         const teammates = ref<any>([])
         const deskStore = useDeskStore();
-        const teammateStore = useTeammateStore();
         const projectStore = useProjectStore();
         const sideBar = ref(true)
         const componentPage = ref('dashboard')
         const createNewDesk = ref(false)
         const createNewProject = ref(false)
+        const createNewTask = ref(false)
         const deskName = ref('')
         const projectName = ref('')
+        const taskName = ref('')
+        const selectedDropProject = ref<any>(null)
+        const selectedDropTeammate = ref<any>(null)
+        const taskDescription = ref('')
 
 
         const currentDesk: any = computed(() => deskStore.currentDesk)
@@ -193,7 +228,9 @@ export default {
             let teammatesObj: any = {}
             if (deskTeammates.value[0].fullName.length > 0) {
                 deskTeammates.value.forEach(item => {
-                    teammatesObj[item.fullName] = item
+                    if (item.fullName.length > 0) {
+                        teammatesObj[item.fullName] = item
+                    }
                 })
             }
 
@@ -233,6 +270,13 @@ export default {
             projectName.value = ''
         })
 
+        watch(createNewTask, () => {
+            taskName.value = ''
+            taskDescription.value = ''
+            selectedDropProject.value = null
+            selectedDropTeammate.value = null
+        })
+
         function addProject() {
             projectStore.changeLoading(true)
 
@@ -251,13 +295,14 @@ export default {
             }, 1000);
         }
 
-        // const currentProject = computed(() => {
-        //     if (selectedDesk.value.code !== 0) {
-        //         return projectStore.selectedProject(selectedDesk.value.name)
-        //     } else {
-        //         return []
-        //     }
-        // })
+        function addTask() {
+            deskStore.changeTaskLoading(true)
+            deskStore.setTask(deskStore.currentDesk, selectedDropProject.value.code, taskName.value, taskDescription.value, selectedDropTeammate.value.code)
+            createNewTask.value = false
+            setInterval(() => {
+                deskStore.changeTaskLoading(false)
+            }, 1000);
+        }
 
         const currentProject = computed(() => {
             if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
@@ -267,20 +312,52 @@ export default {
             }
         })
 
+
+        const tasksDrop = computed(() => {
+            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0 && currentProject.value[selectedDropProject.value.code]) {
+                const drops = Object.values(currentProject.value[selectedDropProject.value.code].teammates).map((item: any) => {
+                    return { name: item.fullName, code: item.fullName };
+                });
+                drops.push({ name: 'خودم', code: 'خودم' })
+                return drops
+            } else {
+                return []
+            }
+        })
+
+        const projectsDrop = computed(() => {
+            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
+                const drops = Object.values(selectedDesk.value.projects).map((item: any) => {
+                    return { name: item.name, code: item.name };
+                });
+                return drops
+            } else {
+                return []
+            }
+        })
+
         return {
-            currentProject,
+            addTask,
             addProject,
             removeTeammate,
+            addTeammate,
+            createDesk,
+            alldesks: deskStore.allDesk,
+            selectedDropProject,
+            selectedDropTeammate,
+            taskDescription,
+            taskName,
+            currentProject,
+            projectsDrop,
+            tasksDrop,
             deskName,
             sideBar,
-            alldesks: deskStore.allDesk,
             componentPage,
             createNewDesk,
             deskTeammates,
-            addTeammate,
-            createDesk,
             selectedDesk,
             createNewProject,
+            createNewTask,
             teammates,
             currentTeammate,
             projectName
