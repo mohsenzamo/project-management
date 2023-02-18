@@ -42,6 +42,7 @@ export const useDeskStore = defineStore("useDeskStore", {
         name: projectName,
         tasks: {},
         teammates: teammates,
+        deskId: deskId,
       };
 
       this.allDesks[deskId].projects = Object.assign(
@@ -61,7 +62,9 @@ export const useDeskStore = defineStore("useDeskStore", {
         name: taskName,
         description: taskDescription,
         responsible: responsible,
-        isDone: false
+        isDone: false,
+        projectId: projectId,
+        deskId: deskId,
       };
       this.allDesks[deskId].projects[projectId].tasks = Object.assign(
         this.allDesks[deskId].projects[projectId].tasks,

@@ -1,42 +1,72 @@
 <template>
     <div class="w-full h-screen p-4">
-        <div class="mb-5">
-            <p>
-                تسک های میزکار :
-                <Dropdown v-if="desksDrop.length > 0" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
-                    placeholder="میزکار" class="drop-down" @change="newDeskCall" />
-            </p>
-        </div>
-        <div class="flex items-center mb-5 gap-2">
-            <TriStateCheckbox v-model="isDoneTask" />
-            <p v-if="isDoneTask === true">تسک های انجام شده</p>
-            <p v-else-if="isDoneTask === false">تسک های در حال انجام</p>
-            <p v-else-if="isDoneTask === null">همه تسک ها</p>
-        </div>
-        <div class="mb-5">
+        <div class="mb-4">
             <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info" @click="$emit('callPopupTask')" />
         </div>
-        <div v-if="taskLoading || deskLoading" class="w-fit mx-auto mt-40">
-            <ProgressSpinner />
-        </div>
-        <div v-else>
-            <template v-for="project in currentProject" :key="project.name">
-                <template v-if="Object.values(project.tasks).length > 0">
-                    <div v-for="task in project.tasks" :key="task.name"
-                        class="w-full mx-auto mb-2 bg-white rounded-sm shadow-sm flex justify-between items-center p-2">
-                        <div class="flex gap-2 items-center">
-                            <Checkbox name="task" :value="task.name" v-model="tasksChecked" />
-                            <p>{{ task.name }}</p>
-                            <small class="text-ellipsis whitespace-nowrap overflow-hidden w-96">{{ task.description
-                            }}</small>
+        <div class="flex gap-4">
+            <div v-if="taskLoading || deskLoading" class="w-4/5 mx-auto mt-40">
+                <ProgressSpinner />
+            </div>
+            <div v-else class="w-4/5">
+                <div v-if="notFoundedTask">
+                    <InlineMessage severity="warn"> تسکی با این نام پیدا نشد
+                    </InlineMessage>
+                </div>
+                <template v-else>
+                    <template v-if="Object.values(foundedTask).length === 0">
+                        <template v-for="project in currentProject" :key="project.name">
+                            <template v-if="Object.values(project.tasks).length > 0">
+                                <div v-for="task in project.tasks" :key="task.name"
+                                    class="w-full mx-auto mb-4 bg-white rounded-sm shadow-sm flex justify-between items-center p-2">
+                                    <div class="flex gap-2 items-center">
+                                        <Checkbox name="task" :value="task" v-model="tasksChecked" />
+                                        <p>{{ task.name }}</p>
+                                        <small class="text-ellipsis whitespace-nowrap overflow-hidden w-96">{{
+                                            task.description
+                                        }}</small>
+                                    </div>
+                                    <div class="flex gap-2 items-center">
+                                        <Chip :label="project.name" icon="pi pi-folder" />
+                                        <Chip :label="task.responsible" icon="pi pi-user" />
+                                    </div>
+                                </div>
+                            </template>
+                        </template>
+                    </template>
+                    <template v-else>
+                        <div v-for="task in foundedTask" :key="task.name"
+                            class="w-full mx-auto mb-4 bg-white rounded-sm shadow-sm flex justify-between items-center p-2">
+                            <div class="flex gap-2 items-center">
+                                <Checkbox name="task" :value="task" v-model="tasksChecked" />
+                                <p>{{ task.name }}</p>
+                                <small class="text-ellipsis whitespace-nowrap overflow-hidden w-96">{{ task.description
+                                }}</small>
+                            </div>
+                            <div class="flex gap-2 items-center">
+                                <Chip :label="task.projectId" icon="pi pi-folder" />
+                                <Chip :label="task.responsible" icon="pi pi-user" />
+                            </div>
                         </div>
-                        <div class="flex gap-2 items-center">
-                            <Chip :label="project.name" icon="pi pi-folder" />
-                            <Chip :label="task.responsible" icon="pi pi-user" />
-                        </div>
-                    </div>
+                    </template>
                 </template>
-            </template>
+            </div>
+            <div class="bg-white w-1/5 h-full sticky top-4 rounded-sm flex flex-col p-2 gap-2">
+                <InputText type="text" placeholder="جستجو تسک" v-model="taskSearch" />
+                <hr />
+                <div class="flex items-center mb-2 gap-2">
+                    <TriStateCheckbox v-model="isDoneTask" />
+                    <p v-if="isDoneTask === true">تسک های انجام شده</p>
+                    <p v-else-if="isDoneTask === false">تسک های در حال انجام</p>
+                    <p v-else-if="isDoneTask === null">همه تسک ها</p>
+                </div>
+                <div class="flex items-center justify-between">
+                    <p>
+                        میزکار :
+                    </p>
+                    <Dropdown v-if="desksDrop.length > 0" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
+                        placeholder="میزکار" class="drop-down" @change="newDeskCall" />
+                </div>
+            </div>
         </div>
     </div>
 </template>
@@ -50,11 +80,15 @@ import Chip from 'primevue/chip';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
+import InputText from 'primevue/inputtext';
+import InlineMessage from 'primevue/inlinemessage';
 
 export default {
     name: "UserTask",
 
     components: {
+        InlineMessage,
+        InputText,
         Button,
         Chip,
         Checkbox,
@@ -65,17 +99,21 @@ export default {
 
     setup(props: any, context: any) {
 
-        const tasksChecked = computed(() => {
-            const isDoneArray: any = []
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                Object.values(selectedDesk.value.projects).forEach((project: any) => {
-                    Object.values(project.tasks).forEach((task: any) => {
-                        task.isDone === true ? isDoneArray.push(task.name) : null
-                    })
-                })
-            }
-            return isDoneArray
-        })
+        // const tasksChecked = computed(() => {
+        //     const isDoneArray: any = []
+        //     if (Object.values(selectedDesk.value.projects).length > 0) {
+        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
+        //             Object.values(project.tasks).forEach((task: any) => {
+        //                 task.isDone === true ? isDoneArray.push(task.name) : null
+        //             })
+        //         })
+        //     }
+        //     return isDoneArray
+        // })
+        const tasksChecked = ref([])
+        const taskSearch = ref('')
+        const foundedTask = ref<any>({})
+        const notFoundedTask = ref(false)
         const isDoneTask = ref(null)
         const deskStore = useDeskStore()
         const currentDesk: any = computed(() => deskStore.currentDesk)
@@ -115,7 +153,32 @@ export default {
 
         watch(tasksChecked, (x) => { console.log(x) })
 
+        watch(taskSearch, (text) => {
+            deskStore.changeLoading(true)
+            if (text && text.length > 0) {
+                foundedTask.value = {}
+                notFoundedTask.value = false
+                Object.values(currentProject.value).forEach((project: any) => {
+                    Object.values(project.tasks).forEach((task: any) => {
+                        task.name.startsWith(text) ? foundedTask.value[task.name] = project.tasks[task.name] : null
+                    })
+                })
+                if (Object.values(foundedTask.value).length === 0) {
+                    notFoundedTask.value = true
+                }
+            } else {
+                foundedTask.value = {}
+                notFoundedTask.value = false
+            }
+            setInterval(() => {
+                deskStore.changeLoading(false)
+            }, 1000);
+        })
+
         return {
+            foundedTask,
+            notFoundedTask,
+            taskSearch,
             tasksChecked,
             currentProject,
             taskLoading,
