@@ -127,6 +127,7 @@
                 </div>
             </div>
             <div>
+                <p class="mb-2">توضیحات:</p>
                 <Textarea v-model="taskDescription" :autoResize="true" rows="5" cols="81" />
             </div>
             <div class="flex gap-2">

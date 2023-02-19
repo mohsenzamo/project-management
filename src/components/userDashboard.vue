@@ -2,7 +2,7 @@
     <div v-if="Object.keys(alldesks).length > 0" class="pt-3 px-2">
         <p>
             میزکارشما :
-            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDesk" :options="desksDrop" optionLabel="name"
+            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
                 placeholder="میزکار" class="drop-down" @change="newDeskCall" />
         </p>
 
@@ -33,11 +33,20 @@
                     </template>
                     <template #content>
                         <div class="w-full mx-0 custom h-56 overflow-y-scroll">
-                            <p v-for="i in 20" :key="i" class="bg-gray-300 flex items-center rounded-sm mb-1 p-2">
-                                <Checkbox v-model="checked" />
-                                <span class="mx-2">کار من</span>
-                                <small>توضیحات</small>
-                            </p>
+                            <template v-if="isMyTask">
+                                <template v-for="task in currentTask" :key="task.name">
+                                    <p v-if="task.responsible === 'خودم'"
+                                        class="bg-gray-300 flex items-center rounded-sm mb-1 p-2">
+                                        <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
+                                            offIcon="pi pi-times" class="p-button-sm" />
+                                        <span class="mx-2">{{ task.name }}</span>
+                                        <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
+                                            task.description
+                                        }}</small>
+                                    </p>
+                                </template>
+                            </template>
+                            <p v-else class="text-center">تسکی برای انجام ندارم</p>
                         </div>
                     </template>
                 </Card>
@@ -49,15 +58,22 @@
                     </template>
                     <template #content>
                         <div class="w-full mx-0 custom h-56 overflow-y-scroll">
-                            <div v-for="i in 20" :key="i"
-                                class="bg-gray-300 flex items-center rounded-sm mb-1 p-2 justify-between">
-                                <p>
-                                    <Checkbox v-model="checked" />
-                                    <span class="mx-2">کار دیگران</span>
-                                    <small>توضیحات</small>
-                                </p>
-                                <Avatar icon="pi pi-user" shape="circle" />
-                            </div>
+                            <template v-if="isTeammateTask">
+                                <template v-for="task in currentTask" :key="task.name">
+                                    <div v-if="task.responsible !== 'خودم'"
+                                        class="bg-gray-300 flex items-center rounded-sm mb-1 p-2 justify-between">
+                                        <p class="flex items-center">
+                                            <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
+                                                offIcon="pi pi-times" class="p-button-sm" />
+                                            <span class="mx-2">{{ task.name }}</span>
+                                            <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
+                                                task.description }}</small>
+                                        </p>
+                                        <Avatar :label="task.responsible[0]" shape="circle" />
+                                    </div>
+                                </template>
+                            </template>
+                            <p v-else class="text-center">تسکی برای پیگیری نیست</p>
                         </div>
                     </template>
                 </Card>
@@ -71,22 +87,27 @@
                     </template>
                     <template #content>
                         <div class="w-full mx-0 custom h-56 overflow-y-scroll">
-                            <div v-for="i in 20" :key="i" class="bg-gray-300 mb-1 text-sm p-2 rounded-sm">
-                                <p class="mb-1">
-                                    پروژه: تستی
-                                </p>
-                                <ProgressBar :value="100" />
-                                <div class="flex flex-row-reverse gap-2 mt-1">
-                                    <p>
-                                        <span>کارهای انجام شده:</span>
-                                        <span>0</span>
+                            <template v-if="Object.values(currentProject).length > 0">
+                                <div v-for="project in currentProject" :key="project.name"
+                                    class="bg-gray-300 mb-1 text-sm p-2 rounded-sm">
+                                    <p class="mb-1">
+                                        <span class="ml-1">پروژه:</span>
+                                        <span>{{ project.name }}</span>
                                     </p>
-                                    <p>
-                                        <span>کارهای باقی مانده:</span>
-                                        <span>0</span>
-                                    </p>
+                                    <ProgressBar :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
+                                    <div class="flex flex-row-reverse gap-2 mt-1">
+                                        <p>
+                                            <span class="ml-1">کارهای انجام شده:</span>
+                                            <span>{{ project.isDoneTask }}</span>
+                                        </p>
+                                        <p>
+                                            <span class="ml-1">کارهای باقی مانده:</span>
+                                            <span>{{ project.isNotDoneTask }}</span>
+                                        </p>
+                                    </div>
                                 </div>
-                            </div>
+                            </template>
+                            <p v-else class="text-center">پروژه ای موجود نیست</p>
                         </div>
                     </template>
                 </Card>
@@ -102,7 +123,6 @@
             <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="$emit('callPopup')" />
         </div>
     </div>
-
 </template>
 
 <script lang="ts">
@@ -118,6 +138,7 @@ import sliderTeammate from '@/components/sliderTeammate.vue';
 import Checkbox from 'primevue/checkbox';
 import ProgressBar from 'primevue/progressbar';
 import ProgressSpinner from 'primevue/progressspinner';
+import ToggleButton from 'primevue/togglebutton';
 
 export default {
     name: 'UserDashboard',
@@ -129,9 +150,9 @@ export default {
         Card,
         sliderProject,
         sliderTeammate,
-        Checkbox,
         ProgressBar,
-        ProgressSpinner
+        ProgressSpinner,
+        ToggleButton
     },
 
     setup(props: any, context: any) {
@@ -166,13 +187,72 @@ export default {
             return deskStore.desksDrop
         })
 
-        const selectedDesk = computed(() => {
+        const selectedDropDesk = computed(() => {
             return deskStore.selectedDropDesk
+        })
+
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+
+        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
+
+        const currentTask: any = computed(() => {
+            let taskObj: any = {}
+            if (Object.values(selectedDesk.value.projects).length > 0) {
+                Object.values(selectedDesk.value.projects).forEach((project: any) => {
+                    Object.values(project.tasks).forEach((task: any) => {
+                        // task.isDone ? tasksChecked.value.push(task) : null
+                        taskObj[task.name] = task
+                    })
+                })
+                return taskObj
+            } else {
+                return taskObj
+            }
+        })
+
+        const isTeammateTask: any = computed(() => {
+            let isThere = false
+            Object.values(currentTask.value).forEach((task: any) => {
+                task.responsible !== 'خودم' ? isThere = true : null
+            })
+            return isThere
+        })
+
+        const isMyTask: any = computed(() => {
+            let isThere = false
+            Object.values(currentTask.value).forEach((task: any) => {
+                task.responsible === 'خودم' ? isThere = true : null
+            })
+            return isThere
+        })
+
+        const currentProject: any = computed(() => {
+            if (Object.values(selectedDesk.value.projects).length > 0) {
+                console.log(selectedDesk.value.projects)
+                let newProjectObj: any = {}
+                Object.values(selectedDesk.value.projects).forEach((project: any) => {
+                    let isDoneTask = 0
+                    let isNotDoneTask = 0
+                    Object.values(project.tasks).forEach((task: any) => {
+                        task.isDone ? isDoneTask++ : isNotDoneTask++
+                    })
+                    const pjn = project.name
+                    newProjectObj[pjn] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
+                })
+                console.log(newProjectObj)
+                return newProjectObj
+            } else {
+                return {}
+            }
         })
 
         return {
             newDeskCall,
-            selectedDesk,
+            isTeammateTask,
+            currentProject,
+            isMyTask,
+            currentTask,
+            selectedDropDesk,
             sideBar,
             checked,
             desksDrop,
