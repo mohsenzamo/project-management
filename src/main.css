@@ -1,9 +1,26 @@
+@font-face {
+  font-family: "IranNastaliq";
+  src: url(../src/assets/fonts/IranNastaliq/IranNastaliq.ttf);
+}
+@font-face {
+  font-family: "IRANSans";
+  src: url(../src/assets/fonts/IRANSans/IRANSans.ttf);
+}
+@font-face {
+  font-family: "Yekan";
+  src: url(../src/assets/fonts/yekan/Yekan.ttf);
+}
+@font-face {
+  font-family: "neirizi";
+  src: url(../src/assets/fonts/neirizi/neirizi.ttf);
+}
   @tailwind base;
   @layer base {
     body {
-      @apply bg-gray-200;
+      @apply bg-white font-yekan text-lg;
       direction: rtl;
       -webkit-tap-highlight-color: transparent;
+
     }
   }
   @tailwind components;

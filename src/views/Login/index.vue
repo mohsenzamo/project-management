@@ -23,7 +23,7 @@
                     </div>
                 </template>
                 <template #footer>
-                    <p class="mt-4 font-IRANSans text-xs">
+                    <p class="mt-4 font-IRANSans text-sm">
                         حساب کاربری دارید!
                         <span class="text-blue-700 cursor-pointer" @click="formValue = !formValue">ورود به حساب</span>
                     </p>
@@ -52,7 +52,7 @@
                     </div>
                 </template>
                 <template #footer>
-                    <p class="font-IRANSans text-xs">
+                    <p class="font-IRANSans text-sm">
                         حساب کاربری ندارید؟
                         <span class="text-blue-700 cursor-pointer" @click="formValue = !formValue">ثبت نام کنید</span>
                     </p>
@@ -101,7 +101,19 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style lang="scss">
+.p-card {
+    @apply font-yekan shadow-2xl
+}
+
+.p-inputtext {
+    @apply font-yekan
+}
+
+.p-button {
+    @apply font-yekan
+}
+
 .scaleLeft-enter-active,
 .scaleRight-enter-active {
     transition: all 0.7s ease;
@@ -134,6 +146,5 @@ export default {
 
 .scaleLeft-leave-from {
     opacity: 0;
-}
-</style>
+}</style>
 

@@ -11,7 +11,7 @@
         </div>
         <template v-else>
 
-            <div class="my-2">
+            <div class="my-2 px-3">
                 <p class="mb-2">پروژه ها:</p>
                 <div v-if="projectLoading" class="w-fit mx-auto">
                     <ProgressSpinner />
@@ -19,26 +19,26 @@
                 <sliderProject v-else @callPopupProject="$emit('callPopupProject')"></sliderProject>
             </div>
 
-            <div class="my-2">
+            <div class="my-2 px-3">
                 <p class="mb-2">همکاران:</p>
                 <sliderTeammate></sliderTeammate>
             </div>
 
-            <div class="flex gap-2 my-3">
-                <Card class="w-full">
+            <div class="flex gap-2 mt-5 px-3">
+                <Card class="w-full shadow-md">
                     <template #header>
-                        <div class="bg-green-500 rounded-t-sm p-2">
+                        <div class="bg-green-400 rounded-t-sm p-2 text-white">
                             کارهای من
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0 custom h-56 overflow-y-scroll">
+                        <div class="w-full mx-0">
                             <template v-if="isMyTask">
                                 <template v-for="task in currentTask" :key="task.name">
                                     <p v-if="task.responsible === 'خودم'"
-                                        class="bg-gray-300 flex items-center rounded-sm mb-1 p-2">
+                                        class="bg-slate-300 flex items-center rounded-sm mb-1 p-2 shadow">
                                         <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                            offIcon="pi pi-times" class="p-button-sm" />
+                                            offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
                                         <span class="mx-2">{{ task.name }}</span>
                                         <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
                                             task.description
@@ -50,21 +50,21 @@
                         </div>
                     </template>
                 </Card>
-                <Card class="w-full">
+                <Card class="w-full shadow-md">
                     <template #header>
-                        <div class="bg-blue-500 rounded-t-sm p-2">
+                        <div class="bg-blue-400 rounded-t-sm p-2 text-white">
                             کارهای دیگران
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0 custom h-56 overflow-y-scroll">
+                        <div class="w-full mx-0">
                             <template v-if="isTeammateTask">
                                 <template v-for="task in currentTask" :key="task.name">
                                     <div v-if="task.responsible !== 'خودم'"
-                                        class="bg-gray-300 flex items-center rounded-sm mb-1 p-2 justify-between">
+                                        class="bg-slate-300 flex items-center rounded-sm mb-1 p-2 justify-between shadow">
                                         <p class="flex items-center">
                                             <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                                offIcon="pi pi-times" class="p-button-sm" />
+                                                offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
                                             <span class="mx-2">{{ task.name }}</span>
                                             <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
                                                 task.description }}</small>
@@ -78,23 +78,24 @@
                     </template>
                 </Card>
             </div>
-            <div class="my-2">
-                <Card class="w-full cursor-pointer">
+            <div class="my-3 px-3">
+                <Card class="w-full cursor-pointer shadow-md">
                     <template #header>
-                        <div class="bg-purple-500 rounded-t-sm p-2">
+                        <div class="bg-purple-400 rounded-t-sm p-2 text-white">
                             وضعیت پیشرفت پروژه ها
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0 custom h-56 overflow-y-scroll">
+                        <div class="w-full mx-0">
                             <template v-if="Object.values(currentProject).length > 0">
                                 <div v-for="project in currentProject" :key="project.name"
-                                    class="bg-gray-300 mb-1 text-sm p-2 rounded-sm">
+                                    class="bg-slate-300 mb-1 text-sm p-2 rounded-sm shadow">
                                     <p class="mb-1">
                                         <span class="ml-1">پروژه:</span>
                                         <span>{{ project.name }}</span>
                                     </p>
-                                    <ProgressBar :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
+                                    <ProgressBar
+                                        :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
                                     <div class="flex flex-row-reverse gap-2 mt-1">
                                         <p>
                                             <span class="ml-1">کارهای انجام شده:</span>
@@ -114,7 +115,6 @@
             </div>
         </template>
     </div>
-
     <div v-else class="pt-3 px-2">
         <div class="flex items-center gap-2">
             <p>
@@ -265,13 +265,37 @@ export default {
 </script>
 
 <style lang="scss">
+.p-component {
+    @apply font-yekan
+}
+
+.p-dropdown {
+    @apply bg-transparent border-0 border-b-2 rounded-none border-light-blue
+}
+
+.p-dropdown:not(.p-disabled):hover {
+    @apply border-dark-purple
+}
+
+.p-dropdown:not(.p-disabled).p-focus {
+    @apply shadow-none border-light-blue
+}
+
+.p-dropdown-panel .p-dropdown-items .p-dropdown-item {
+    @apply py-1 px-2
+}
+
+.p-dropdown-panel .p-dropdown-items {
+    @apply p-0
+}
+
 .p-button::v-deep .p-button-icon-left {
     margin-left: .5rem;
     margin-right: 0;
 }
 
-.p-progressbar::v-deep .p-progressbar-value {
-    @apply bg-blue-400;
+.p-progressbar .p-progressbar-value {
+    @apply bg-light-blue;
 }
 
 .p-chip .p-chip-icon {

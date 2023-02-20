@@ -1,79 +1,74 @@
 <template>
-    <nav class="bg-yellow-500 flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
+    <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
         <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer" style="font-size: 2rem"
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer" style="font-size: 2rem" @click="sideBar = !sideBar"></i>
-            <p>پنل کاربر</p>
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem" @click="sideBar = !sideBar"></i>
+            <p class="text-xl font-bold text-white">پنل کاربر</p>
         </div>
 
         <div class="flex items-center gap-4 justify-end px-4">
-            <span class="p-input-icon-right">
-                <i class="pi pi-search" />
-                <InputText type="text" placeholder="جستجو" />
-            </span>
-            <i class="pi pi-question-circle" style="font-size: 2rem"></i>
-
-            <i class="pi pi-comments" style="font-size: 2rem"></i>
-
-            <Avatar icon="pi pi-user" class="" size="large" shape="circle" />
+            <Avatar icon="pi pi-user" class="" shape="circle" />
         </div>
     </nav>
 
-    <div class="flex">
+    <div class="flex gap-1">
         <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-10 h-screen pt-20">
-            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm cursor-pointer"
-                :class="{ 'bg-gray-400 text-white': componentPage === 'dashboard' }" @click="componentPage = 'dashboard'">
-                <i class="pi pi-home text-red-600" style="font-size: 1.5rem;"></i>
+            class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
+            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm"
+                :class="{ 'bg-gray-400 shadow-sm font-bold text-white': componentPage === 'dashboard' }"
+                @click="componentPage = 'dashboard'">
+                <i class="pi pi-home text-red-600" style="font-size: 1.3rem;"></i>
                 <span>داشبورد</span>
             </p>
-            <hr class="bg-gray-400 border-none mt-4" style="height: .1rem;" />
-            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+            <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
+            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm mt-4 cursor-pointer hover:shadow-sm"
                 @click="Object.values(alldesks).length > 0 ? componentPage = 'project' : null"
-                :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white': componentPage === 'project' }">
-                <i class="pi pi-folder text-blue-600" style="font-size: 1.5rem;"></i>
+                :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white shadow-sm font-bold': componentPage === 'project' }">
+                <i class="pi pi-folder text-blue-600" style="font-size: 1.3rem;"></i>
                 <span>پروژه ها</span>
             </p>
-            <p class="flex items-center bg-gray-300 p-2 gap-3 rounded-sm mt-4 cursor-pointer"
+            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm mt-4 cursor-pointer hover:shadow-sm"
                 @click="(Object.values(currentProject).length > 0) ? componentPage = 'task' : null"
-                :class="{ 'cursor-not-allowed': (currentProject === undefined || Object.values(currentProject).length === 0), 'bg-gray-400 text-white': componentPage === 'task' }">
-                <i class="pi pi-check-circle text-green-600" style="font-size: 1.5rem;"></i>
+                :class="{ 'cursor-not-allowed': (currentProject === undefined || Object.values(currentProject).length === 0), 'bg-gray-400 text-white shadow-sm font-bold': componentPage === 'task' }">
+                <i class="pi pi-check-circle text-green-600" style="font-size: 1.3rem;"></i>
                 <span>وضایف</span>
             </p>
         </div>
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-gray-200 transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
+            class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
                 @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
             <userProject v-else-if="componentPage === 'project'" @callPopupProject="createNewProject = true"
                 @callCreate="createNewDesk = true" />
-            <userTask v-else-if="componentPage === 'task'" @callPopupTask="createNewTask = true" @callCreate="componentPage = 'dashboard'"/>
+            <userTask v-else-if="componentPage === 'task'" @callPopupTask="createNewTask = true"
+                @callCreate="componentPage = 'dashboard'" />
         </div>
     </div>
 
     <transition name="modal">
         <popUp v-if="createNewDesk" @close="createNewDesk = false">
-            <p class="text-lg font-bold my-3">میزکار جدید ایجاد کنید:</p>
+            <p class="font-bold my-3">میزکار جدید ایجاد کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">جهت دسترسی به امکانات پنل، یک میزِکار جدید برای خود ایجاد کنید:</p>
-                <InputText v-model="deskName" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5" />
+                <InputText v-model="deskName" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5 h-10" />
             </div>
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <p class="mb-2">همکاران خود را به میزکار جدید دعوت نمایید:</p>
-                <div class="flex gap-2 my-2" v-for="(teammate, index) in deskTeammates" :key="index">
+                <div class="flex gap-2 my-2 h-10" v-for="(teammate, index) in deskTeammates" :key="index">
                     <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
                     <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-1/2" />
                     <div class="flex gap-2">
-                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger" @click="removeTeammate(index)" />
-                        <Button icon="pi pi-plus" class="p-button-sm p-button-success" @click="addTeammate" />
+                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger my-px"
+                            @click="removeTeammate(index)" />
+                        <Button icon="pi pi-plus" class="p-button-sm p-button-success my-px" @click="addTeammate" />
                     </div>
                 </div>
             </div>
             <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewDesk = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success" :disabled="!(deskName.length > 0)"
+                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="createNewDesk = false" />
+                <Button label="ایجاد" class="p-button-sm p-button-success w-16 h-10" :disabled="!(deskName.length > 0)"
                     @click="createDesk" />
             </div>
         </popUp>
@@ -81,10 +76,10 @@
 
     <transition name="modal">
         <popUp v-if="createNewProject" @close="createNewProject = false">
-            <p class="text-lg font-bold my-3">پروژه جدید ایجاد کنید:</p>
+            <p class="font-bold my-3">پروژه جدید ایجاد کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">نام پروژه:</p>
-                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5" />
+                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
             </div>
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <template v-if="Object.values(currentTeammate).length > 0">
@@ -97,8 +92,8 @@
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
             <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewProject = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success" :disabled="!(projectName.length > 0)"
+                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="createNewProject = false" />
+                <Button label="ایجاد" class="p-button-sm p-button-success w-16 h-10" :disabled="!(projectName.length > 0)"
                     @click="addProject" />
             </div>
         </popUp>
@@ -106,7 +101,7 @@
 
     <transition name="modal">
         <popUp v-if="createNewTask" @close="createNewTask = false">
-            <p class="text-lg font-bold my-3">پروژه جدید ایجاد کنید:</p>
+            <p class="font-bold my-3">تسک جدید ایجاد کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">نام تسک:</p>
                 <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-3/5" />
@@ -367,7 +362,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .p-button::v-deep .p-button-icon-left {
     margin-left: .5rem;
     margin-right: 0;

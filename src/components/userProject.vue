@@ -1,6 +1,6 @@
 <template>
     <div class="w-full h-screen p-4">
-        <div class="flex justify-between">
+        <div class="flex justify-between items-center">
             <p>
                 پروژه های میزکار :
                 <Dropdown v-if="desksDrop.length > 1" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
@@ -10,7 +10,7 @@
                 <InlineMessage v-if="notFoundedProject && !projectLoading" severity="warn">پروژه ای با این نام پیدا نشد
                 </InlineMessage>
                 <InputText type="text" placeholder="جستجو پروژه" v-model="projectSearch"
-                    :disabled="currentProject === undefined || currentProject.length === 0" />
+                    :disabled="currentProject === undefined || currentProject.length === 0" class="h-10 w-44"/>
             </div>
         </div>
         <div v-if="deskLoading || projectLoading" class="w-fit mx-auto mt-40">

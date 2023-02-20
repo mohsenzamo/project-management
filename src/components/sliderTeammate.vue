@@ -3,21 +3,21 @@
         <div class="splide__track">
             <ul class="splide__list">
                 <template v-if="Object.values(currentTeammate).length > 0">
-                    <li v-for="teammate in currentTeammate" :key="teammate.fullName" class="splide__slide">
+                    <li v-for="teammate in currentTeammate" :key="teammate.fullName" class="splide__slide py-2 flex justify-center">
                         <Chip :label="teammate.fullName" icon="pi pi-user" />
                     </li>
-                    <li class="splide__slide">
+                    <li class="splide__slide py-2 flex justify-center">
                         <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" />
                     </li>
                 </template>
                 <template v-else>
-                    <li class="splide__slide">
+                    <li class="splide__slide py-2 flex justify-center">
                         <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" />
                     </li>
                 </template>
             </ul>
         </div>
-</div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -38,13 +38,11 @@ export default {
     setup() {
         onMounted(() => {
             const splide = new Splide('.splide_teammate', {
-                autoWidth: true,
+                perPage: 6,
                 perMove: 1,
                 direction: 'rtl',
                 wheel: true,
                 pagination: false,
-                arrows: false,
-                gap: '1rem'
             });
 
             splide.mount();
@@ -72,10 +70,10 @@ export default {
 
 <style lang="scss">
 .p-chip {
-    @apply bg-white cursor-pointer;
+    @apply bg-white cursor-pointer transition-all shadow-md;
 
     &:hover {
-        @apply bg-slate-100;
+        @apply bg-slate-100 -translate-y-2;
     }
 
 }

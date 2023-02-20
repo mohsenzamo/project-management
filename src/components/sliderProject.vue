@@ -3,32 +3,32 @@
         <div class="splide__track">
             <ul class="splide__list">
                 <template v-if="Object.values(currentProject).length > 0">
-                    <li v-for="project in currentProject" :key="project.name" class="splide__slide">
+                    <li v-for="project in currentProject" :key="project.name" class="splide__slide py-2">
                         <Card
-                            class="w-44 h-full flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100">
+                            class="w-44 h-36 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 hover:-translate-y-2 transition-all shadow-md mx-auto">
                             <template #content>
                                 <p class="mb-2">{{ project.name }}</p>
                             </template>
                         </Card>
                     </li>
-                    <li class="splide__slide">
+                    <li class="splide__slide py-2">
                         <Card
-                            class="w-44 h-full flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100">
+                            class="w-44 h-36 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 hover:-translate-y-2 transition-all shadow-md mx-auto">
                             <template #content>
-                                <p class="mb-2">پروژه جدید</p>
-                                <Button icon="pi pi-plus" class="p-button-sm p-button-help"
+                                <p class="mb-2 text-lg">پروژه جدید</p>
+                                <Button icon="pi pi-plus" class="p-button-sm p-button-help h-9 w-9"
                                     @click="$emit('callPopupProject')" />
                             </template>
                         </Card>
                     </li>
                 </template>
                 <template v-else>
-                    <li class="splide__slide">
+                    <li class="splide__slide py-2">
                         <Card
-                            class="w-44 h-full flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100">
+                            class="w-44 h-36 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 hover:-translate-y-2 transition-all shadow-md mx-auto">
                             <template #content>
-                                <p class="mb-2">پروژه جدید</p>
-                                <Button icon="pi pi-plus" class="p-button-sm p-button-help"
+                                <p class="mb-2 text-lg">پروژه جدید</p>
+                                <Button icon="pi pi-plus" class="p-button-sm p-button-help h-9 w-9"
                                     @click="$emit('callPopupProject')" />
                             </template>
                         </Card>
@@ -36,7 +36,7 @@
                 </template>
             </ul>
         </div>
-</div>
+    </div>
 </template>
 
 <script lang="ts">
@@ -58,13 +58,11 @@ export default {
     setup() {
         onMounted(() => {
             const splide = new Splide('.splide_project', {
-                autoWidth: true,
+                perPage: 5,
                 perMove: 1,
                 direction: 'rtl',
                 wheel: true,
                 pagination: false,
-                arrows: false,
-                gap: '1rem'
             });
 
             splide.mount();
@@ -88,5 +86,20 @@ export default {
 }
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.splide__arrow {
+    background-color: #ccc;
+    border-radius: .2rem;
+    height: 3.5em;
+    width: .7em;
+}
+
+.splide__arrows--rtl .splide__arrow--prev {
+    right: -.5em;
+}
+
+.splide__arrows--rtl .splide__arrow--next {
+    left: -.5em;
+}
+</style>
 

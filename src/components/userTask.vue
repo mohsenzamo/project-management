@@ -1,7 +1,8 @@
 <template>
     <div class="w-full h-screen p-4">
         <div class="mb-4">
-            <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info" @click="$emit('callPopupTask')" />
+            <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info p-button-sm w-28 h-10"
+                @click="$emit('callPopupTask')" />
         </div>
         <div class="flex gap-4">
             <div v-if="taskLoading || deskLoading" class="w-4/5 flex mt-40">
@@ -19,12 +20,12 @@
                     <template v-else>
                         <div v-for="task in Object.values(foundedTask).length === 0 ? currentTask : foundedTask"
                             :key="task.name"
-                            class="w-full mx-auto mb-4 bg-white rounded-sm shadow-sm flex justify-between items-center p-2">
+                            class="w-full mx-auto mb-4 bg-white rounded-sm flex justify-between items-center p-3 shadow-md hover:-translate-y-2 transition-all">
                             <div class="flex gap-2 items-center">
                                 <!-- <Checkbox name="task" :value="task" v-model="tasksChecked" /> -->
 
                                 <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                    offIcon="pi pi-times" class="p-button-sm" />
+                                    offIcon="pi pi-times" class="p-button-sm w-8 h-8" />
                                 <p>{{ task.name }}</p>
                                 <small class="text-ellipsis whitespace-nowrap overflow-hidden w-96">{{ task.description
                                 }}</small>
@@ -37,10 +38,10 @@
                     </template>
                 </template>
             </div>
-            <div class="bg-white w-1/5 h-full sticky top-4 rounded-sm flex flex-col p-2 gap-2">
+            <div class="bg-white w-1/5 h-full sticky top-4 rounded-sm flex flex-col p-2 gap-2 shadow-md">
                 <InputText type="text" placeholder="جستجو تسک" v-model="taskSearch"
-                    :disabled="Object.values(currentTask).length === 0" />
-                <hr />
+                    :disabled="Object.values(currentTask).length === 0" class="h-10" />
+                <hr class="bg-light-blue border-none" style="height: .1rem;" />
                 <div class="flex items-center mb-2 gap-2">
                     <TriStateCheckbox v-model="isDoneTask" :disabled="Object.values(currentTask).length === 0" />
                     <p v-if="isDoneTask === true">تسک های
@@ -265,10 +266,10 @@ export default {
 
 <style lang="scss" scoped>
 .p-chip {
-    @apply bg-slate-100 cursor-pointer rounded-sm;
+    @apply bg-slate-100 cursor-pointer rounded-sm shadow-none;
 
     &:hover {
-        @apply bg-slate-200;
+        @apply bg-slate-200 translate-y-0;
     }
 
 }
