@@ -9,6 +9,8 @@ export const useDeskStore = defineStore("useDeskStore", {
     allDesks: {} as any,
     currentDesks: "" as string,
     selectedDropDesks: {} as object,
+    currentProjects: "" as string,
+    currentTasks: "" as string,
     desksLoading: false as boolean,
     tasksLoading: false as boolean,
   }),
@@ -17,7 +19,9 @@ export const useDeskStore = defineStore("useDeskStore", {
     deskLoading: (state) => state.desksLoading,
     taskLoading: (state) => state.tasksLoading,
     currentDesk: (state) => state.currentDesks,
+    currentTask: (state) => state.currentTasks,
     selectedDropDesk: (state) => state.selectedDropDesks,
+    currentProject: (state) => state.currentProjects,
     desksDrop: (state) => {
       const drops = Object.values(state.allDesks).map((item: any) => {
         return { name: item.name, code: item.name };
@@ -55,7 +59,8 @@ export const useDeskStore = defineStore("useDeskStore", {
       projectId: string,
       taskName: string,
       taskDescription: string,
-      responsible: string
+      responsible: string,
+      taskPoint: number
     ) {
       const objTask: any = {};
       objTask[taskName] = {
@@ -65,6 +70,7 @@ export const useDeskStore = defineStore("useDeskStore", {
         isDone: false,
         projectId: projectId,
         deskId: deskId,
+        point: taskPoint,
       };
       this.allDesks[deskId].projects[projectId].tasks = Object.assign(
         this.allDesks[deskId].projects[projectId].tasks,
@@ -73,6 +79,12 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     setCurrentDesk(deskId: string) {
       this.currentDesks = deskId;
+    },
+    setCurrentProject(project: any) {
+      this.currentProjects = project;
+    },
+    setCurrentTask(task: any) {
+      this.currentTasks = task;
     },
     setSelectedDropDesk(desk: object) {
       this.selectedDropDesks = desk;

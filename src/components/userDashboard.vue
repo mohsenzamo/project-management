@@ -1,11 +1,5 @@
 <template>
-    <div v-if="Object.keys(alldesks).length > 0" class="pt-3 px-2">
-        <p>
-            میزکارشما :
-            <Dropdown v-if="desksDrop.length > 1" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
-                placeholder="میزکار" class="drop-down" @change="newDeskCall" />
-        </p>
-
+    <div class="pt-3 px-2">
         <div v-if="deskLoading" class="w-fit mx-auto mt-40">
             <ProgressSpinner />
         </div>
@@ -13,10 +7,10 @@
 
             <div class="my-2 px-3">
                 <p class="mb-2">پروژه ها:</p>
-                <div v-if="projectLoading" class="w-fit mx-auto">
+                <div v-if="projectLoading" class="w-fit mx-auto h-80 pt-24">
                     <ProgressSpinner />
                 </div>
-                <sliderProject v-else @callPopupProject="$emit('callPopupProject')"></sliderProject>
+                <listProject v-else @callPopupProject="$emit('callPopupProject')" :currentProject="currentProject" />
             </div>
 
             <div class="my-2 px-3">
@@ -115,40 +109,27 @@
             </div>
         </template>
     </div>
-    <div v-else class="pt-3 px-2">
-        <div class="flex items-center gap-2">
-            <p>
-                شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
-            </p>
-            <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="$emit('callPopup')" />
-        </div>
-    </div>
 </template>
 
 <script lang="ts">
-import Button from 'primevue/button';
 import { ref, computed, watch, onMounted } from 'vue';
-import Dropdown from 'primevue/dropdown';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import Card from 'primevue/card';
-import sliderProject from '@/components/sliderProject.vue';
 import sliderTeammate from '@/components/sliderTeammate.vue';
-import Checkbox from 'primevue/checkbox';
 import ProgressBar from 'primevue/progressbar';
 import ProgressSpinner from 'primevue/progressspinner';
 import ToggleButton from 'primevue/togglebutton';
+import listProject from './listProject.vue';
 
 export default {
     name: 'UserDashboard',
 
     components: {
-        Dropdown,
         Avatar,
-        Button,
         Card,
-        sliderProject,
+        listProject,
         sliderTeammate,
         ProgressBar,
         ProgressSpinner,
@@ -165,6 +146,14 @@ export default {
 
         const projectLoading = computed(() => {
             return projectStore.projectLoading
+        })
+
+        const currentProject: any = computed(() => {
+            if (Object.values(selectedDesk.value.projects).length > 0) {
+                return selectedDesk.value.projects
+            } else {
+                return []
+            }
         })
 
         function newDeskCall(code: any) {
@@ -224,26 +213,6 @@ export default {
                 task.responsible === 'خودم' ? isThere = true : null
             })
             return isThere
-        })
-
-        const currentProject: any = computed(() => {
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                console.log(selectedDesk.value.projects)
-                let newProjectObj: any = {}
-                Object.values(selectedDesk.value.projects).forEach((project: any) => {
-                    let isDoneTask = 0
-                    let isNotDoneTask = 0
-                    Object.values(project.tasks).forEach((task: any) => {
-                        task.isDone ? isDoneTask++ : isNotDoneTask++
-                    })
-                    const pjn = project.name
-                    newProjectObj[pjn] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
-                })
-                console.log(newProjectObj)
-                return newProjectObj
-            } else {
-                return {}
-            }
         })
 
         return {

@@ -47,8 +47,7 @@
                         <InputText type="password" placeholder="رمز عبور" class="w-3/4" />
                     </div>
                     <div class="my-2 text-right mx-auto w-3/4">
-                        <Button label="ورود" :loading="false" :disabled="!(userName.length > 0)"
-                            @click="goPanel(userName)" />
+                        <Button label="ورود" :loading="false" :disabled="!(userName.length > 0)" @click="goPanel" />
                     </div>
                 </template>
                 <template #footer>
@@ -85,10 +84,9 @@ export default {
         const userName = ref('')
         const router = useRouter()
 
-        function goPanel(userName: string) {
+        function goPanel() {
             router.push({
-                name: "UserPanel",
-                params: { id: userName },
+                name: "UserPanel"
             });
         }
 
@@ -146,5 +144,6 @@ export default {
 
 .scaleLeft-leave-from {
     opacity: 0;
-}</style>
+}
+</style>
 

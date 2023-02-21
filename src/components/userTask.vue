@@ -50,21 +50,6 @@
                     <p v-else-if="isDoneTask === null"
                         :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">همه تسک ها</p>
                 </div>
-                <div class="flex items-center justify-between">
-                    <p>
-                        میزکار :
-                    </p>
-                    <Dropdown v-if="desksDrop.length > 0" v-model="selectedDropDesk" :options="desksDrop" optionLabel="name"
-                        placeholder="میزکار" class="drop-down" @change="newDeskCall" />
-                </div>
-                <div class="flex items-center justify-between">
-                    <p>
-                        پروژه :
-                    </p>
-                    <Dropdown v-if="projectsDrop.length > 0" v-model="selectedDropProject" :options="projectsDrop"
-                        optionLabel="name" placeholder="پروژه" class="drop-down" @change="filterProject"
-                        :disabled="Object.values(currentTask).length === 0" />
-                </div>
             </div>
         </div>
     </div>
@@ -92,9 +77,7 @@ export default {
         InputText,
         Button,
         Chip,
-        // Checkbox,
         ProgressSpinner,
-        Dropdown,
         TriStateCheckbox,
         ToggleButton
     },

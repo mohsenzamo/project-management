@@ -1,5 +1,5 @@
 <template>
-    <div class="splide splide_teammate w-full" role="group">
+    <div class="splide splide_teammate w-full px-2" role="group">
         <div class="splide__track">
             <ul class="splide__list">
                 <template v-if="Object.values(currentTeammate).length > 0">
@@ -41,7 +41,6 @@ export default {
                 perPage: 6,
                 perMove: 1,
                 direction: 'rtl',
-                wheel: true,
                 pagination: false,
             });
 

@@ -3,7 +3,8 @@
         <div class="flex items-center gap-4 justify-start px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem" @click="sideBar = !sideBar"></i>
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+                @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white">پنل کاربر</p>
         </div>
 
@@ -15,35 +16,71 @@
     <div class="flex gap-1">
         <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
             class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
-            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm"
-                :class="{ 'bg-gray-400 shadow-sm font-bold text-white': componentPage === 'dashboard' }"
-                @click="componentPage = 'dashboard'">
-                <i class="pi pi-home text-red-600" style="font-size: 1.3rem;"></i>
+            <p class="flex items-center bg-gray-400 text-white font-bold p-2 gap-3 rounded-sm shadow-sm">
+                <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
                 <span>داشبورد</span>
             </p>
             <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
-            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm mt-4 cursor-pointer hover:shadow-sm"
-                @click="Object.values(alldesks).length > 0 ? componentPage = 'project' : null"
-                :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0, 'bg-gray-400 text-white shadow-sm font-bold': componentPage === 'project' }">
-                <i class="pi pi-folder text-blue-600" style="font-size: 1.3rem;"></i>
-                <span>پروژه ها</span>
+            <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
+                :class="{ 'cursor-not-allowed text-gray-500': Object.keys(alldesks).length === 0 }">
+                <i v-if="Object.values(alldesks).length > 0" class="pi pi-angle-down text-blue-600"
+                    style="font-size: 1rem;"></i>
+                <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
+                <span>میزکارها</span>
             </p>
-            <p class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm mt-4 cursor-pointer hover:shadow-sm"
-                @click="(Object.values(currentProject).length > 0) ? componentPage = 'task' : null"
-                :class="{ 'cursor-not-allowed': (currentProject === undefined || Object.values(currentProject).length === 0), 'bg-gray-400 text-white shadow-sm font-bold': componentPage === 'task' }">
-                <i class="pi pi-check-circle text-green-600" style="font-size: 1.3rem;"></i>
-                <span>وضایف</span>
-            </p>
+            <template v-if="Object.values(alldesks).length > 0">
+                <p v-for="desk in alldesks" :key="desk.name"
+                    class="hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
+                    @click="deskRoutePush(desk)">
+                    <i class="pi pi-desktop text-blue-600" style="font-size: 1rem;"></i>
+                    <span>{{ desk.name }}</span>
+                </p>
+            </template>
         </div>
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
-            <userDashboard v-if="componentPage === 'dashboard'" @callPopup="createNewDesk = true"
-                @callCreate="createNewDesk = true" @callPopupProject="createNewProject = true" />
-            <userProject v-else-if="componentPage === 'project'" @callPopupProject="createNewProject = true"
-                @callCreate="createNewDesk = true" />
-            <userTask v-else-if="componentPage === 'task'" @callPopupTask="createNewTask = true"
-                @callCreate="componentPage = 'dashboard'" />
+            <div class="pt-3 px-2" v-if="Object.values(alldesks).length === 0">
+                <div class="flex items-center gap-2">
+                    <p>
+                        شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
+                    </p>
+                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="createNewDesk = true" />
+                </div>
+            </div>
+            <div v-else>
+                <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm mt-4 mr-4"
+                    @click="createNewDesk = true" />
+                <div class="grid items-center gap-4 p-4 flex-wrap grid-cols-2">
+                    <Card v-for="desk in alldesks" :key="desk.name" class="w-full h-full shadow-md relative cursor-default">
+                        <template #header>
+                            <i class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3 top-3 text-xl"></i>
+                            <i @click="deskRoutePush(desk)"
+                                class="pi pi-eye cursor-pointer hover:text-blue-400 absolute left-10 top-3 text-xl"></i>
+                        </template>
+                        <template #title>
+                            <span @click="deskRoutePush(desk)" class="cursor-pointer">
+                                {{ desk.name }}
+                            </span>
+                        </template>
+                        <template #content>
+                            <div class="flex justify-center w-72 h-52 mx-auto">
+                                <Chart type="doughnut" :data="chartData" :options="lightOptions" />
+                            </div>
+                            <div class="flex justify-between items-center mt-4">
+                                <p>
+                                    <span class="ml-1">تعداد پروژه ها:</span>
+                                    <span class="font-iransans">{{ Object.values(desk.projects).length }}</span>
+                                </p>
+                                <p>
+                                    <span class="ml-1">تعداد همکار ها:</span>
+                                    <span class="font-iransans">{{ Object.values(desk.teammates).length }}</span>
+                                </p>
+                            </div>
+                        </template>
+                    </Card>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -73,131 +110,59 @@
             </div>
         </popUp>
     </transition>
-
-    <transition name="modal">
-        <popUp v-if="createNewProject" @close="createNewProject = false">
-            <p class="font-bold my-3">پروژه جدید ایجاد کنید:</p>
-            <div class="mb-3">
-                <p class="mb-2">نام پروژه:</p>
-                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
-            </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
-                <template v-if="Object.values(currentTeammate).length > 0">
-                    <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                    <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
-                        <Checkbox name="teammate" :value="teammate" v-model="teammates" />
-                        <p>{{ teammate.fullName }}</p>
-                    </div>
-                </template>
-                <p v-else>همکاری برای این میزکار ثبت نشده است</p>
-            </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="createNewProject = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success w-16 h-10" :disabled="!(projectName.length > 0)"
-                    @click="addProject" />
-            </div>
-        </popUp>
-    </transition>
-
-    <transition name="modal">
-        <popUp v-if="createNewTask" @close="createNewTask = false">
-            <p class="font-bold my-3">تسک جدید ایجاد کنید:</p>
-            <div class="mb-3">
-                <p class="mb-2">نام تسک:</p>
-                <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-3/5" />
-            </div>
-            <div class="flex gap-12 items-center mb-4">
-                <div>
-                    <p class="mb-2">پروژه مربوط:</p>
-                    <Dropdown v-model="selectedDropProject" :options="projectsDrop" optionLabel="name" placeholder="پروژه"
-                        class="drop-down" />
-                </div>
-                <div v-if="selectedDropProject">
-                    <template v-if="tasksDrop.length > 0">
-                        <p class="mb-2">فرد مسئول:</p>
-                        <Dropdown v-model="selectedDropTeammate" :options="tasksDrop" optionLabel="name" placeholder="همکار"
-                            class="drop-down" />
-                    </template>
-                    <p v-else class="mt-5">همکاری برای این پروژه ثبت نشده است</p>
-                </div>
-            </div>
-            <div>
-                <p class="mb-2">توضیحات:</p>
-                <Textarea v-model="taskDescription" :autoResize="true" rows="5" cols="81" />
-            </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewTask = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success"
-                    :disabled="!(taskName.length > 0 && selectedDropProject && selectedDropTeammate)" @click="addTask" />
-            </div>
-        </popUp>
-    </transition>
 </template>
 
 <script lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
-import { useTeammateStore } from '@/store/teammateStore';
-import { useProjectStore } from '@/store/projectStore';
 import { useRouter } from 'vue-router';
-import userDashboard from '@/components/userDashboard.vue';
-import userProject from '@/components/userProject.vue';
-import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
-import RadioButton from 'primevue/radiobutton';
-import Dropdown from 'primevue/dropdown';
-import Textarea from 'primevue/textarea';
+import Card from 'primevue/card';
+import Chart from 'primevue/chart';
 
 export default {
     name: 'UserPanel',
 
     components: {
-        userTask,
-        Checkbox,
+        Chart,
         Button,
         Avatar,
-        userDashboard,
-        userProject,
         popUp,
         InputText,
-        Dropdown,
-        Textarea
+        Card
     },
 
-    props: ["id"],
-
     setup() {
-        const teammates = ref<any>([])
+        const router = useRouter()
         const deskStore = useDeskStore();
-        const projectStore = useProjectStore();
         const sideBar = ref(true)
-        const componentPage = ref('dashboard')
         const createNewDesk = ref(false)
-        const createNewProject = ref(false)
-        const createNewTask = ref(false)
         const deskName = ref('')
-        const projectName = ref('')
-        const taskName = ref('')
-        const selectedDropProject = ref<any>(null)
-        const selectedDropTeammate = ref<any>(null)
-        const taskDescription = ref('')
 
 
-        const currentDesk: any = computed(() => deskStore.currentDesk)
-
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
-
-        const currentTeammate = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
-                return selectedDesk.value.teammates
-            } else {
-                return []
+        const chartData = ref({
+            labels: ['تسک های انجام شده', 'تسک های در حال انجام'],
+            datasets: [
+                {
+                    data: [300, 50],
+                    backgroundColor: ["#FF6384", "#36A2EB"],
+                    hoverBackgroundColor: ["#FF6384", "#36A2EB"]
+                }
+            ]
+        })
+        const lightOptions = ref({
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#495057'
+                    }
+                }
             }
         })
+
 
         let deskTeammates = ref([{
             fullName: '',
@@ -215,10 +180,6 @@ export default {
                 addTeammate()
             }
         }
-
-        // const selectedDesk = ref<any>(deskStore.desksDrop[0])
-
-
         function createDesk() {
             deskStore.changeLoading(true)
             let teammatesObj: any = {}
@@ -241,122 +202,41 @@ export default {
             }
 
             deskStore.increment(objDesk)
-            deskStore.setCurrentDesk(deskName.value)
-            deskStore.setSelectedDropDesk({ name: deskName.value, code: deskName.value })
 
             createNewDesk.value = false
             setInterval(() => {
                 deskStore.changeLoading(false)
             }, 1000);
         }
-
         watch(createNewDesk, () => {
             deskTeammates.value = [{
                 fullName: '',
                 phoneNumber: null
             }]
             deskName.value = ''
-            // if (deskStore.selectedDesk(deskStore.currentDesk)) {
-            //     selectedDesk.value = { name: deskStore.selectedDesk(deskStore.currentDesk).name, code: deskStore.selectedDesk(deskStore.currentDesk).name }
-            // }
         })
 
-        watch(createNewProject, () => {
-            teammates.value = []
-            projectName.value = ''
-        })
-
-        watch(createNewTask, () => {
-            taskName.value = ''
-            taskDescription.value = ''
-            selectedDropProject.value = null
-            selectedDropTeammate.value = null
-        })
-
-        function addProject() {
-            projectStore.changeLoading(true)
-
-            let teammatesObj: any = {}
-            if (teammates.value.length > 0) {
-                teammates.value.forEach((item: any) => {
-                    teammatesObj[item.fullName] = item
-                })
-            }
-
-            deskStore.setProject(deskStore.currentDesk, projectName.value, teammatesObj)
-
-            createNewProject.value = false
-            setInterval(() => {
-                projectStore.changeLoading(false)
-            }, 1000);
+        function deskRoutePush(desk: any) {
+            deskStore.setCurrentDesk(desk.name)
+            deskStore.setSelectedDropDesk({ name: desk.name, code: desk.name })
+            router.push({
+                name: "UserDesk",
+                params: { id: desk.name },
+            });
         }
-
-        function addTask() {
-            deskStore.changeTaskLoading(true)
-            deskStore.setTask(deskStore.currentDesk, selectedDropProject.value.code, taskName.value, taskDescription.value, selectedDropTeammate.value.code)
-            createNewTask.value = false
-            setInterval(() => {
-                deskStore.changeTaskLoading(false)
-            }, 1000);
-        }
-
-        const currentProject = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
-                return selectedDesk.value.projects
-            } else {
-                return []
-            }
-        })
-
-
-        const tasksDrop = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0 && currentProject.value[selectedDropProject.value.code]) {
-                const drops = Object.values(currentProject.value[selectedDropProject.value.code].teammates).map((item: any) => {
-                    return { name: item.fullName, code: item.fullName };
-                });
-                drops.push({ name: 'خودم', code: 'خودم' })
-                return drops
-            } else {
-                return []
-            }
-        })
-
-        const projectsDrop = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
-                const drops = Object.values(selectedDesk.value.projects).map((item: any) => {
-                    return { name: item.name, code: item.name };
-                });
-                return drops
-            } else {
-                return []
-            }
-        })
 
         return {
-            addTask,
-            addProject,
+            deskRoutePush,
             removeTeammate,
             addTeammate,
             createDesk,
             alldesks: deskStore.allDesk,
-            selectedDropProject,
-            selectedDropTeammate,
-            taskDescription,
-            taskName,
-            currentProject,
-            projectsDrop,
-            tasksDrop,
             deskName,
             sideBar,
-            componentPage,
             createNewDesk,
             deskTeammates,
-            selectedDesk,
-            createNewProject,
-            createNewTask,
-            teammates,
-            currentTeammate,
-            projectName
+            chartData,
+            lightOptions
         }
     },
 }
