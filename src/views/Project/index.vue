@@ -48,46 +48,75 @@
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
-            <userTask @callPopupTask="createNewTask = true" />
+            <userTask @callPopupTask="createNewTask = true" @goTask="taskRoutePush" />
         </div>
     </div>
 
     <transition name="modal">
         <popUp v-if="createNewTask" @close="createNewTask = false">
             <p class="font-bold my-3">تسک جدید ایجاد کنید:</p>
-            <div class="mb-3">
-                <p class="mb-2">نام تسک:</p>
-                <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-3/5" />
-            </div>
-            <div class="flex gap-12 items-center mb-4">
-                <div>
+            <div class="flex gap-4">
+                <div class="mb-3 w-1/2">
+                    <p class="mb-2">نام تسک:</p>
+                    <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-full" />
+                </div>
+                <div class="w-1/2">
                     <p class="mb-2">پروژه مربوط:</p>
-                    <p>{{ currentProject.name }}</p>
+                    <p class="mt-3">{{ currentProject.name }}</p>
                 </div>
-                <div>
-                    <template v-if="projectTeammateDrop.length > 0">
-                        <p class="mb-2">فرد مسئول:</p>
-                        <Dropdown v-model="selectedDropTeammate" :options="projectTeammateDrop" optionLabel="name"
-                            placeholder="همکار" class="drop-down" />
-                    </template>
-                    <p v-else class="mt-5">همکاری برای این پروژه ثبت نشده است</p>
+            </div>
+            <div class="flex gap-2 items-center mb-4">
+                <div class="w-1/4">
+                    <p class="mb-2">فرد مسئول:</p>
+                    <Dropdown v-model="selectedDropTeammate" :options="projectTeammateDrop" optionLabel="name"
+                        placeholder="همکار" class="drop-down" />
                 </div>
-                <div>
+                <div class="w-1/4">
                     <template v-if="selectedDropTeammate && Object.values(selectedDropTeammate).length > 0">
                         <p class="mb-2">امتیاز تسک:</p>
-                        <Dropdown v-model="selectedDropPoint" :options="taskPointDrop" optionLabel="name"
-                            placeholder="امتیاز" class="drop-down" />
+                        <InputNumber v-model="selectedPoint" showButtons dir="ltr" inputClass="w-16" :min="0" />
+                    </template>
+                </div>
+                <div class="w-1/4">
+                    <template v-if="selectedPoint !== 0">
+                        <p class="mb-2">دوره ددلاین:</p>
+                        <Dropdown v-model="selectedDropDeadlinePeriod" :options="deadlinePeriodDrop" optionLabel="name"
+                            placeholder="دوره" class="drop-down" />
+                    </template>
+                </div>
+                <div class="w-1/4">
+                    <template
+                        v-if="selectedDropDeadlinePeriod && Object.values(selectedDropDeadlinePeriod).length > 0 && selectedPoint !== 0">
+                        <p class="mb-2">واحد دوره:</p>
+                        <InputNumber v-model="selectedUnit" showButtons dir="ltr" inputClass="w-16" :min="0" />
                     </template>
                 </div>
             </div>
-            <div>
+            <div class="mb-5">
                 <p class="mb-2">توضیحات:</p>
-                <Textarea v-model="taskDescription" :autoResize="true" rows="5" cols="81" />
+                <Editor v-model="taskDescription" editorStyle="height: 150px" dir="ltr">
+                    <template #toolbar>
+                        <span class="ql-formats">
+                            <button class="ql-bold"></button>
+                            <button class="ql-italic"></button>
+                            <button class="ql-underline"></button>
+                            <button class="ql-link"></button>
+                            <select class="ql-size">
+                                <option value="small"></option>
+                                <option selected></option>
+                                <option value="large"></option>
+                                <option value="huge"></option>
+                            </select>
+                            <button class="ql-direction" value="rtl"></button>
+                        </span>
+                    </template>
+                </Editor>
             </div>
             <div class="flex gap-2">
                 <Button label="انصراف" class="p-button-sm p-button-danger" @click="createNewTask = false" />
                 <Button label="ایجاد" class="p-button-sm p-button-success"
-                    :disabled="!(taskName.length > 0 && selectedDropPoint && selectedDropTeammate)" @click="addTask" />
+                    :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0)"
+                    @click="addTask" />
             </div>
         </popUp>
     </transition>
@@ -103,19 +132,21 @@ import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
-import Textarea from 'primevue/textarea';
+import InputNumber from 'primevue/inputnumber';
+import Editor from 'primevue/editor';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        Editor,
         userTask,
         Button,
         Avatar,
         popUp,
         InputText,
         Dropdown,
-        Textarea
+        InputNumber
     },
 
     props: ["id"],
@@ -127,8 +158,10 @@ export default {
         const taskName = ref('')
         const selectedDropProject = ref<any>(null)
         const selectedDropTeammate = ref<any>(null)
-        const selectedDropPoint = ref<any>(null)
-        const taskDescription = ref('')
+        const selectedDropDeadlinePeriod = ref<any>(null)
+        const selectedPoint = ref<number>(0)
+        const selectedUnit = ref<number>(0)
+        const taskDescription = ref<any>(null)
         const router = useRouter()
 
         const currentProject: any = computed(() => deskStore.currentProject)
@@ -139,13 +172,15 @@ export default {
         watch(createNewTask, () => {
             taskName.value = ''
             taskDescription.value = ''
-            selectedDropProject.value = null
             selectedDropTeammate.value = null
+            selectedDropDeadlinePeriod.value = null
+            selectedPoint.value = 0
+            selectedUnit.value = 0
         })
 
         function addTask() {
             deskStore.changeTaskLoading(true)
-            deskStore.setTask(deskStore.currentDesk, currentProject.value.name, taskName.value, taskDescription.value, selectedDropTeammate.value.code,selectedDropPoint.value.code)
+            deskStore.setTask(deskStore.currentDesk, currentProject.value.name, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value)
             createNewTask.value = false
             setInterval(() => {
                 deskStore.changeTaskLoading(false)
@@ -160,13 +195,6 @@ export default {
             }
         })
 
-        const taskPointDrop = ref([
-            { name: 1, code: 1 },
-            { name: 3, code: 3 },
-            { name: 5, code: 5 }
-        ])
-
-
         const projectTeammateDrop = computed(() => {
             if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0 && currentProject.value) {
                 const drops = Object.values(currentProject.value.teammates).map((item: any) => {
@@ -178,6 +206,13 @@ export default {
                 return []
             }
         })
+
+        const deadlinePeriodDrop = ref([
+            { name: 'ساعت', code: 'ساعت' },
+            { name: 'روز', code: 'روز' },
+            { name: 'هفته', code: 'هفته' }
+        ])
+
 
         const projectsDrop = computed(() => {
             if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
@@ -208,18 +243,24 @@ export default {
             currentProject,
             projectsDrop,
             projectTeammateDrop,
+            deadlinePeriodDrop,
             sideBar,
             selectedDesk,
             createNewTask,
             currentDesk,
-            taskPointDrop,
-            selectedDropPoint
+            selectedPoint,
+            selectedUnit,
+            selectedDropDeadlinePeriod
         }
     },
 }
 </script>
 
 <style lang="scss">
+.p-inputnumber-button-group {
+    @apply h-11 my-auto;
+}
+
 .p-button::v-deep .p-button-icon-left {
     margin-left: .5rem;
     margin-right: 0;

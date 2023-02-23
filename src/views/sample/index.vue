@@ -1,4 +1,14 @@
 <template>
+    slasl
+</template>
+<script lang="ts">
+export default {
+    name: 'smaplePage',
+
+    components: {}
+}
+</script>
+<!-- <template>
     <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
         <div class="flex items-center gap-4 justify-start px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
@@ -382,4 +392,4 @@ export default {
     display: none;
 }
 </style>
-
+ -->

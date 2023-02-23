@@ -22,33 +22,58 @@
                             :key="task.name"
                             class="w-full mx-auto mb-4 bg-white rounded-sm flex justify-between items-center p-3 shadow-md hover:-translate-y-2 transition-all">
                             <div class="flex gap-2 items-center">
-                                <!-- <Checkbox name="task" :value="task" v-model="tasksChecked" /> -->
-
                                 <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                     offIcon="pi pi-times" class="p-button-sm w-8 h-8" />
-                                <p>{{ task.name }}</p>
-                                <small class="text-ellipsis whitespace-nowrap overflow-hidden w-96">{{ task.description
-                                }}</small>
+                                <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.name }}</p>
                             </div>
                             <div class="flex gap-2 items-center">
+                                <Chip :label="task.deadline.unit + task.deadline.period" icon="pi pi-clock" />
                                 <Chip :label="task.projectId" icon="pi pi-folder" />
                                 <Chip :label="task.responsible" icon="pi pi-user" />
+                                <Avatar :label="task.point" shape="circle" />
                             </div>
                         </div>
                     </template>
                 </template>
             </div>
-            <div class="bg-white w-1/5 h-full sticky top-4 rounded-sm flex flex-col p-2 gap-2 shadow-md">
-                <InputText type="text" placeholder="جستجو تسک" v-model="taskSearch"
-                    :disabled="Object.values(currentTask).length === 0" class="h-10" />
-                <hr class="bg-light-blue border-none" style="height: .1rem;" />
-                <div class="flex items-center mb-2 gap-2">
-                    <TriStateCheckbox v-model="isDoneTask" :disabled="Object.values(currentTask).length === 0" />
-                    <p v-if="isDoneTask === true">تسک های
-                        انجام شده</p>
-                    <p v-else-if="isDoneTask === false">تسک های در حال انجام</p>
-                    <p v-else-if="isDoneTask === null"
-                        :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">همه تسک ها</p>
+            <div class="w-1/5 sticky top-4 flex flex-col gap-5">
+                <div class="bg-white h-full rounded-sm flex flex-col p-2 gap-3 shadow-md">
+                    <InputText type="text" placeholder="جستجو تسک" v-model="taskSearch"
+                        :disabled="Object.values(currentTask).length === 0" class="h-10" />
+                    <hr class="bg-light-blue border-none" style="height: .1rem;" />
+                    <div class="flex items-center gap-2">
+                        <TriStateCheckbox v-model="isDoneTask" :disabled="Object.values(currentTask).length === 0" />
+                        <p v-if="isDoneTask === true">تسک های
+                            انجام شده</p>
+                        <p v-else-if="isDoneTask === false">تسک های در حال انجام</p>
+                        <p v-else-if="isDoneTask === null"
+                            :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">همه تسک ها</p>
+                    </div>
+                    <div>
+                        <p>افراد:</p>
+                        <Dropdown v-model="selectedDropTeammate" :options="teammatesDrop" optionLabel="name"
+                            placeholder="همکار" class="drop-down w-full" />
+                    </div>
+                    <div>
+                        <p>مرتب سازی:</p>
+                        <p class="flex items-center gap-2">
+                            <RadioButton name="sort" value="point" v-model="selectedSort" />
+                            <span>امتیاز</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <RadioButton name="sort" value="deadline" v-model="selectedSort" />
+                            <span>ددلاین</span>
+                        </p>
+                        <p class="flex items-center gap-2">
+                            <RadioButton name="sort" value="not" v-model="selectedSort" />
+                            <span>غیرفعال</span>
+                        </p>
+                    </div>
+                </div>
+                <div class="bg-white h-full rounded-sm p-2 shadow-md">
+                    <div class="flex justify-center w-full h-28 mx-auto">
+                        <Chart type="doughnut" :data="chartData" />
+                    </div>
                 </div>
             </div>
         </div>
@@ -67,12 +92,20 @@ import TriStateCheckbox from 'primevue/tristatecheckbox';
 import InputText from 'primevue/inputtext';
 import InlineMessage from 'primevue/inlinemessage';
 import ToggleButton from 'primevue/togglebutton';
-
+import Avatar from 'primevue/avatar';
+import RadioButton from 'primevue/radiobutton';
+import Chart from 'primevue/chart';
 
 export default {
     name: "UserTask",
 
+    props: ['refresh'],
+
     components: {
+        Chart,
+        RadioButton,
+        Avatar,
+        Dropdown,
         InlineMessage,
         InputText,
         Button,
@@ -83,31 +116,18 @@ export default {
     },
 
     setup(props: any, context: any) {
-
-        // const tasksCheckedStore = computed(() => {
-        //     const isDoneArray: any = []
-        //     if (Object.values(selectedDesk.value.projects).length > 0) {
-        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
-        //             Object.values(project.tasks).forEach((task: any) => {
-        //                 task.isDone === true ? isDoneArray.push(task.name) : null
-        //             })
-        //         })
-        //     }
-        //     return isDoneArray
-        // })
-        // const tasksChecked = ref<any>([])
         const taskSearch = ref('')
         const foundedTask = ref<any>({})
         const notFoundedTask = ref(false)
-        const filterProjectSet = ref(false)
         const isDoneTask = ref(null)
         const deskStore = useDeskStore()
         const currentDesk: any = computed(() => deskStore.currentDesk)
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
         const taskLoading = computed(() => deskStore.taskLoading)
         const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
-        const selectedDropProject = ref({ name: 'همه پروژ ها', code: 0 })
+        const selectedDropTeammate = ref({ name: 'همه', code: 'همه' })
         const deskLoading = computed(() => deskStore.deskLoading)
+        const selectedSort = ref('not')
 
         const desksDrop = computed(() => {
             let result = deskStore.desksDrop.filter(item => item.code !== 0);
@@ -117,13 +137,15 @@ export default {
             return result
         })
 
-        const currentProject: any = computed(() => {
+        const currentProjects: any = computed(() => {
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 return selectedDesk.value.projects
             } else {
                 return []
             }
         })
+
+        const currentProject: any = computed(() => deskStore.currentProject)
 
         const projectsDrop: any = computed(() => {
             let projectArray: any = []
@@ -138,13 +160,26 @@ export default {
             }
         })
 
+        const teammatesDrop: any = computed(() => {
+            let teammateArray: any = []
+            teammateArray.push({ name: 'همه', code: 'همه' })
+            teammateArray.push({ name: 'خودم', code: 'خودم' })
+            Object.values(selectedDesk.value.projects).forEach((project: any) => {
+                Object.values(project.teammates).forEach((teammate: any) => {
+                    teammateArray.push({ name: teammate.fullName, code: teammate.fullName })
+                })
+            })
+            return teammateArray
+        })
+
         const currentTask: any = computed(() => {
             let taskObj: any = {}
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 Object.values(selectedDesk.value.projects).forEach((project: any) => {
                     Object.values(project.tasks).forEach((task: any) => {
-                        // task.isDone ? tasksChecked.value.push(task) : null
-                        taskObj[task.name] = task
+                        if (task.projectId === currentProject.value.name) {
+                            taskObj[task.name] = task
+                        }
                     })
                 })
                 return taskObj
@@ -153,95 +188,256 @@ export default {
             }
         })
 
-        function newDeskCall(code: any) {
-            deskStore.changeLoading(true)
-            foundedTask.value = {}
-            notFoundedTask.value = false
-            selectedDropProject.value = { name: 'همه پروژ ها', code: 0 }
-            deskStore.setCurrentDesk(code.value.name)
-            deskStore.setSelectedDropDesk({ name: code.value.name, code: code.value.name })
-            setInterval(() => {
-                deskStore.changeLoading(false)
-            }, 3000);
-        }
-
-        function filterProject(code: any) {
-            foundedTask.value = {}
-            notFoundedTask.value = false
-            filterProjectSet.value = false
-            if (code.value.code !== 0) {
-                Object.values(currentTask.value).forEach((task: any) => {
-                    task.projectId === code.value.name ? foundedTask.value[task.name] = task : null
-                })
-                if (Object.values(foundedTask.value).length === 0) {
-                    notFoundedTask.value = true
+        const chartData = computed(() => {
+            let optionChart: any = {}
+            let taskIsDone = 0
+            let taskIsNotDone = 0
+            Object.values(currentProject.value.tasks).forEach((task: any) => {
+                task.isDone ? taskIsDone++ : taskIsNotDone++
+                optionChart = {
+                    labels: ['انجام شده', 'در حال انجام'],
+                    datasets: [
+                        {
+                            data: [taskIsDone, taskIsNotDone],
+                            backgroundColor: ["#FF6384", "#36A2EB"],
+                            hoverBackgroundColor: ["#FF6384", "#36A2EB"]
+                        }
+                    ]
                 }
-            }
-        }
-
-        watch(isDoneTask, (value) => {
-            foundedTask.value = {}
-            notFoundedTask.value = false
-            if (value === true) {
-                Object.values(currentTask.value).forEach((task: any) => {
-                    task.isDone === true ? foundedTask.value[task.name] = task : null
-                })
-                if (Object.values(foundedTask.value).length === 0) {
-                    notFoundedTask.value = true
-                }
-            } else if (value === false) {
-                Object.values(currentTask.value).forEach((task: any) => {
-                    task.isDone === false ? foundedTask.value[task.name] = task : null
-                })
-                if (Object.values(foundedTask.value).length === 0) {
-                    notFoundedTask.value = true
-                }
-            }
-        })
-
-        watch(taskSearch, (text) => {
-            deskStore.changeLoading(true)
-            if (text && text.length > 0) {
-                foundedTask.value = {}
-                notFoundedTask.value = false
-                Object.values(currentTask.value).forEach((task: any) => {
-                    task.name.startsWith(text) ? foundedTask.value[task.name] = task : null
-                })
-                if (Object.values(foundedTask.value).length === 0) {
-                    notFoundedTask.value = true
-                }
-            } else {
-                foundedTask.value = {}
-                notFoundedTask.value = false
-            }
-            setInterval(() => {
-                deskStore.changeLoading(false)
-            }, 1000);
+            })
+            return optionChart
         })
 
         watch(currentTask, () => {
-            selectedDropProject.value = { name: 'همه پروژ ها', code: 0 }
             foundedTask.value = {}
             notFoundedTask.value = false
             taskSearch.value = ''
+            isDoneTask.value = null
+            selectedDropTeammate.value = { name: 'همه', code: 'همه' }
+            selectedSort.value = 'not'
         })
 
+        // watch(isDoneTask, (value) => {
+        //     deskStore.changeLoading(true)
+        //     if (value === true) {
+        //         if (Object.values(foundedTask.value).length > 0) {
+        //             Object.values(foundedTask.value).forEach((task: any) => {
+        //                 task.isDone === true ? null : delete foundedTask.value[task.name]
+        //             })
+        //         } else {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //             Object.values(currentTask.value).forEach((task: any) => {
+        //                 task.isDone === true ? foundedTask.value[task.name] = task : null
+        //             })
+        //         }
+        //         if (Object.values(foundedTask.value).length === 0) {
+        //             notFoundedTask.value = true
+        //         }
+        //     } else if (value === false) {
+        //         if (Object.values(foundedTask.value).length > 0) {
+        //             Object.values(foundedTask.value).forEach((task: any) => {
+        //                 task.isDone === false ? null : delete foundedTask.value[task.name]
+        //             })
+        //         } else {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //             Object.values(currentTask.value).forEach((task: any) => {
+        //                 task.isDone === false ? foundedTask.value[task.name] = task : null
+        //             })
+        //         }
+        //         if (Object.values(foundedTask.value).length === 0) {
+        //             notFoundedTask.value = true
+        //         }
+        //     } else {
+        //         if (taskSearch.value.length > 0) {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //             Object.values(currentTask.value).forEach((task: any) => {
+        //                 task.name.startsWith(taskSearch.value) ? foundedTask.value[task.name] = task : null
+        //             })
+
+        //         } else {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //         }
+        //     }
+        //     setInterval(() => {
+        //         deskStore.changeLoading(false)
+        //     }, 1000);
+        // })
+
+        // watch(taskSearch, (text) => {
+        //     deskStore.changeLoading(true)
+        //     if (text && text.length > 0) {
+        //         if (Object.values(foundedTask.value).length > 0) {
+        //             Object.values(foundedTask.value).forEach((task: any) => {
+        //                 task.name.startsWith(text) ? null : delete foundedTask.value[task.name]
+        //             })
+        //         } else {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //             Object.values(currentTask.value).forEach((task: any) => {
+        //                 task.name.startsWith(text) ? foundedTask.value[task.name] = task : null
+        //             })
+        //         }
+        //         if (Object.values(foundedTask.value).length === 0) {
+        //             notFoundedTask.value = true
+        //         }
+        //     } else {
+        //         if (isDoneTask.value !== null) {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //             if (isDoneTask.value === true) {
+        //                 Object.values(currentTask.value).forEach((task: any) => {
+        //                     task.isDone === true ? foundedTask.value[task.name] = task : null
+        //                 })
+        //                 if (Object.values(foundedTask.value).length === 0) {
+        //                     notFoundedTask.value = true
+        //                 }
+        //             } else if (isDoneTask.value === false) {
+        //                 Object.values(currentTask.value).forEach((task: any) => {
+        //                     task.isDone === false ? foundedTask.value[task.name] = task : null
+        //                 })
+        //                 if (Object.values(foundedTask.value).length === 0) {
+        //                     notFoundedTask.value = true
+        //                 }
+        //             }
+        //         } else {
+        //             foundedTask.value = {}
+        //             notFoundedTask.value = false
+        //         }
+        //     }
+        //     setInterval(() => {
+        //         deskStore.changeLoading(false)
+        //     }, 1000);
+        // })
+
+        // watch(selectedDropTeammate, (selected: any) => {
+        //     deskStore.changeLoading(true)
+        //     if (selected.code !== 'همه') {
+        //         foundedTask.value = {}
+        //         notFoundedTask.value = false
+        //         Object.values(currentTask.value).forEach((task: any) => {
+        //             task.responsible === selected.code ? foundedTask.value[task.name] = task : null
+        //         })
+        //         if (Object.values(foundedTask.value).length === 0) {
+        //             notFoundedTask.value = true
+        //         }
+        //     } else {
+        //         foundedTask.value = {}
+        //         notFoundedTask.value = false
+        //     }
+        //     setInterval(() => {
+        //         deskStore.changeLoading(false)
+        //     }, 1000);
+        // })
+
+        // watch(selectedSort, (selected: any) => {
+        //     deskStore.changeLoading(true)
+        //     if (selected !== 'not') {
+        //         foundedTask.value = {}
+        //         notFoundedTask.value = false
+        //         let sortedRolls = []
+        //         if (selected === 'point') {
+        //             sortedRolls = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.point > r2.point) ? 1 : (r1.point < r2.point) ? -1 : 0);
+        //         } else {
+        //             sortedRolls = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.deadline.second > r2.deadline.second) ? 1 : (r1.deadline.second < r2.deadline.second) ? -1 : 0);
+        //         }
+        //         sortedRolls.forEach((item: any) => {
+        //             foundedTask.value[item.name] = item
+        //         })
+        //         if (Object.values(foundedTask.value).length === 0) {
+        //             notFoundedTask.value = true
+        //         }
+        //     } else {
+        //         foundedTask.value = {}
+        //         notFoundedTask.value = false
+        //     }
+        //     setInterval(() => {
+        //         deskStore.changeLoading(false)
+        //     }, 1000);
+        // })
+
+        watch([taskSearch, isDoneTask, selectedDropTeammate, selectedSort], ([text, isDone, selectedTeammate, selectedSort]) => {
+            foundedTask.value = {}
+            notFoundedTask.value = false
+            let textArray: any = []
+            let isDoneArray: any = []
+            let selectedTeammateArray: any = []
+            let selectedSortArray: any = []
+            let data: any = []
+            let result: any = []
+            if (text && text.length > 0) {
+                Object.values(currentTask.value).forEach((task: any) => {
+                    task.name.startsWith(text) ? textArray.push(task) : null
+                })
+                data.push(textArray)
+                result = textArray
+            }
+
+            if (isDone !== null) {
+                Object.values(currentTask.value).forEach((task: any) => {
+                    task.isDone === isDone ? isDoneArray.push(task) : null
+                })
+                data.push(isDoneArray)
+                result = isDoneArray
+            }
+
+            if (selectedTeammate.code !== 'همه') {
+                Object.values(currentTask.value).forEach((task: any) => {
+                    task.responsible === selectedTeammate.code ? selectedTeammateArray.push(task) : null
+                })
+                data.push(selectedTeammateArray)
+                result = selectedTeammateArray
+            }
+
+            if (selectedSort !== 'not') {
+                if (selectedSort === 'point') {
+                    selectedSortArray = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.point > r2.point) ? 1 : (r1.point < r2.point) ? -1 : 0);
+                } else {
+                    selectedSortArray = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.deadline.second > r2.deadline.second) ? 1 : (r1.deadline.second < r2.deadline.second) ? -1 : 0);
+                }
+                data = [selectedSortArray].concat(data)
+                result = selectedSortArray
+            }
+
+            if (data.length > 1) {
+                result = data.reduce((a: any, b: any) => a.filter((c: any) => b.includes(c)));
+            }
+
+            if (!text && isDone === null && selectedTeammate.code === 'همه' && selectedSort === 'not') {
+                notFoundedTask.value = false
+                foundedTask.value = {}
+            } else {
+                if (result.length === 0) {
+                    notFoundedTask.value = true
+                    foundedTask.value = {}
+                } else {
+                    notFoundedTask.value = false
+                    result.forEach((item: any) => {
+                        foundedTask.value[item.name] = item
+                    })
+                }
+            }
+        })
         return {
-            selectedDropProject,
+            chartData,
             projectsDrop,
             currentTask,
             foundedTask,
+            selectedSort,
             notFoundedTask,
             taskSearch,
             // tasksChecked,
-            currentProject,
+            currentProjects,
             taskLoading,
             desksDrop,
             selectedDropDesk,
             deskLoading,
             isDoneTask,
-            newDeskCall,
-            filterProject
+            teammatesDrop,
+            selectedDropTeammate
         }
     },
 }

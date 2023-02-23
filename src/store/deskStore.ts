@@ -47,6 +47,7 @@ export const useDeskStore = defineStore("useDeskStore", {
         tasks: {},
         teammates: teammates,
         deskId: deskId,
+        active: true,
       };
 
       this.allDesks[deskId].projects = Object.assign(
@@ -60,9 +61,21 @@ export const useDeskStore = defineStore("useDeskStore", {
       taskName: string,
       taskDescription: string,
       responsible: string,
-      taskPoint: number
+      taskPoint: number,
+      deadlinePeriod: string,
+      deadlineUnit: number
     ) {
       const objTask: any = {};
+
+      let deadlineToSecond = 0;
+      if (deadlinePeriod === "ساعت") {
+        deadlineToSecond = deadlineUnit * 60 * 60;
+      } else if (deadlinePeriod === "روز") {
+        deadlineToSecond = deadlineUnit * 60 * 60 * 24;
+      } else if (deadlinePeriod === "هفته") {
+        deadlineToSecond = deadlineUnit * 60 * 60 * 24 * 7;
+      }
+
       objTask[taskName] = {
         name: taskName,
         description: taskDescription,
@@ -71,6 +84,11 @@ export const useDeskStore = defineStore("useDeskStore", {
         projectId: projectId,
         deskId: deskId,
         point: taskPoint,
+        deadline: {
+          period: deadlinePeriod,
+          unit: deadlineUnit,
+          second: deadlineToSecond,
+        },
       };
       this.allDesks[deskId].projects[projectId].tasks = Object.assign(
         this.allDesks[deskId].projects[projectId].tasks,
@@ -94,6 +112,24 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     changeTaskLoading(bool: boolean) {
       this.tasksLoading = bool;
+    },
+    editDesk(deskItem: any, deskBefore: string) {
+      if (deskItem.name !== deskBefore) {
+        deskItem.projects = this.allDesks[deskBefore].projects;
+        const objDesk: any = {};
+        objDesk[deskItem.name] = deskItem;
+        this.allDesks = Object.assign(this.allDesks, objDesk);
+        delete this.allDesks[deskBefore];
+      } else {
+        deskItem.projects = this.allDesks[deskBefore].projects;
+        this.allDesks[deskItem.name] = Object.assign(
+          this.allDesks[deskItem.name],
+          deskItem
+        );
+      }
+    },
+    editProject(projectId: any) {
+      console.log(projectId);
     },
   },
 });

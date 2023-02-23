@@ -34,10 +34,13 @@
                     <span>پروژه ها</span>
                 </p>
                 <template v-if="Object.values(selectedDesk.projects).length > 0">
-                    <p v-for="project in selectedDesk.projects" :key="project.name" @click="projectRoutePush(project)"
-                        class="hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto">
-                        <i class="pi pi-folder text-green-600" style="font-size: 1rem;"></i>
-                        <span>{{ project.name }}</span>
+                    <p v-for="project in selectedDesk.projects" :key="project.name"
+                        @click="project.active ? projectRoutePush(project) : null"
+                        class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
+                        :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': project.active, 'cursor-not-allowed': !project.active }">
+                        <i class="pi pi-folder" style="font-size: 1rem;"
+                            :class="{ 'text-gray-500': !project.active, 'text-green-600': project.active }"></i>
+                        <span :class="{ 'text-gray-500': !project.active }">{{ project.name }}</span>
                     </p>
                 </template>
             </div>

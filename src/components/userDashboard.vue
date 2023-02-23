@@ -7,10 +7,11 @@
 
             <div class="my-2 px-3">
                 <p class="mb-2">پروژه ها:</p>
-                <div v-if="projectLoading" class="w-fit mx-auto h-80 pt-24">
+                <div v-if="projectLoading"
+                    class="w-fit mx-auto h-80 pt-24">
                     <ProgressSpinner />
                 </div>
-                <listProject v-else @callPopupProject="$emit('callPopupProject')" :currentProject="currentProject" />
+                <listProject v-else @callPopupProject="$emit('callPopupProject')" />
             </div>
 
             <div class="my-2 px-3">
@@ -34,9 +35,6 @@
                                         <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                             offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
                                         <span class="mx-2">{{ task.name }}</span>
-                                        <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
-                                            task.description
-                                        }}</small>
                                     </p>
                                 </template>
                             </template>
@@ -60,8 +58,6 @@
                                             <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                                 offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
                                             <span class="mx-2">{{ task.name }}</span>
-                                            <small class="text-ellipsis whitespace-nowrap overflow-hidden w-80">{{
-                                                task.description }}</small>
                                         </p>
                                         <Avatar :label="task.responsible[0]" shape="circle" />
                                     </div>
@@ -81,8 +77,8 @@
                     </template>
                     <template #content>
                         <div class="w-full mx-0">
-                            <template v-if="Object.values(currentProject).length > 0">
-                                <div v-for="project in currentProject" :key="project.name"
+                            <template v-if="Object.values(currentProjects).length > 0">
+                                <div v-for="project in currentProjects" :key="project.name"
                                     class="bg-slate-300 mb-1 text-sm p-2 rounded-sm shadow">
                                     <p class="mb-1">
                                         <span class="ml-1">پروژه:</span>
@@ -148,26 +144,25 @@ export default {
             return projectStore.projectLoading
         })
 
-        const currentProject: any = computed(() => {
+        const currentProjects: any = computed(() => {
             if (Object.values(selectedDesk.value.projects).length > 0) {
-                return selectedDesk.value.projects
+                let projectObj: any = {}
+                Object.values(selectedDesk.value.projects).forEach((project: any) => {
+                    let isDoneTask = 0
+                    let isNotDoneTask = 0
+                    if (Object.values(project.tasks).length > 0) {
+                        Object.values(project.tasks).forEach((task: any) => {
+                            task.isDone ? isDoneTask++ : isNotDoneTask++
+                        })
+                    }
+                    const projectNameValue = project.name
+                    projectObj[projectNameValue] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
+                })
+                return projectObj
             } else {
-                return []
+                return {}
             }
         })
-
-        function newDeskCall(code: any) {
-            if (code.value.code === 0) {
-                context.emit('callCreate')
-            } else {
-                deskStore.changeLoading(true)
-                deskStore.setCurrentDesk(code.value.name)
-                deskStore.setSelectedDropDesk({ name: code.value.name, code: code.value.name })
-                setInterval(() => {
-                    deskStore.changeLoading(false)
-                }, 3000);
-            }
-        }
 
         const checked = ref(true)
         const sideBar = ref(true)
@@ -216,9 +211,8 @@ export default {
         })
 
         return {
-            newDeskCall,
             isTeammateTask,
-            currentProject,
+            currentProjects,
             isMyTask,
             currentTask,
             selectedDropDesk,

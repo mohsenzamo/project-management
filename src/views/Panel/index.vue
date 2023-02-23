@@ -29,11 +29,12 @@
                 <span>میزکارها</span>
             </p>
             <template v-if="Object.values(alldesks).length > 0">
-                <p v-for="desk in alldesks" :key="desk.name"
-                    class="hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
-                    @click="deskRoutePush(desk)">
-                    <i class="pi pi-desktop text-blue-600" style="font-size: 1rem;"></i>
-                    <span>{{ desk.name }}</span>
+                <p v-for="desk in alldesks" :key="desk.name" class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
+                    :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"
+                    @click="desk.active ? deskRoutePush(desk) : null">
+                    <i class="pi pi-desktop" :class="{ 'text-gray-500': !desk.active, 'text-blue-600': desk.active }"
+                        style="font-size: 1rem;"></i>
+                    <span :class="{ 'text-gray-500': !desk.active }">{{ desk.name }}</span>
                 </p>
             </template>
         </div>
@@ -54,18 +55,25 @@
                 <div class="grid items-center gap-4 p-4 flex-wrap grid-cols-2">
                     <Card v-for="desk in alldesks" :key="desk.name" class="w-full h-full shadow-md relative cursor-default">
                         <template #header>
-                            <i class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3 top-3 text-xl"></i>
-                            <i @click="deskRoutePush(desk)"
-                                class="pi pi-eye cursor-pointer hover:text-blue-400 absolute left-10 top-3 text-xl"></i>
+                            <i @click="currentEditDesk(desk)"
+                                class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3 top-3 text-xl"></i>
+                            <i @click="desk.active ? deskRoutePush(desk) : null"
+                                class="pi pi-eye absolute left-10 top-3 text-xl"
+                                :class="{ 'hover:text-blue-400 cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"></i>
+                            <InputSwitch v-model="desk.active" class="absolute top-3" style="left: 4.2rem;" />
                         </template>
                         <template #title>
-                            <span @click="deskRoutePush(desk)" class="cursor-pointer">
+                            <span @click="desk.active ? deskRoutePush(desk) : null" class="font-iransans"
+                                :class="{ 'cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }">
                                 {{ desk.name }}
                             </span>
                         </template>
                         <template #content>
                             <div class="flex justify-center w-72 h-52 mx-auto">
-                                <Chart type="doughnut" :data="chartData" :options="lightOptions" />
+                                <template v-if="chartData[desk.name].show">
+                                    <Chart type="doughnut" :data="chartData[desk.name].data" />
+                                </template>
+                                <p v-else class="mt-20">تسک ثبت شده ای موجود نیست</p>
                             </div>
                             <div class="flex justify-between items-center mt-4">
                                 <p>
@@ -110,10 +118,36 @@
             </div>
         </popUp>
     </transition>
+    <transition name="modal">
+        <popUp v-if="modalEditDesk" @close="modalEditDesk = false">
+            <p class="font-bold my-3">ویرایش میزکار:</p>
+            <div class="mb-3">
+                <p class="mb-2">اسم میزکار:</p>
+                <InputText v-model="editDeskValue.name" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5 h-10" />
+            </div>
+            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+                <p class="mb-2">همکاران خود:</p>
+                <div class="flex gap-2 my-2 h-10" v-for="(teammate, index) in editDeskTeammate" :key="index">
+                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
+                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-1/2" />
+                    <div class="flex gap-2">
+                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger my-px"
+                            @click="removeEditTeammate(index)" />
+                        <Button icon="pi pi-plus" class="p-button-sm p-button-success my-px" @click="addEditTeammate" />
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditDesk = false" />
+                <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10" :disabled="!(editDeskValue.name.length > 0)"
+                    @click="editDesk" />
+            </div>
+        </popUp>
+    </transition>
 </template>
 
 <script lang="ts">
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
@@ -122,6 +156,7 @@ import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Chart from 'primevue/chart';
+import InputSwitch from 'primevue/inputswitch';
 
 export default {
     name: 'UserPanel',
@@ -132,7 +167,8 @@ export default {
         Avatar,
         popUp,
         InputText,
-        Card
+        Card,
+        InputSwitch
     },
 
     setup() {
@@ -141,27 +177,70 @@ export default {
         const sideBar = ref(true)
         const createNewDesk = ref(false)
         const deskName = ref('')
+        const modalEditDesk = ref(false)
+        const editDeskValue = ref<any>(null)
+        let editDeskTeammate = ref<any>([])
+        const deskBeforeChange = ref('')
 
 
-        const chartData = ref({
-            labels: ['تسک های انجام شده', 'تسک های در حال انجام'],
-            datasets: [
-                {
-                    data: [300, 50],
-                    backgroundColor: ["#FF6384", "#36A2EB"],
-                    hoverBackgroundColor: ["#FF6384", "#36A2EB"]
-                }
-            ]
-        })
-        const lightOptions = ref({
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#495057'
+        function currentEditDesk(desk: any) {
+            modalEditDesk.value = true
+            editDeskValue.value = Object.assign({}, desk)
+            deskBeforeChange.value = desk.name
+            editDeskTeammate.value = []
+            Object.values(editDeskValue.value.teammates).forEach((teammate: any) => {
+                editDeskTeammate.value.push({
+                    fullName: teammate.fullName,
+                    phoneNumber: teammate.phoneNumber
+                })
+            })
+            editDeskTeammate.value.push({
+                fullName: '',
+                phoneNumber: ''
+            })
+        }
+        function addEditTeammate() {
+            editDeskTeammate.value.push({
+                fullName: '',
+                phoneNumber: null
+            })
+        }
+        function removeEditTeammate(index: number) {
+            editDeskTeammate.value.splice(index, 1)
+            if (editDeskTeammate.value.length == 0) {
+                addEditTeammate()
+            }
+        }
+
+
+        const chartData = computed(() => {
+            let optionChart: any = {}
+            Object.values(deskStore.allDesk).forEach((desk: any) => {
+                let taskIsDone = 0
+                let taskIsNotDone = 0
+                Object.values(desk.projects).forEach((project: any) => {
+                    Object.values(project.tasks).forEach((task: any) => {
+                        task.isDone ? taskIsDone++ : taskIsNotDone++
+                    })
+                })
+                const deskNameValue = desk.name
+                optionChart[deskNameValue] = {
+                    show: taskIsDone + taskIsNotDone === 0 ? false : true,
+                    data: {
+                        labels: ['تسک های انجام شده', 'تسک های در حال انجام'],
+                        datasets: [
+                            {
+                                data: [taskIsDone, taskIsNotDone],
+                                backgroundColor: ["#FF6384", "#36A2EB"],
+                                hoverBackgroundColor: ["#FF6384", "#36A2EB"]
+                            }
+                        ]
                     }
                 }
-            }
+            })
+            return optionChart
         })
+
 
 
         let deskTeammates = ref([{
@@ -198,12 +277,43 @@ export default {
             objDesk[deskNameValue] = {
                 name: deskName.value,
                 projects: {},
-                teammates: teammatesObj
+                teammates: teammatesObj,
+                active: true
             }
 
             deskStore.increment(objDesk)
 
             createNewDesk.value = false
+            setInterval(() => {
+                deskStore.changeLoading(false)
+            }, 1000);
+        }
+
+        function editDesk() {
+            deskStore.changeLoading(true)
+            let teammatesObj: any = {}
+            if (editDeskTeammate.value[0].fullName.length > 0) {
+                editDeskTeammate.value.forEach((item: any) => {
+                    if (item.fullName.length > 0) {
+                        teammatesObj[item.fullName] = item
+                    }
+                })
+            }
+
+            let objDesk: any = {}
+
+            // const deskNameValue = editDeskValue.value.name
+
+            objDesk = {
+                name: editDeskValue.value.name,
+                projects: {},
+                teammates: teammatesObj,
+                active: true
+            }
+
+            deskStore.editDesk(objDesk, deskBeforeChange.value)
+
+            modalEditDesk.value = false
             setInterval(() => {
                 deskStore.changeLoading(false)
             }, 1000);
@@ -226,6 +336,9 @@ export default {
         }
 
         return {
+            editDesk,
+            addEditTeammate,
+            removeEditTeammate,
             deskRoutePush,
             removeTeammate,
             addTeammate,
@@ -236,7 +349,10 @@ export default {
             createNewDesk,
             deskTeammates,
             chartData,
-            lightOptions
+            currentEditDesk,
+            modalEditDesk,
+            editDeskValue,
+            editDeskTeammate
         }
     },
 }
