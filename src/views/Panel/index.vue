@@ -306,7 +306,7 @@ export default {
 
             objDesk = {
                 name: editDeskValue.value.name,
-                projects: {},
+                projects: editDeskValue.value.projects,
                 teammates: teammatesObj,
                 active: true
             }

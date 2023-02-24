@@ -69,16 +69,16 @@
                 <p class="mb-2">نام پروژه:</p>
                 <InputText v-model="editProjectValue.name" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
             </div>
-            <!-- <div class="custom mb-3 max-h-40 overflow-y-scroll">
+            <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
                     <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
-                        <Checkbox name="teammate" :value="teammate" v-model="teammates" />
+                        <Checkbox name="teammate" :value="teammate" v-model="editTeammates" />
                         <p>{{ teammate.fullName }}</p>
                     </div>
                 </template>
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
-            </div> -->
+            </div>
             <div class="flex gap-2">
                 <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditProject = false" />
                 <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10"
@@ -101,11 +101,13 @@ import InputSwitch from 'primevue/inputswitch';
 import { useDeskStore } from '@/store/deskStore';
 import Avatar from 'primevue/avatar';
 import popUp from '@/components/popUp.vue';
+import Checkbox from 'primevue/checkbox';
 
 export default {
     name: "ListProject",
 
     components: {
+        Checkbox,
         Avatar,
         Card,
         Button,
@@ -132,6 +134,7 @@ export default {
         const editProjectValue = ref<any>(null)
         const projectBeforeChange = ref('')
         const projectStore = useProjectStore();
+        const editTeammates = ref<any>([])
 
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
@@ -155,15 +158,27 @@ export default {
             }
         })
 
+        const currentTeammate = computed(() => {
+            if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
+                return selectedDesk.value.teammates
+            } else {
+                return []
+            }
+        })
+
         function currentEditProject(project: any) {
             modalEditProject.value = true
             editProjectValue.value = Object.assign({}, project)
+            editTeammates.value = []
+            Object.values(project.teammates).forEach((teammate: any) => {
+                editTeammates.value.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
+            })
             projectBeforeChange.value = project.name
-            console.log(editProjectValue.value, 11)
         }
 
         function editProject() {
             projectStore.changeLoading(true)
+            deskStore.editProject(editProjectValue.value, projectBeforeChange.value)
             modalEditProject.value = false
             setInterval(() => {
                 projectStore.changeLoading(false)
@@ -171,11 +186,13 @@ export default {
         }
 
         return {
+            editProject,
+            currentEditProject,
             modalEditProject,
             currentProjects,
-            currentEditProject,
             editProjectValue,
-            editProject
+            currentTeammate,
+            editTeammates
         }
     },
 }

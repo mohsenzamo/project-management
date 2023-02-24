@@ -72,7 +72,8 @@
                 </div>
                 <div class="bg-white h-full rounded-sm p-2 shadow-md">
                     <div class="flex justify-center w-full h-28 mx-auto">
-                        <Chart type="doughnut" :data="chartData" />
+                        <Chart v-if="chartData.show" type="doughnut" :data="chartData.data" />
+                        <p v-else class="mt-10">تسک ثبت شده ای نیست</p>
                     </div>
                 </div>
             </div>
@@ -137,14 +138,6 @@ export default {
             return result
         })
 
-        const currentProjects: any = computed(() => {
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                return selectedDesk.value.projects
-            } else {
-                return []
-            }
-        })
-
         const currentProject: any = computed(() => deskStore.currentProject)
 
         const projectsDrop: any = computed(() => {
@@ -174,6 +167,7 @@ export default {
 
         const currentTask: any = computed(() => {
             let taskObj: any = {}
+            console.log(currentProject.value)
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 Object.values(selectedDesk.value.projects).forEach((project: any) => {
                     Object.values(project.tasks).forEach((task: any) => {
@@ -194,7 +188,10 @@ export default {
             let taskIsNotDone = 0
             Object.values(currentProject.value.tasks).forEach((task: any) => {
                 task.isDone ? taskIsDone++ : taskIsNotDone++
-                optionChart = {
+            })
+            optionChart = {
+                show: taskIsDone + taskIsNotDone === 0 ? false : true,
+                data: {
                     labels: ['انجام شده', 'در حال انجام'],
                     datasets: [
                         {
@@ -204,7 +201,7 @@ export default {
                         }
                     ]
                 }
-            })
+            }
             return optionChart
         })
 
@@ -216,148 +213,6 @@ export default {
             selectedDropTeammate.value = { name: 'همه', code: 'همه' }
             selectedSort.value = 'not'
         })
-
-        // watch(isDoneTask, (value) => {
-        //     deskStore.changeLoading(true)
-        //     if (value === true) {
-        //         if (Object.values(foundedTask.value).length > 0) {
-        //             Object.values(foundedTask.value).forEach((task: any) => {
-        //                 task.isDone === true ? null : delete foundedTask.value[task.name]
-        //             })
-        //         } else {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //             Object.values(currentTask.value).forEach((task: any) => {
-        //                 task.isDone === true ? foundedTask.value[task.name] = task : null
-        //             })
-        //         }
-        //         if (Object.values(foundedTask.value).length === 0) {
-        //             notFoundedTask.value = true
-        //         }
-        //     } else if (value === false) {
-        //         if (Object.values(foundedTask.value).length > 0) {
-        //             Object.values(foundedTask.value).forEach((task: any) => {
-        //                 task.isDone === false ? null : delete foundedTask.value[task.name]
-        //             })
-        //         } else {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //             Object.values(currentTask.value).forEach((task: any) => {
-        //                 task.isDone === false ? foundedTask.value[task.name] = task : null
-        //             })
-        //         }
-        //         if (Object.values(foundedTask.value).length === 0) {
-        //             notFoundedTask.value = true
-        //         }
-        //     } else {
-        //         if (taskSearch.value.length > 0) {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //             Object.values(currentTask.value).forEach((task: any) => {
-        //                 task.name.startsWith(taskSearch.value) ? foundedTask.value[task.name] = task : null
-        //             })
-
-        //         } else {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //         }
-        //     }
-        //     setInterval(() => {
-        //         deskStore.changeLoading(false)
-        //     }, 1000);
-        // })
-
-        // watch(taskSearch, (text) => {
-        //     deskStore.changeLoading(true)
-        //     if (text && text.length > 0) {
-        //         if (Object.values(foundedTask.value).length > 0) {
-        //             Object.values(foundedTask.value).forEach((task: any) => {
-        //                 task.name.startsWith(text) ? null : delete foundedTask.value[task.name]
-        //             })
-        //         } else {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //             Object.values(currentTask.value).forEach((task: any) => {
-        //                 task.name.startsWith(text) ? foundedTask.value[task.name] = task : null
-        //             })
-        //         }
-        //         if (Object.values(foundedTask.value).length === 0) {
-        //             notFoundedTask.value = true
-        //         }
-        //     } else {
-        //         if (isDoneTask.value !== null) {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //             if (isDoneTask.value === true) {
-        //                 Object.values(currentTask.value).forEach((task: any) => {
-        //                     task.isDone === true ? foundedTask.value[task.name] = task : null
-        //                 })
-        //                 if (Object.values(foundedTask.value).length === 0) {
-        //                     notFoundedTask.value = true
-        //                 }
-        //             } else if (isDoneTask.value === false) {
-        //                 Object.values(currentTask.value).forEach((task: any) => {
-        //                     task.isDone === false ? foundedTask.value[task.name] = task : null
-        //                 })
-        //                 if (Object.values(foundedTask.value).length === 0) {
-        //                     notFoundedTask.value = true
-        //                 }
-        //             }
-        //         } else {
-        //             foundedTask.value = {}
-        //             notFoundedTask.value = false
-        //         }
-        //     }
-        //     setInterval(() => {
-        //         deskStore.changeLoading(false)
-        //     }, 1000);
-        // })
-
-        // watch(selectedDropTeammate, (selected: any) => {
-        //     deskStore.changeLoading(true)
-        //     if (selected.code !== 'همه') {
-        //         foundedTask.value = {}
-        //         notFoundedTask.value = false
-        //         Object.values(currentTask.value).forEach((task: any) => {
-        //             task.responsible === selected.code ? foundedTask.value[task.name] = task : null
-        //         })
-        //         if (Object.values(foundedTask.value).length === 0) {
-        //             notFoundedTask.value = true
-        //         }
-        //     } else {
-        //         foundedTask.value = {}
-        //         notFoundedTask.value = false
-        //     }
-        //     setInterval(() => {
-        //         deskStore.changeLoading(false)
-        //     }, 1000);
-        // })
-
-        // watch(selectedSort, (selected: any) => {
-        //     deskStore.changeLoading(true)
-        //     if (selected !== 'not') {
-        //         foundedTask.value = {}
-        //         notFoundedTask.value = false
-        //         let sortedRolls = []
-        //         if (selected === 'point') {
-        //             sortedRolls = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.point > r2.point) ? 1 : (r1.point < r2.point) ? -1 : 0);
-        //         } else {
-        //             sortedRolls = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.deadline.second > r2.deadline.second) ? 1 : (r1.deadline.second < r2.deadline.second) ? -1 : 0);
-        //         }
-        //         sortedRolls.forEach((item: any) => {
-        //             foundedTask.value[item.name] = item
-        //         })
-        //         if (Object.values(foundedTask.value).length === 0) {
-        //             notFoundedTask.value = true
-        //         }
-        //     } else {
-        //         foundedTask.value = {}
-        //         notFoundedTask.value = false
-        //     }
-        //     setInterval(() => {
-        //         deskStore.changeLoading(false)
-        //     }, 1000);
-        // })
 
         watch([taskSearch, isDoneTask, selectedDropTeammate, selectedSort], ([text, isDone, selectedTeammate, selectedSort]) => {
             foundedTask.value = {}
@@ -430,7 +285,6 @@ export default {
             notFoundedTask,
             taskSearch,
             // tasksChecked,
-            currentProjects,
             taskLoading,
             desksDrop,
             selectedDropDesk,

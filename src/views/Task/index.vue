@@ -84,7 +84,9 @@
                         </p>
                         <div class="text-lg mb-5">
                             <p class="ml-2 font-bold">توضیحات:</p>
-                            <p dir="ltr" v-html="currentTask.description" class="w-full" />
+                            <p v-if="currentTask.description.length > 0" dir="ltr" v-html="currentTask.description"
+                                class="w-full" />
+                            <p v-else>----</p>
                         </div>
                         <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
                             <div class="splide__track">

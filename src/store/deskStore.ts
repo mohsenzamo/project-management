@@ -115,21 +115,29 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     editDesk(deskItem: any, deskBefore: string) {
       if (deskItem.name !== deskBefore) {
-        deskItem.projects = this.allDesks[deskBefore].projects;
+        Object.values(deskItem.projects).forEach((project:any)=>{
+          project.deskId = deskItem.name
+        })
         const objDesk: any = {};
         objDesk[deskItem.name] = deskItem;
         this.allDesks = Object.assign(this.allDesks, objDesk);
         delete this.allDesks[deskBefore];
       } else {
-        deskItem.projects = this.allDesks[deskBefore].projects;
         this.allDesks[deskItem.name] = Object.assign(
           this.allDesks[deskItem.name],
           deskItem
         );
       }
     },
-    editProject(projectId: any) {
-      console.log(projectId);
+    editProject(projectItem: any, projectBefore: string) {
+      const objProject: any = {};
+      console.log(projectItem)
+      objProject[projectItem.name] = projectItem;
+      this.allDesks[projectItem.deskId].projects = Object.assign(
+        this.allDesks[projectItem.deskId].projects,
+        objProject
+      );
+      delete this.allDesks[projectItem.deskId].projects[projectBefore];
     },
   },
 });
