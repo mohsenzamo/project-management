@@ -9,7 +9,9 @@
         </div>
 
         <div class="flex items-center gap-4 justify-end px-4">
-            <Avatar icon="pi pi-user" class="" shape="circle" />
+            <RouterLink :to="{ name: 'UserProfile' }">
+                <Avatar icon="pi pi-user" class="" shape="circle" />
+            </RouterLink>
         </div>
     </nav>
 
@@ -148,11 +150,11 @@
 
 <script lang="ts">
 import { computed, ref, watch } from 'vue'
-import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useRouter } from 'vue-router';
 import popUp from '@/components/popUp.vue';
+import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Card from 'primevue/card';
 import Chart from 'primevue/chart';
@@ -301,8 +303,6 @@ export default {
             }
 
             let objDesk: any = {}
-
-            // const deskNameValue = editDeskValue.value.name
 
             objDesk = {
                 name: editDeskValue.value.name,

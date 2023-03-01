@@ -1,4 +1,4 @@
-import { createRouter, createWebHashHistory, RouteRecordRaw } from "vue-router";
+import { createRouter, createWebHistory, RouteRecordRaw } from "vue-router";
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -10,6 +10,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/panel",
     name: "UserPanel",
     component: () => import("../views/Panel/index.vue"),
+  },
+  {
+    path: "/profile",
+    name: "UserProfile",
+    component: () => import("../views/Profile/index.vue"),
   },
   {
     path: "/desk/:id",
@@ -32,7 +37,7 @@ const routes: Array<RouteRecordRaw> = [
 ];
 
 const router = createRouter({
-  history: createWebHashHistory(),
+  history: createWebHistory(),
   routes,
 });
 

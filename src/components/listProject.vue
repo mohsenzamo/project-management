@@ -14,7 +14,9 @@
                                 </div>
                             </template>
                             <template #title>
-                                <p class="mb-2 text-center">{{ project.name }}</p>
+                                <p @click="project.active ? projectRoutePush(project) : null" class="mb-2 text-center"
+                                    :class="{ 'cursor-pointer': project.active, 'cursor-not-allowed': !project.active }">{{
+                                        project.name }}</p>
                             </template>
                             <template #content>
                                 <div class="mb-4">
@@ -102,6 +104,7 @@ import { useDeskStore } from '@/store/deskStore';
 import Avatar from 'primevue/avatar';
 import popUp from '@/components/popUp.vue';
 import Checkbox from 'primevue/checkbox';
+import { useRouter } from 'vue-router';
 
 export default {
     name: "ListProject",
@@ -135,6 +138,7 @@ export default {
         const projectBeforeChange = ref('')
         const projectStore = useProjectStore();
         const editTeammates = ref<any>([])
+        const router = useRouter()
 
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
@@ -178,14 +182,40 @@ export default {
 
         function editProject() {
             projectStore.changeLoading(true)
-            deskStore.editProject(editProjectValue.value, projectBeforeChange.value)
+            let objProject: any = {}
+            let teammatesObj: any = {}
+            if (editTeammates.value.length > 0) {
+                editTeammates.value.forEach((item: any) => {
+                    teammatesObj[item.fullName] = item
+                })
+            }
+
+            objProject = {
+                name: editProjectValue.value.name,
+                tasks: editProjectValue.value.tasks,
+                teammates: teammatesObj,
+                deskId: editProjectValue.value.deskId,
+                active: true,
+                isDoneTask: editProjectValue.value.isDoneTask,
+                isNotDoneTask: editProjectValue.value.isNotDoneTask
+            };
+            deskStore.editProject(objProject, projectBeforeChange.value)
             modalEditProject.value = false
             setInterval(() => {
                 projectStore.changeLoading(false)
             }, 1000);
         }
 
+        function projectRoutePush(project: any) {
+            deskStore.setCurrentProject(project)
+            router.push({
+                name: "UserProject",
+                params: { id: project.name },
+            });
+        }
+
         return {
+            projectRoutePush,
             editProject,
             currentEditProject,
             modalEditProject,

@@ -9,7 +9,9 @@
         </div>
 
         <div class="flex items-center gap-4 justify-end px-4">
-            <Avatar icon="pi pi-user" class="" shape="circle" />
+            <RouterLink :to="{ name: 'UserProfile' }">
+                <Avatar icon="pi pi-user" class="" shape="circle" />
+            </RouterLink>
         </div>
     </nav>
 
@@ -52,14 +54,16 @@
                         </div>
                     </template>
                     <template #content>
-                        <div class="flex items-center gap-2 my-2">
-                            <Avatar label="خ" shape="circle" />
-                            <p>خودم</p>
-                        </div>
-                        <div v-for="teammate in selectedDesk.teammates" :key="teammate.fullName"
-                            class="flex items-center gap-2 my-2">
-                            <Avatar :label="teammate.fullName[0]" shape="circle" />
-                            <p>{{ teammate.fullName }}</p>
+                        <div class="h-32 overflow-y-scroll custom">
+                            <div class="flex items-center gap-2 my-1">
+                                <Avatar label="خ" shape="circle" />
+                                <p>خودم</p>
+                            </div>
+                            <div v-for="teammate in selectedDesk.teammates" :key="teammate.fullName"
+                                class="flex items-center gap-2 my-1">
+                                <Avatar :label="teammate.fullName[0]" shape="circle" />
+                                <p>{{ teammate.fullName }}</p>
+                            </div>
                         </div>
                     </template>
                 </Card>

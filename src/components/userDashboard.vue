@@ -7,8 +7,7 @@
 
             <div class="my-2 px-3">
                 <p class="mb-2">پروژه ها:</p>
-                <div v-if="projectLoading"
-                    class="w-fit mx-auto h-80 pt-24">
+                <div v-if="projectLoading" class="w-fit mx-auto h-80 pt-24">
                     <ProgressSpinner />
                 </div>
                 <listProject v-else @callPopupProject="$emit('callPopupProject')" />
@@ -16,7 +15,10 @@
 
             <div class="my-2 px-3">
                 <p class="mb-2">همکاران:</p>
-                <sliderTeammate></sliderTeammate>
+                <div v-if="teammateLoading" class="w-fit mx-auto h-24">
+                    <ProgressSpinner />
+                </div>
+                <sliderTeammate v-else></sliderTeammate>
             </div>
 
             <div class="flex gap-2 mt-5 px-3">
@@ -132,18 +134,12 @@ export default {
         ToggleButton
     },
 
-    setup(props: any, context: any) {
+    setup() {
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
-
-        const deskLoading = computed(() => {
-            return deskStore.deskLoading
-        })
-
-        const projectLoading = computed(() => {
-            return projectStore.projectLoading
-        })
-
+        const deskLoading = computed(() => deskStore.deskLoading)
+        const projectLoading = computed(() => projectStore.projectLoading)
+        const teammateLoading = computed(() => deskStore.teammateLoading)
         const currentProjects: any = computed(() => {
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 let projectObj: any = {}
@@ -167,16 +163,9 @@ export default {
         const checked = ref(true)
         const sideBar = ref(true)
 
-        const desksDrop = computed(() => {
-            return deskStore.desksDrop
-        })
-
-        const selectedDropDesk = computed(() => {
-            return deskStore.selectedDropDesk
-        })
-
+        const desksDrop = computed(() => deskStore.desksDrop)
+        const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
         const currentDesk: any = computed(() => deskStore.currentDesk)
-
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
         const currentTask: any = computed(() => {
@@ -184,7 +173,6 @@ export default {
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 Object.values(selectedDesk.value.projects).forEach((project: any) => {
                     Object.values(project.tasks).forEach((task: any) => {
-                        // task.isDone ? tasksChecked.value.push(task) : null
                         taskObj[task.name] = task
                     })
                 })
@@ -221,7 +209,8 @@ export default {
             desksDrop,
             alldesks: deskStore.allDesk,
             deskLoading,
-            projectLoading
+            projectLoading,
+            teammateLoading
         }
     },
 }

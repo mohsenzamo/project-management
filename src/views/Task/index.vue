@@ -19,7 +19,9 @@
         </div>
 
         <div class="flex items-center gap-4 justify-end px-4">
-            <Avatar icon="pi pi-user" class="" shape="circle" />
+            <RouterLink :to="{ name: 'UserProfile' }">
+                <Avatar icon="pi pi-user" class="" shape="circle" />
+            </RouterLink>
         </div>
     </nav>
 

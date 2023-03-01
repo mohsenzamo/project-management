@@ -20,17 +20,32 @@
                     <template v-else>
                         <div v-for="task in Object.values(foundedTask).length === 0 ? currentTask : foundedTask"
                             :key="task.name"
-                            class="w-full mx-auto mb-4 bg-white rounded-sm flex justify-between items-center p-3 shadow-md hover:-translate-y-2 transition-all">
+                            class="w-full mx-auto mb-4 bg-white rounded-sm flex justify-between items-center p-3 shadow-md">
                             <div class="flex gap-2 items-center">
                                 <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                     offIcon="pi pi-times" class="p-button-sm w-8 h-8" />
                                 <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.name }}</p>
                             </div>
-                            <div class="flex gap-2 items-center">
+                            <div class="flex gap-2 items-center relative">
                                 <Chip :label="task.deadline.unit + task.deadline.period" icon="pi pi-clock" />
-                                <Chip :label="task.projectId" icon="pi pi-folder" />
                                 <Chip :label="task.responsible" icon="pi pi-user" />
-                                <Avatar :label="task.point" shape="circle" />
+                                <Chip :label="task.point + 'امتیاز'" icon="pi pi-star" />
+                                <Avatar icon="pi pi-pencil" shape="circle" class="cursor-pointer hover:bg-yellow-400" />
+                                <Avatar icon="pi pi-trash" shape="circle" class="cursor-pointer hover:bg-red-400"
+                                    :class="{ 'bg-red-400': taskDelete === task }" @click="taskDelete = task" />
+                                <transition name="modal">
+                                    <div v-if="taskDelete === task"
+                                        class="task-popup flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-slate-200 w-44 p-2 rounded shadow-lg z-20">
+                                        <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
+                                        <p>تسک {{ taskDelete.name }} حذف شود؟</p>
+                                        <div class="flex gap-2">
+                                            <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8"
+                                                @click="taskDelete = null" />
+                                            <Button label="حذف" class="p-button-sm p-button-danger w-16 h-8"
+                                                @click="deleteTask" />
+                                        </div>
+                                    </div>
+                                </transition>
                             </div>
                         </div>
                     </template>
@@ -50,22 +65,29 @@
                             :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">همه تسک ها</p>
                     </div>
                     <div>
-                        <p>افراد:</p>
+                        <p :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">افراد:</p>
                         <Dropdown v-model="selectedDropTeammate" :options="teammatesDrop" optionLabel="name"
-                            placeholder="همکار" class="drop-down w-full" />
+                            placeholder="همکار" class="drop-down w-full"
+                            :disabled="Object.values(currentTask).length === 0" />
                     </div>
                     <div>
-                        <p>مرتب سازی:</p>
-                        <p class="flex items-center gap-2">
-                            <RadioButton name="sort" value="point" v-model="selectedSort" />
+                        <p :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">مرتب سازی:</p>
+                        <p class="flex items-center gap-2"
+                            :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">
+                            <RadioButton name="sort" value="point" v-model="selectedSort"
+                                :disabled="Object.values(currentTask).length === 0" />
                             <span>امتیاز</span>
                         </p>
-                        <p class="flex items-center gap-2">
-                            <RadioButton name="sort" value="deadline" v-model="selectedSort" />
+                        <p class="flex items-center gap-2"
+                            :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">
+                            <RadioButton name="sort" value="deadline" v-model="selectedSort"
+                                :disabled="Object.values(currentTask).length === 0" />
                             <span>ددلاین</span>
                         </p>
-                        <p class="flex items-center gap-2">
-                            <RadioButton name="sort" value="not" v-model="selectedSort" />
+                        <p class="flex items-center gap-2"
+                            :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">
+                            <RadioButton name="sort" value="not" v-model="selectedSort"
+                                :disabled="Object.values(currentTask).length === 0" />
                             <span>غیرفعال</span>
                         </p>
                     </div>
@@ -105,8 +127,8 @@ export default {
     components: {
         Chart,
         RadioButton,
-        Avatar,
         Dropdown,
+        Avatar,
         InlineMessage,
         InputText,
         Button,
@@ -116,11 +138,13 @@ export default {
         ToggleButton
     },
 
-    setup(props: any, context: any) {
+    setup() {
         const taskSearch = ref('')
         const foundedTask = ref<any>({})
         const notFoundedTask = ref(false)
+        const deleteTaskPopup = ref(false)
         const isDoneTask = ref(null)
+        const taskDelete = ref<any>(null)
         const deskStore = useDeskStore()
         const currentDesk: any = computed(() => deskStore.currentDesk)
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
@@ -167,7 +191,6 @@ export default {
 
         const currentTask: any = computed(() => {
             let taskObj: any = {}
-            console.log(currentProject.value)
             if (Object.values(selectedDesk.value.projects).length > 0) {
                 Object.values(selectedDesk.value.projects).forEach((project: any) => {
                     Object.values(project.tasks).forEach((task: any) => {
@@ -204,6 +227,15 @@ export default {
             }
             return optionChart
         })
+
+        function deleteTask() {
+            deskStore.changeTaskLoading(true)
+            deskStore.deleteTask(taskDelete.value)
+            taskDelete.value = null
+            setInterval(() => {
+                deskStore.changeTaskLoading(false)
+            }, 1000);
+        }
 
         watch(currentTask, () => {
             foundedTask.value = {}
@@ -279,11 +311,13 @@ export default {
         return {
             chartData,
             projectsDrop,
+            taskDelete,
             currentTask,
             foundedTask,
             selectedSort,
             notFoundedTask,
             taskSearch,
+            deleteTask,
             // tasksChecked,
             taskLoading,
             desksDrop,
@@ -291,7 +325,8 @@ export default {
             deskLoading,
             isDoneTask,
             teammatesDrop,
-            selectedDropTeammate
+            selectedDropTeammate,
+            deleteTaskPopup
         }
     },
 }
@@ -310,5 +345,18 @@ export default {
 .p-chip .p-chip-icon {
     margin-left: .5rem;
     margin-right: 0;
+}
+
+.task-popup {
+    &::before {
+        content: "\A";
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 13px solid;
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        @apply border-b-slate-200
+    }
 }
 </style>

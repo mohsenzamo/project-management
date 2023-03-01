@@ -13,11 +13,13 @@ export const useDeskStore = defineStore("useDeskStore", {
     currentTasks: "" as string,
     desksLoading: false as boolean,
     tasksLoading: false as boolean,
+    teammatesLoading: false as boolean,
   }),
   getters: {
     allDesk: (state) => state.allDesks,
     deskLoading: (state) => state.desksLoading,
     taskLoading: (state) => state.tasksLoading,
+    teammateLoading: (state) => state.teammatesLoading,
     currentDesk: (state) => state.currentDesks,
     currentTask: (state) => state.currentTasks,
     selectedDropDesk: (state) => state.selectedDropDesks,
@@ -113,11 +115,17 @@ export const useDeskStore = defineStore("useDeskStore", {
     changeTaskLoading(bool: boolean) {
       this.tasksLoading = bool;
     },
+    changeTeammateLoading(bool: boolean) {
+      this.teammatesLoading = bool;
+    },
     editDesk(deskItem: any, deskBefore: string) {
       if (deskItem.name !== deskBefore) {
-        Object.values(deskItem.projects).forEach((project:any)=>{
-          project.deskId = deskItem.name
-        })
+        Object.values(deskItem.projects).forEach((project: any) => {
+          project.deskId = deskItem.name;
+          Object.values(project.tasks).forEach((task: any) => {
+            task.deskId = deskItem.name;
+          });
+        });
         const objDesk: any = {};
         objDesk[deskItem.name] = deskItem;
         this.allDesks = Object.assign(this.allDesks, objDesk);
@@ -130,14 +138,29 @@ export const useDeskStore = defineStore("useDeskStore", {
       }
     },
     editProject(projectItem: any, projectBefore: string) {
-      const objProject: any = {};
-      console.log(projectItem)
-      objProject[projectItem.name] = projectItem;
-      this.allDesks[projectItem.deskId].projects = Object.assign(
-        this.allDesks[projectItem.deskId].projects,
-        objProject
-      );
-      delete this.allDesks[projectItem.deskId].projects[projectBefore];
+      if (projectItem.name !== projectBefore) {
+        Object.values(projectItem.tasks).forEach((task: any) => {
+          task.projectId = projectItem.name;
+        });
+        const objProject: any = {};
+        objProject[projectItem.name] = projectItem;
+        this.allDesks[projectItem.deskId].projects = Object.assign(
+          this.allDesks[projectItem.deskId].projects,
+          objProject
+        );
+        delete this.allDesks[projectItem.deskId].projects[projectBefore];
+      } else {
+        this.allDesks[projectItem.deskId].projects[projectBefore] =
+          Object.assign(
+            this.allDesks[projectItem.deskId].projects[projectBefore],
+            projectItem
+          );
+      }
+    },
+    deleteTask(taskItem: any) {
+      delete this.allDesks[taskItem.deskId].projects[taskItem.projectId].tasks[
+        taskItem.name
+      ];
     },
   },
 });
