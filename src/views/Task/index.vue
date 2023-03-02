@@ -93,7 +93,15 @@
                         <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
                             <div class="splide__track">
                                 <ul class="splide__list">
-                                    <li class="splide__slide cursor-pointer relative" v-for="i in 10" :key="i"
+                                    <li class="splide__slide">
+                                        <label
+                                            class="h-full w-100 flex flex-col items-center px-4 py-8 bg-white rounded-lg tracking-wide border cursor-pointer hover:text-light-blue">
+                                            <i class="pi pi-image"></i>
+                                            <span class="mt-2 text-sm leading-normal">انتخاب عکس</span>
+                                            <input type='file' class="hidden" />
+                                        </label>
+                                    </li>
+                                    <li class="splide__slide cursor-pointer relative" v-for="i in 5" :key="i"
                                         @click="modalImage = true" @mouseenter="shadowBack = i"
                                         @mouseleave="shadowBack = -1">
                                         <img src="../../../../dashboard.png" class="w-100 h-auto" />
@@ -169,7 +177,7 @@ export default {
                 direction: 'rtl',
                 pagination: false,
                 gap: '1rem',
-                autoplay: true
+                autoplay: false
             });
 
             const collection: any = document.getElementsByClassName("ql-align-right");

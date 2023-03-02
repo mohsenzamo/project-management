@@ -5,7 +5,7 @@
                 <template v-if="currentProjects && Object.values(currentProjects).length > 0">
                     <li v-for="project in currentProjects" :key="project.name"
                         class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-60 h-72 shadow-md hover:-translate-y-2 transition-all">
+                        <Card class="w-full h-72 shadow-md hover:-translate-y-2 transition-all">
                             <template #header>
                                 <div class="flex mb-1 gap-2 justify-between p-3">
                                     <InputSwitch v-model="project.active" />
@@ -74,10 +74,8 @@
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                    <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
-                        <Checkbox name="teammate" :value="teammate" v-model="editTeammates" />
-                        <p>{{ teammate.fullName }}</p>
-                    </div>
+                    <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="fullName"
+                        placeholder="همکاران" />
                 </template>
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
@@ -103,30 +101,32 @@ import InputSwitch from 'primevue/inputswitch';
 import { useDeskStore } from '@/store/deskStore';
 import Avatar from 'primevue/avatar';
 import popUp from '@/components/popUp.vue';
-import Checkbox from 'primevue/checkbox';
 import { useRouter } from 'vue-router';
+import MultiSelect from 'primevue/multiselect';
 
 export default {
     name: "ListProject",
 
     components: {
-        Checkbox,
         Avatar,
         Card,
         Button,
         ProgressBar,
         InputSwitch,
         popUp,
-        InputText
+        InputText,
+        MultiSelect
     },
 
     setup() {
         onMounted(() => {
             const splide = new Splide('.splide', {
-                perPage: 3,
+                perPage: 4,
                 perMove: 1,
                 direction: 'rtl',
                 pagination: false,
+                gap: "1rem",
+                padding: "0 20px"
             });
 
             splide.mount();
@@ -137,8 +137,8 @@ export default {
         const editProjectValue = ref<any>(null)
         const projectBeforeChange = ref('')
         const projectStore = useProjectStore();
-        const editTeammates = ref<any>([])
         const router = useRouter()
+        const selectedTeammates = ref<any>([])
 
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
@@ -163,19 +163,23 @@ export default {
         })
 
         const currentTeammate = computed(() => {
+            let teamArray: any = []
             if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
-                return selectedDesk.value.teammates
+                Object.values(selectedDesk.value.teammates).forEach((teammate: any) => {
+                    teamArray.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
+                })
+                return teamArray
             } else {
-                return []
+                return teamArray
             }
         })
 
         function currentEditProject(project: any) {
             modalEditProject.value = true
             editProjectValue.value = Object.assign({}, project)
-            editTeammates.value = []
+            selectedTeammates.value = []
             Object.values(project.teammates).forEach((teammate: any) => {
-                editTeammates.value.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
+                selectedTeammates.value.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
             })
             projectBeforeChange.value = project.name
         }
@@ -184,8 +188,8 @@ export default {
             projectStore.changeLoading(true)
             let objProject: any = {}
             let teammatesObj: any = {}
-            if (editTeammates.value.length > 0) {
-                editTeammates.value.forEach((item: any) => {
+            if (selectedTeammates.value.length > 0) {
+                selectedTeammates.value.forEach((item: any) => {
                     teammatesObj[item.fullName] = item
                 })
             }
@@ -222,7 +226,7 @@ export default {
             currentProjects,
             editProjectValue,
             currentTeammate,
-            editTeammates
+            selectedTeammates
         }
     },
 }

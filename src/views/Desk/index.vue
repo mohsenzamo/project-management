@@ -86,10 +86,8 @@
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                    <div v-for="teammate in currentTeammate" :key="teammate.fullName" class="flex items-center gap-2">
-                        <Checkbox name="teammate" :value="teammate" v-model="teammates" />
-                        <p>{{ teammate.fullName }}</p>
-                    </div>
+                    <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="fullName"
+                        placeholder="همکاران" />
                 </template>
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
@@ -112,15 +110,15 @@ import { useRouter } from 'vue-router';
 import userDashboard from '@/components/userDashboard.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
 import Card from 'primevue/card';
+import MultiSelect from 'primevue/multiselect';
 
 export default {
     name: 'UserPanel',
 
     components: {
         Card,
-        Checkbox,
+        MultiSelect,
         Button,
         Avatar,
         userDashboard,
@@ -131,10 +129,10 @@ export default {
     props: ["id"],
 
     setup() {
-        const teammates = ref<any>([])
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
         const sideBar = ref(true)
+        const selectedTeammates = ref<any>([])
         const createNewProject = ref(false)
         const projectName = ref('')
         const router = useRouter()
@@ -145,15 +143,19 @@ export default {
         const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
         const currentTeammate = computed(() => {
+            let teamArray: any = []
             if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
-                return selectedDesk.value.teammates
+                Object.values(selectedDesk.value.teammates).forEach((teammate: any) => {
+                    teamArray.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
+                })
+                return teamArray
             } else {
-                return []
+                return teamArray
             }
         })
 
         watch(createNewProject, () => {
-            teammates.value = []
+            selectedTeammates.value = []
             projectName.value = ''
         })
 
@@ -162,8 +164,8 @@ export default {
             projectStore.changeLoading(true)
 
             let teammatesObj: any = {}
-            if (teammates.value.length > 0) {
-                teammates.value.forEach((item: any) => {
+            if (selectedTeammates.value.length > 0) {
+                selectedTeammates.value.forEach((item: any) => {
                     teammatesObj[item.fullName] = item
                 })
             }
@@ -190,10 +192,10 @@ export default {
             sideBar,
             selectedDesk,
             createNewProject,
-            teammates,
             currentTeammate,
             currentDesk,
-            projectName
+            projectName,
+            selectedTeammates
         }
     },
 }

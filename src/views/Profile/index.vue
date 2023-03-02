@@ -29,14 +29,14 @@
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
-            <Card class="w-2/5 p-5 mx-auto mt-28">
+            <Card class="w-2/5 border-t-2 border-green-500 p-5 mx-auto mt-28">
                 <template #header>
                     <label
-                        class="w-40 flex flex-col items-center bg-white rounded-lg tracking-wide border cursor-pointer hover:text-light-blue mx-auto"
+                        class="w-24 h-24 flex flex-col justify-center items-center bg-white rounded-full tracking-wide border cursor-pointer overflow-hidden hover:text-light-blue mx-auto"
                         @mouseenter="hoverImage = true" @mouseleave="hoverImage = false">
-                        <i class="pi pi-user m-10 text-3xl"></i>
-                        <!-- <div class="w-100 h-100 relative">
-                            <img src="../../../../project.png" class="w-full h-auto" />
+                        <i class="pi pi-user text-3xl"></i>
+                        <!-- <div class="w-full h-full relative">
+                            <img src="../../../../project.png" class="w-full h-full" />
                             <div v-if="hoverImage"
                                 class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
                                 <i class="pi pi-pencil text-white cursor-pointer" style="font-size: 1.2rem;"></i>
@@ -46,30 +46,17 @@
                     </label>
                 </template>
                 <template #content>
-                    <div class="my-2">
-                        <InputText type="text" placeholder="نام کاربری" class="h-10 w-full" />
-                    </div>
-                    <div class="my-2">
-                        <InputText type="password" placeholder="رمز عبور" class="h-10 w-full" />
-                    </div>
-                    <div>
-                        <Button label="ثبت" class="p-button-sm p-button-success w-16 h-8" />
-                    </div>
+                    <form class="flex flex-col justify-center items-center gap-2.5">
+                        <InputText type="text" placeholder="نام کاربری" class=" text-sm rounded-lg w-full" />
+                        <InputText type="password" placeholder="رمز عبور" class=" text-sm rounded-lg w-full" />
+                        <Button type="button" label="ثبت" class="p-button-sm p-button-success rounded-lg w-full text-sm font-bold" />
+                    </form>
                 </template>
                 <template #footer>
-                    <div class="flex justify-between gap-3">
-                        <Button class="p-0 w-32" aria-label="Youtube">
-                            <i class="pi pi-telegram px-2"></i>
-                            <span class="px-4">تلگرام</span>
-                        </Button>
-                        <Button class="p-0 w-32 p-button-success" aria-label="Youtube">
-                            <i class="pi pi-whatsapp px-2"></i>
-                            <span class="px-3">واتساپ</span>
-                        </Button>
-                        <Button class="p-0 w-32 p-button-danger" aria-label="Youtube">
-                            <i class="pi pi-instagram px-2"></i>
-                            <span class="px-2">اینستاگرام</span>
-                        </Button>
+                    <div class="flex justify-center gap-3">
+                        <Avatar icon="pi pi-instagram" shape="circle" class="cursor-pointer border border-red-400 bg-transparent text-red-400" />
+                        <Avatar icon="pi pi-whatsapp" shape="circle" class="cursor-pointer border border-green-400 bg-transparent text-green-400" />
+                        <Avatar icon="pi pi-telegram" shape="circle" class="cursor-pointer border border-blue-400 bg-transparent text-blue-400" />
                     </div>
                 </template>
             </Card>
@@ -106,5 +93,13 @@ export default {
 }
 </script>
 
-<style lang="scss"></style>
+<style lang="scss">
+.p-card {
+    @apply font-yekan shadow-2xl sm:rounded-xl;
+
+    .p-card-body {
+        @apply w-full;
+    }
+}
+</style>
 

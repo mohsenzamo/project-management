@@ -94,17 +94,6 @@
                     </template>
                 </div>
             </div>
-            <!-- <div>
-                <p class="mb-2">عکس ضمیمه:</p>
-                <div class="flex items-center">
-                    <label
-                        class="w-36 flex flex-col items-center px-4 py-6 bg-white rounded-lg tracking-wide border cursor-pointer hover:text-light-blue">
-                        <i class="pi pi-image"></i>
-                        <span class="mt-2 text-sm leading-normal">انتخاب عکس</span>
-                        <input type='file' class="hidden" />
-                    </label>
-                </div>
-            </div> -->
             <div class="mb-5">
                 <p class="mb-2">توضیحات:</p>
                 <Editor v-model="taskDescription" editorStyle="height: 150px" dir="ltr">

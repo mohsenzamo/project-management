@@ -14,17 +14,17 @@
   font-family: "neirizi";
   src: url(../src/assets/fonts/neirizi/neirizi.ttf);
 }
-  @tailwind base;
-  @layer base {
-    body {
-      @apply bg-white font-yekan text-lg;
-      direction: rtl;
-      -webkit-tap-highlight-color: transparent;
-
-    }
+@tailwind base;
+@layer base {
+  body {
+    @apply font-yekan text-lg;
+    direction: rtl;
+    -webkit-tap-highlight-color: transparent;
+    background-image: linear-gradient(to right, #eeeeee, #ebebeb);
   }
-  @tailwind components;
-  @tailwind utilities;
-  
-  @layer utilities {}
-  
+}
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+}

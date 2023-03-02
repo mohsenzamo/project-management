@@ -23,32 +23,34 @@
                 <span>داشبورد</span>
             </p>
             <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
-            <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
-                :class="{ 'cursor-not-allowed text-gray-500': Object.keys(alldesks).length === 0 }">
-                <i v-if="Object.values(alldesks).length > 0" class="pi pi-angle-down text-blue-600"
-                    style="font-size: 1rem;"></i>
-                <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
-                <span>میزکارها</span>
-            </p>
-            <template v-if="Object.values(alldesks).length > 0">
-                <p v-for="desk in alldesks" :key="desk.name" class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
-                    :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"
-                    @click="desk.active ? deskRoutePush(desk) : null">
-                    <i class="pi pi-desktop" :class="{ 'text-gray-500': !desk.active, 'text-blue-600': desk.active }"
+            <div class="h-96 overflow-y-scroll custom">
+                <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
+                    :class="{ 'cursor-not-allowed text-gray-500': Object.keys(alldesks).length === 0 }">
+                    <i v-if="Object.values(alldesks).length > 0" class="pi pi-angle-down text-blue-600"
                         style="font-size: 1rem;"></i>
-                    <span :class="{ 'text-gray-500': !desk.active }">{{ desk.name }}</span>
+                    <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
+                    <span>میزکارها</span>
                 </p>
-            </template>
+                <template v-if="Object.values(alldesks).length > 0">
+                    <p v-for="desk in alldesks" :key="desk.name" class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
+                        :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"
+                        @click="desk.active ? deskRoutePush(desk) : null">
+                        <i class="pi pi-desktop" :class="{ 'text-gray-500': !desk.active, 'text-blue-600': desk.active }"
+                            style="font-size: 1rem;"></i>
+                        <span :class="{ 'text-gray-500': !desk.active }">{{ desk.name }}</span>
+                    </p>
+                </template>
+            </div>
         </div>
 
         <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
             <div class="pt-3 px-2" v-if="Object.values(alldesks).length === 0">
-                <div class="flex items-center gap-2">
+                <div class=" flex items-center gap-2">
                     <p>
                         شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
                     </p>
-                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm" @click="createNewDesk = true" />
+                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md" @click="createNewDesk = true" />
                 </div>
             </div>
             <div v-else>
@@ -60,7 +62,7 @@
                             <i @click="currentEditDesk(desk)"
                                 class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3 top-3 text-xl"></i>
                             <i @click="desk.active ? deskRoutePush(desk) : null"
-                                class="pi pi-eye absolute left-10 top-3 text-xl"
+                                class="pi pi-eye absolute left-10 top-3 text-2xl"
                                 :class="{ 'hover:text-blue-400 cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"></i>
                             <InputSwitch v-model="desk.active" class="absolute top-3" style="left: 4.2rem;" />
                         </template>
@@ -359,12 +361,12 @@ export default {
 </script>
 
 <style lang="scss">
-.p-button::v-deep .p-button-icon-left {
+.p-button .p-button-icon-left {
     margin-left: .5rem;
     margin-right: 0;
 }
 
-.p-progressbar::v-deep .p-progressbar-value {
+.p-progressbar .p-progressbar-value {
     @apply bg-blue-400;
 }
 
