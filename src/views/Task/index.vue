@@ -40,7 +40,7 @@
         </div>
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white z-20 h-screen pt-14 sm:pt-28 overflow-y-scroll custom px-0 sm:px-12">
-            <Card class="w-full shadow-none sm:shadow-md relative rounded-2xl border-none sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
+            <Card class="w-full shadow-none sm:shadow-md relative rounded-2xl border-t-0 sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
                 <template #header>
                     <div class="cursor-pointer bg-gray-100 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">

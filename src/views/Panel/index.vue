@@ -63,7 +63,7 @@
                     @click="createNewDesk = true" />
                 <div class="grid items-center gap-x-5 md:gap-x-10 gap-y-5 p-4 flex-wrap grif-cols-1 sm:grid-cols-2">
                     <Card v-for="desk in alldesks" :key="desk.name"
-                        class="w-full h-full shadow-md relative border-t-2 border-blue-400 rounded-xl cursor-default">
+                        class="w-full h-full shadow-md relative border-t-2 border-pink-400 rounded-xl cursor-default">
                         <template #header>
                             <i @click="currentEditDesk(desk)"
                                 class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3"
