@@ -1,9 +1,9 @@
 <template>
-    <nav class="bg-green-500 flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
-        <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
+    <nav class="bg-green-500 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
+        <div class="flex flex-row items-center gap-4 justify-center px-4">
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white flex items-center">
                 <RouterLink :to="{ path: '/desk/' + currentDesk }">
@@ -21,35 +21,38 @@
         </div>
     </nav>
 
-    <div class="flex gap-1">
-        <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
+    <div class="flex relative gap-1">
+        <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
+            class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
+            style="box-shadow: .3em 0 .3em .4em #ccc">
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
-                    class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm">
-                    <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
+                    class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                    <i class="home-icon pi pi-home text-lg"></i>
                     <span>داشبورد</span>
                 </p>
             </RouterLink>
-            <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
-            <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
-                :class="{ 'cursor-not-allowed text-gray-500': Object.values(selectedDesk.projects[id].tasks).length === 0 }">
-                <i v-if="Object.values(selectedDesk.projects[id].tasks).length > 0" class="pi pi-angle-down text-yellow-600"
-                    style="font-size: 1rem;"></i>
-                <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
-                <span>وضایف</span>
-            </p>
-            <template v-if="Object.values(selectedDesk.projects[id].tasks).length > 0">
-                <p v-for="task in selectedDesk.projects[id].tasks" :key="task.name" @click="taskRoutePush(task)"
-                    class="hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto">
-                    <i class="pi pi-check-circle text-yellow-600" style="font-size: 1rem;"></i>
-                    <span>{{ task.name }}</span>
+            <div class="divider-line mt-2.5"></div>
+            <div class="h-96 flex flex-col justify-start items-end overflow-y-scroll custom">
+                <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
+                    :class="{ 'cursor-not-allowed': Object.values(selectedDesk.projects[id].tasks).length === 0 }">
+                    <i v-if="Object.values(selectedDesk.projects[id].tasks).length > 0"
+                        class="pi pi-angle-down text-yellow-600" style="font-size: 1rem;"></i>
+                    <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
+                    <span>وظایف</span>
                 </p>
-            </template>
+                <template v-if="Object.values(selectedDesk.projects[id].tasks).length > 0">
+                    <p v-for="task in selectedDesk.projects[id].tasks" :key="task.name" @click="taskRoutePush(task)"
+                        class="dashboard-item-hover cursor-pointer flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12">
+                        <i class="pi pi-check-circle text-yellow-600" style="font-size: 1rem;"></i>
+                        <span>{{ task.name }}</span>
+                    </p>
+                </template>
+            </div>
         </div>
 
-        <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
             <userTask @callPopupTask="createNewTask = true" @goTask="taskRoutePush" />
         </div>
     </div>
