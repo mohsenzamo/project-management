@@ -6,7 +6,7 @@
         <template v-else>
 
             <div class="my-2 px-3">
-                <p class="mb-2">پروژه ها:</p>
+                <p class="text-2xl font-bold mb-2">پروژه ها:</p>
                 <div v-if="projectLoading" class="w-fit mx-auto h-80 pt-24">
                     <ProgressSpinner />
                 </div>
@@ -14,26 +14,26 @@
             </div>
 
             <div class="my-2 px-3">
-                <p class="mb-2">همکاران:</p>
+                <p class="text-2xl font-bold mb-2">همکاران:</p>
                 <div v-if="teammateLoading" class="w-fit mx-auto h-24">
                     <ProgressSpinner />
                 </div>
                 <sliderTeammate v-else></sliderTeammate>
             </div>
 
-            <div class="flex gap-2 mt-5 px-3">
-                <Card class="w-full shadow-md">
+            <div class="flex flex-col md:flex-row gap-3 mt-5 px-3">
+                <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
-                        <div class="bg-green-400 rounded-t-sm p-2 text-white">
+                        <div class="bg-green-600 rounded-t-sm p-2 text-white">
                             کارهای من
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0">
                             <template v-if="isMyTask">
                                 <template v-for="task in currentTask" :key="task.name">
                                     <p v-if="task.responsible === 'خودم'"
-                                        class="bg-slate-300 flex items-center rounded-sm mb-1 p-2 shadow">
+                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2  shadow-md">
                                         <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                             offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
                                         <span class="mx-2">{{ task.name }}</span>
@@ -44,18 +44,18 @@
                         </div>
                     </template>
                 </Card>
-                <Card class="w-full shadow-md">
+                <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
                         <div class="bg-blue-400 rounded-t-sm p-2 text-white">
                             کارهای دیگران
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0">
                             <template v-if="isTeammateTask">
                                 <template v-for="task in currentTask" :key="task.name">
                                     <div v-if="task.responsible !== 'خودم'"
-                                        class="bg-slate-300 flex items-center rounded-sm mb-1 p-2 justify-between shadow">
+                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
                                         <p class="flex items-center">
                                             <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
                                                 offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
@@ -71,24 +71,24 @@
                 </Card>
             </div>
             <div class="my-3 px-3">
-                <Card class="w-full cursor-pointer shadow-md">
+                <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
                         <div class="bg-purple-400 rounded-t-sm p-2 text-white">
                             وضعیت پیشرفت پروژه ها
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0">
                             <template v-if="Object.values(currentProjects).length > 0">
                                 <div v-for="project in currentProjects" :key="project.name"
-                                    class="bg-slate-300 mb-1 text-sm p-2 rounded-sm shadow">
-                                    <p class="mb-1">
+                                    class="bg-gray-100 text-sm py-2 px-4 rounded-md shadow-md">
+                                    <p class="text-xl font-medium mb-2">
                                         <span class="ml-1">پروژه:</span>
                                         <span>{{ project.name }}</span>
                                     </p>
                                     <ProgressBar
                                         :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
-                                    <div class="flex flex-row-reverse gap-2 mt-1">
+                                    <div class="flex flex-row-reverse gap-2 mt-2">
                                         <p>
                                             <span class="ml-1">کارهای انجام شده:</span>
                                             <span>{{ project.isDoneTask }}</span>

@@ -1,9 +1,9 @@
 <template>
-    <nav class="bg-blue-500 flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
-        <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
+    <nav class="bg-blue-500 flex justify-between py-1 absolute top-0 left-0 z-20 w-screen h-14">
+        <div class="flex flex-row items-center gap-4 justify-center px-4">
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white cursor-default">{{ currentDesk }}</p>
         </div>
@@ -15,36 +15,38 @@
         </div>
     </nav>
 
-    <div class="flex gap-1">
-        <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-20 h-screen pt-20 flex flex-col justify-between"
+    <div class="flex relative gap-1">
+        <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
+            class="sidebar w-56 lg:w-1/5 bg-white transition-all z-10 h-screen pt-16"
             style="box-shadow: .3em 0 .3em .4em #ccc">
             <div>
                 <RouterLink :to="{ name: 'UserPanel' }">
                     <p
-                        class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm">
-                        <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
+                        class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                        <i class="home-icon pi pi-home text-lg"></i>
                         <span>داشبورد</span>
                     </p>
                 </RouterLink>
-                <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
-                <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
-                    :class="{ 'cursor-not-allowed text-gray-500': Object.values(selectedDesk.projects).length === 0 }">
-                    <i v-if="Object.values(selectedDesk.projects).length > 0" class="pi pi-angle-down text-green-600"
-                        style="font-size: 1rem;"></i>
-                    <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
-                    <span>پروژه ها</span>
-                </p>
-                <template v-if="Object.values(selectedDesk.projects).length > 0">
-                    <p v-for="project in selectedDesk.projects" :key="project.name"
-                        @click="project.active ? projectRoutePush(project) : null"
-                        class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
-                        :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': project.active, 'cursor-not-allowed': !project.active }">
-                        <i class="pi pi-folder" style="font-size: 1rem;"
-                            :class="{ 'text-gray-500': !project.active, 'text-green-600': project.active }"></i>
-                        <span :class="{ 'text-gray-500': !project.active }">{{ project.name }}</span>
+                <div class="divider-line mt-2.5"></div>
+                <div class="h-96 flex flex-col justify-start items-end overflow-y-scroll custom">
+                    <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
+                        :class="{ 'cursor-not-allowed text-gray-500': Object.values(selectedDesk.projects).length === 0 }">
+                        <i v-if="Object.values(selectedDesk.projects).length > 0" class="pi pi-angle-down text-green-600"
+                            style="font-size: 1rem;"></i>
+                        <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
+                        <span>پروژه ها</span>
                     </p>
-                </template>
+                    <template v-if="Object.values(selectedDesk.projects).length > 0">
+                        <p v-for="project in selectedDesk.projects" :key="project.name"
+                            @click="project.active ? projectRoutePush(project) : null"
+                            class="flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12"
+                            :class="{ 'dashboard-item-hover cursor-pointer': project.active, 'cursor-not-allowed': !project.active }">
+                            <i class="pi pi-folder" style="font-size: 1rem;"
+                                :class="{ 'text-gray-500': !project.active, 'text-green-600': project.active }"></i>
+                            <span :class="{ 'text-gray-500': !project.active }">{{ project.name }}</span>
+                        </p>
+                    </template>
+                </div>
             </div>
             <div v-if="Object.values(selectedDesk.teammates).length > 0">
                 <Card class="w-full shadow-md">
@@ -70,8 +72,8 @@
             </div>
         </div>
 
-        <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="bg-white h-screen pt-14 overflow-y-scroll custom">
             <userDashboard @callPopupProject="createNewProject = true" />
         </div>
     </div>
@@ -81,20 +83,20 @@
             <p class="font-bold my-3">پروژه جدید ایجاد کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">نام پروژه:</p>
-                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
+                <InputText v-model="projectName" type="text" placeholder="نام پروژه..." class="w-full sm:w-3/5 h-10 rounded-lg" />
             </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+            <div class="mb-3">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
                     <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="fullName"
-                        placeholder="همکاران" />
+                        placeholder="همکاران" class="w-full sm:w-2/5 rounded-lg" />
                 </template>
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="createNewProject = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success w-16 h-10" :disabled="!(projectName.length > 0)"
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg" :disabled="!(projectName.length > 0)"
                     @click="addProject" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg" @click="createNewProject = false" />
             </div>
         </popUp>
     </transition>
