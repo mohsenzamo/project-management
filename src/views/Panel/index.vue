@@ -1,9 +1,9 @@
 <template>
-    <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
-        <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
+    <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
+        <div class="flex flex-row items-center gap-4 justify-center px-4">
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white">پنل کاربر</p>
         </div>
@@ -15,25 +15,28 @@
         </div>
     </nav>
 
-    <div class="flex gap-1">
-        <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
-            <p class="flex items-center bg-gray-400 text-white font-bold p-2 gap-3 rounded-sm shadow-sm">
-                <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
+    <div class="flex relative gap-1">
+        <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
+            class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
+            style="box-shadow: .3em 0 .3em .4em #ccc">
+            <p
+                class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                <i class="home-icon pi pi-home text-lg"></i>
                 <span>داشبورد</span>
             </p>
-            <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
-            <div class="h-96 overflow-y-scroll custom">
-                <p class="flex items-center p-2 gap-3 rounded-sm mt-4 cursor-default"
-                    :class="{ 'cursor-not-allowed text-gray-500': Object.keys(alldesks).length === 0 }">
+            <div class="divider-line mt-2.5"></div>
+            <div class="h-96 flex flex-col justify-start items-end overflow-y-scroll custom">
+                <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
+                    :class="{ 'cursor-not-allowed': Object.keys(alldesks).length === 0 }">
                     <i v-if="Object.values(alldesks).length > 0" class="pi pi-angle-down text-blue-600"
                         style="font-size: 1rem;"></i>
-                    <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
+                    <i v-else class="pi pi-angle-left" style="font-size: 1rem;"></i>
                     <span>میزکارها</span>
                 </p>
                 <template v-if="Object.values(alldesks).length > 0">
-                    <p v-for="desk in alldesks" :key="desk.name" class="flex items-center p-2 gap-3 rounded-sm w-10/12 mx-auto"
-                        :class="{ 'hover:bg-gray-400 hover:text-white hover:font-bold cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"
+                    <p v-for="desk in alldesks" :key="desk.name"
+                        class="flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12"
+                        :class="{ 'dashboard-item-hover cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"
                         @click="desk.active ? deskRoutePush(desk) : null">
                         <i class="pi pi-desktop" :class="{ 'text-gray-500': !desk.active, 'text-blue-600': desk.active }"
                             style="font-size: 1rem;"></i>
@@ -43,31 +46,35 @@
             </div>
         </div>
 
-        <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
             <div class="pt-3 px-2" v-if="Object.values(alldesks).length === 0">
-                <div class=" flex items-center gap-2">
+                <div
+                    class="flex flex-col sm:flex-row justify-center sm:justify-start items-center text-center sm:text-right gap-2">
                     <p>
                         شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
                     </p>
-                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md" @click="createNewDesk = true" />
+                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md"
+                        @click="createNewDesk = true" />
                 </div>
             </div>
             <div v-else>
-                <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm mt-4 mr-4"
+                <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md mt-4 mr-4"
                     @click="createNewDesk = true" />
-                <div class="grid items-center gap-4 p-4 flex-wrap grid-cols-2">
-                    <Card v-for="desk in alldesks" :key="desk.name" class="w-full h-full shadow-md relative cursor-default">
+                <div :class="{ ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-2': sideBar, ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-3': !sideBar }" class="grid items-center gap-x-5 md:gap-x-10 gap-y-5 p-4 flex-wrap xl:grid-cols-3">
+                    <Card v-for="desk in alldesks" :key="desk.name"
+                        class="w-full h-full shadow-md relative border-t-2 border-pink-400 rounded-xl cursor-default">
                         <template #header>
                             <i @click="currentEditDesk(desk)"
-                                class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3 top-3 text-xl"></i>
+                                class="pi pi-pencil cursor-pointer hover:text-yellow-400 absolute left-3"
+                                style="top: 17px"></i>
                             <i @click="desk.active ? deskRoutePush(desk) : null"
-                                class="pi pi-eye absolute left-10 top-3 text-2xl"
+                                class="pi pi-eye absolute left-10 top-3 text-lg"
                                 :class="{ 'hover:text-blue-400 cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }"></i>
-                            <InputSwitch v-model="desk.active" class="absolute top-3" style="left: 4.2rem;" />
+                            <InputSwitch v-model="desk.active" class="absolute top-4 text-sm" style="left: 4.2rem;" />
                         </template>
                         <template #title>
-                            <span @click="desk.active ? deskRoutePush(desk) : null" class="font-iransans"
+                            <span @click="desk.active ? deskRoutePush(desk) : null" class="font-iransans relative bottom-2"
                                 :class="{ 'cursor-pointer': desk.active, 'cursor-not-allowed': !desk.active }">
                                 {{ desk.name }}
                             </span>
@@ -75,7 +82,7 @@
                         <template #content>
                             <div class="flex justify-center w-72 h-52 mx-auto">
                                 <template v-if="chartData[desk.name].show">
-                                    <Chart type="doughnut" :data="chartData[desk.name].data" />
+                                    <Chart type="doughnut" :data="chartData[desk.name].data" class="w-40 sm:w-52 h-40 sm:h-52 mt-6 sm:mt-0" />
                                 </template>
                                 <p v-else class="mt-20">تسک ثبت شده ای موجود نیست</p>
                             </div>
@@ -101,24 +108,30 @@
             <p class="font-bold my-3">میزکار جدید ایجاد کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">جهت دسترسی به امکانات پنل، یک میزِکار جدید برای خود ایجاد کنید:</p>
-                <InputText v-model="deskName" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5 h-10" />
+                <InputText v-model="deskName" type="text" placeholder="نام شرکت یا تیم..."
+                    class="w-full sm:w-3/5 h-10 rounded-lg" />
             </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+            <div class="mb-3">
                 <p class="mb-2">همکاران خود را به میزکار جدید دعوت نمایید:</p>
-                <div class="flex gap-2 my-2 h-10" v-for="(teammate, index) in deskTeammates" :key="index">
-                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
-                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-1/2" />
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-2 my-2"
+                    v-for="(teammate, index) in deskTeammates" :key="index">
+                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار"
+                        class="w-full sm:w-1/2 h-10 rounded-lg" />
+                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه"
+                        class="w-full sm:w-1/2 h-10 rounded-lg" />
                     <div class="flex gap-2">
-                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger my-px"
+                        <Button icon="pi pi-plus" class="p-button-sm p-button-success h-10 rounded-lg my-px"
+                            @click="addTeammate" />
+                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger h-10 rounded-lg my-px"
                             @click="removeTeammate(index)" />
-                        <Button icon="pi pi-plus" class="p-button-sm p-button-success my-px" @click="addTeammate" />
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="createNewDesk = false" />
-                <Button label="ایجاد" class="p-button-sm p-button-success w-16 h-10" :disabled="!(deskName.length > 0)"
-                    @click="createDesk" />
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                    :disabled="!(deskName.length > 0)" @click="createDesk" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="createNewDesk = false" />
             </div>
         </popUp>
     </transition>
@@ -127,24 +140,30 @@
             <p class="font-bold my-3">ویرایش میزکار:</p>
             <div class="mb-3">
                 <p class="mb-2">اسم میزکار:</p>
-                <InputText v-model="editDeskValue.name" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5 h-10" />
+                <InputText v-model="editDeskValue.name" type="text" placeholder="نام شرکت یا تیم..."
+                    class="w-full sm:w-3/5 h-10 rounded-lg" />
             </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+            <div class="mb-3">
                 <p class="mb-2">همکاران خود:</p>
-                <div class="flex gap-2 my-2 h-10" v-for="(teammate, index) in editDeskTeammate" :key="index">
-                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
-                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-1/2" />
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-2 my-2"
+                    v-for="(teammate, index) in editDeskTeammate" :key="index">
+                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار"
+                        class="w-full sm:w-1/2 h-10 rounded-lg" />
+                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه"
+                        class="w-full sm:w-1/2 h-10 rounded-lg" />
                     <div class="flex gap-2">
-                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger my-px"
+                        <Button icon="pi pi-plus" class="p-button-sm p-button-success h-10 rounded-lg my-px"
+                            @click="addEditTeammate" />
+                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger h-10 rounded-lg my-px"
                             @click="removeEditTeammate(index)" />
-                        <Button icon="pi pi-plus" class="p-button-sm p-button-success my-px" @click="addEditTeammate" />
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditDesk = false" />
-                <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10" :disabled="!(editDeskValue.name.length > 0)"
-                    @click="editDesk" />
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="ثبت" class="p-button-sm p-button-info w-20 h-10 rounded-lg"
+                    :disabled="!(editDeskValue.name.length > 0)" @click="editDesk" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="modalEditDesk = false" />
             </div>
         </popUp>
     </transition>
@@ -162,6 +181,16 @@ import Card from 'primevue/card';
 import Chart from 'primevue/chart';
 import InputSwitch from 'primevue/inputswitch';
 
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
+
 export default {
     name: 'UserPanel',
 
@@ -178,14 +207,13 @@ export default {
     setup() {
         const router = useRouter()
         const deskStore = useDeskStore();
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const createNewDesk = ref(false)
         const deskName = ref('')
         const modalEditDesk = ref(false)
         const editDeskValue = ref<any>(null)
         let editDeskTeammate = ref<any>([])
         const deskBeforeChange = ref('')
-
 
         function currentEditDesk(desk: any) {
             modalEditDesk.value = true
@@ -361,6 +389,31 @@ export default {
 </script>
 
 <style lang="scss">
+.sidebar {
+    font-size: 16px;
+    color: #616161;
+
+    .dashboard-item-hover:hover {
+        background-color: #e8e8e8;
+        font-weight: 500;
+        color: #212121;
+    }
+}
+
+.selected-sidebar {
+    color: #212121;
+    font-weight: 500;
+    background-color: #e8e8e8;
+}
+
+.home-icon {
+    color: #D45044
+}
+
+.divider-line {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
 .p-button .p-button-icon-left {
     margin-left: .5rem;
     margin-right: 0;
@@ -374,8 +427,11 @@ export default {
     margin-left: .5rem;
 }
 
+.p-card-content {
+    padding: 0 !important;
+}
+
 .custom::-webkit-scrollbar {
     display: none;
-}
-</style>
+}</style>
 

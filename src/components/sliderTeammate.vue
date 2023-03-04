@@ -4,15 +4,15 @@
             <ul class="splide__list">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <li v-for="teammate in currentTeammate" :key="teammate.fullName"
-                        class="splide__slide py-2 flex justify-center">
-                        <Chip :label="teammate.fullName" icon="pi pi-user" />
+                        class="splide__slide py-2 flex justify-center items-center">
+                        <Chip :label="teammate.fullName" icon="pi pi-user" class="h-fit max-w-full border-t-2 border-blue-400 rounded-lg overflow-hidden py-1 px-5" />
                     </li>
-                    <li class="splide__slide py-2 flex justify-center">
-                        <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" @click="currentEditDesk" />
+                    <li class="splide__slide py-2 flex justify-center items-center">
+                        <Chip label="افزودن" icon="pi pi-plus" @click="currentEditDesk" class="h-fit border-t-2 border-blue-400 rounded-lg py-1 px-5" />
                     </li>
                 </template>
                 <template v-else>
-                    <li class="splide__slide py-2 flex justify-center">
+                    <li class="splide__slide py-2 flex justify-center border-t-2 border-blue-400 rounded-2xl">
                         <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" @click="currentEditDesk" />
                     </li>
                 </template>
@@ -20,28 +20,28 @@
         </div>
     </div>
     <transition name="modal">
-        <popUp v-if="modalEditDesk" @close="modalEditDesk = false">
+        <popUp v-if="modalEditDesk" @close="modalEditDesk = false" class="z-50">
             <p class="font-bold my-3">ویرایش میزکار:</p>
             <div class="mb-3">
                 <p class="mb-2">اسم میزکار:</p>
-                <InputText v-model="editDeskValue.name" type="text" placeholder="نام شرکت یا تیم..." class="w-3/5 h-10" disabled/>
+                <InputText v-model="editDeskValue.name" type="text" placeholder="نام شرکت یا تیم..." class="w-full sm:w-3/5 h-10 rounded-lg" disabled/>
             </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
+            <div class="mb-3">
                 <p class="mb-2">همکاران خود:</p>
-                <div class="flex gap-2 my-2 h-10" v-for="(teammate, index) in editDeskTeammate" :key="index">
-                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-1/2" />
-                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-1/2" />
+                <div class="flex flex-col sm:flex-row justify-center items-center gap-2 my-2" v-for="(teammate, index) in editDeskTeammate" :key="index">
+                    <InputText v-model="teammate.fullName" type="text" placeholder="نام همکار" class="w-full sm:w-1/2 rounded-lg" />
+                    <InputText v-model="teammate.phoneNumber" type="text" placeholder="شماره همراه" class="w-full sm:w-1/2 rounded-lg" />
                     <div class="flex gap-2">
-                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger my-px"
+                        <Button icon="pi pi-plus" class="p-button-sm p-button-success h-10 rounded-lg my-px" @click="addEditTeammate" />
+                        <Button icon="pi pi-minus" class="p-button-sm p-button-danger h-10 rounded-lg my-px"
                             @click="removeEditTeammate(index)" />
-                        <Button icon="pi pi-plus" class="p-button-sm p-button-success my-px" @click="addEditTeammate" />
                     </div>
                 </div>
             </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditDesk = false" />
-                <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10" :disabled="!(editDeskValue.name.length > 0)"
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="ثبت" class="p-button-sm p-button-info w-20 h-10 rounded-lg" :disabled="!(editDeskValue.name.length > 0)"
                     @click="editDesk" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg" @click="modalEditDesk = false" />
             </div>
         </popUp>
     </transition>
@@ -75,6 +75,20 @@ export default {
                 perMove: 1,
                 direction: 'rtl',
                 pagination: false,
+                breakpoints: {
+                    960: {
+                        perPage: 5
+                    },
+                    760: {
+                        perPage: 4
+                    },
+                    630: {
+                        perPage: 3
+                    },
+                    500: {
+                        perPage: 2
+                    },
+                }
             });
 
             splide.mount();

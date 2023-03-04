@@ -1,9 +1,9 @@
 <template>
-    <nav class="bg-purple-500 flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
-        <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
+    <nav class="bg-purple-500 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
+        <div class="flex flex-row items-center gap-4 justify-center px-4">
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white">حساب کاربر</p>
         </div>
@@ -14,22 +14,23 @@
     </nav>
 
     <div class="flex gap-1">
-        <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
+        <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
+            class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
+            style="box-shadow: .3em 0 .3em .4em #ccc">
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
-                    class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm">
-                    <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
+                    class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                    <i class="home-icon pi pi-home text-lg"></i>
                     <span>داشبورد</span>
                 </p>
             </RouterLink>
-            <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
+            <div class="divider-line mt-2.5"></div>
         </div>
 
-        <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-white transition-all z-20 h-screen pt-14 overflow-y-scroll custom">
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="flex flex-col justify-center items-center bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
             <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
-            <Card class="w-2/5 border-t-2 border-green-500 p-5 mx-auto mt-28">
+            <Card class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12">
                 <template #header>
                     <label
                         class="w-24 h-24 flex flex-col justify-center items-center bg-white rounded-full tracking-wide border cursor-pointer overflow-hidden hover:text-light-blue mx-auto"
@@ -49,14 +50,18 @@
                     <form class="flex flex-col justify-center items-center gap-2.5">
                         <InputText type="text" placeholder="نام کاربری" class=" text-sm rounded-lg w-full" />
                         <InputText type="password" placeholder="رمز عبور" class=" text-sm rounded-lg w-full" />
-                        <Button type="button" label="ثبت" class="p-button-sm p-button-success rounded-lg w-full text-sm font-bold" />
+                        <Button type="button" label="ثبت"
+                            class="p-button-sm p-button-primary rounded-lg w-full text-sm font-bold" />
                     </form>
                 </template>
                 <template #footer>
                     <div class="flex justify-center gap-3">
-                        <Avatar icon="pi pi-instagram" shape="circle" class="cursor-pointer border border-red-400 bg-transparent text-red-400" />
-                        <Avatar icon="pi pi-whatsapp" shape="circle" class="cursor-pointer border border-green-400 bg-transparent text-green-400" />
-                        <Avatar icon="pi pi-telegram" shape="circle" class="cursor-pointer border border-blue-400 bg-transparent text-blue-400" />
+                        <Avatar icon="pi pi-instagram" shape="circle"
+                            class="cursor-pointer border border-red-400 bg-transparent text-red-400" />
+                        <Avatar icon="pi pi-whatsapp" shape="circle"
+                            class="cursor-pointer border border-green-400 bg-transparent text-green-400" />
+                        <Avatar icon="pi pi-telegram" shape="circle"
+                            class="cursor-pointer border border-blue-400 bg-transparent text-blue-400" />
                     </div>
                 </template>
             </Card>
@@ -71,6 +76,16 @@ import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
+
 export default {
     name: 'UserProfile',
 
@@ -82,7 +97,7 @@ export default {
     },
 
     setup() {
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const hoverImage = ref(false)
 
         return {
@@ -95,11 +110,10 @@ export default {
 
 <style lang="scss">
 .p-card {
-    @apply font-yekan shadow-2xl sm:rounded-xl;
+    @apply font-yekan;
 
     .p-card-body {
         @apply w-full;
     }
-}
-</style>
+}</style>
 

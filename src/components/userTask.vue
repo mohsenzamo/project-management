@@ -1,14 +1,14 @@
 <template>
     <div class="w-full h-screen p-4">
-        <div class="mb-4">
-            <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info p-button-sm w-28 h-10"
+        <div class="w-full flex justify-center sm:justify-start mb-4">
+            <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info p-button-sm text-sm rounded-md"
                 @click="$emit('callPopupTask')" />
         </div>
-        <div class="flex gap-4">
-            <div v-if="taskLoading || deskLoading" class="w-4/5 flex mt-40">
+        <div class="flex flex-col md:flex-row justify-center md:justify-start items-center md:items-start gap-4">
+            <div v-if="taskLoading || deskLoading" class="w-full md:w-4/5 flex mt-40">
                 <ProgressSpinner />
             </div>
-            <div v-else class="w-4/5">
+            <div v-else class="w-full md:w-4/5">
                 <div v-if="notFoundedTask">
                     <InlineMessage severity="warn"> تسکی با این فیلتر پیدا نشد
                     </InlineMessage>
@@ -20,28 +20,29 @@
                     <template v-else>
                         <div v-for="task in Object.values(foundedTask).length === 0 ? currentTask : foundedTask"
                             :key="task.name"
-                            class="w-full mx-auto mb-4 bg-white rounded-sm flex justify-between items-center p-3 shadow-md">
+                            class="w-full mx-auto mb-3 bg-slate-100 rounded-xl flex justify-between items-center border-r-2 border-green-500 py-2 px-3 shadow-md">
                             <div class="flex gap-2 items-center">
                                 <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                    offIcon="pi pi-times" class="p-button-sm w-8 h-8" />
+                                    offIcon="pi pi-times" class="p-button-sm w-8 h-8 rounded-full" />
                                 <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.name }}</p>
                             </div>
                             <div class="flex gap-2 items-center relative">
-                                <Chip :label="task.deadline.unit + task.deadline.period" icon="pi pi-clock" />
-                                <Chip :label="task.responsible" icon="pi pi-user" />
-                                <Chip :label="task.point + 'امتیاز'" icon="pi pi-star" />
-                                <Avatar icon="pi pi-pencil" shape="circle" class="cursor-pointer hover:bg-yellow-400" />
-                                <Avatar icon="pi pi-trash" shape="circle" class="cursor-pointer hover:bg-red-400"
+                                <Chip :label="task.deadline.unit + task.deadline.period" icon="pi pi-clock" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                <Chip :label="task.responsible" icon="pi pi-user" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                <Chip :label="task.point + 'امتیاز'" icon="pi pi-star" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                <Avatar icon="pi pi-bars" shape="circle" class="flex sm:hidden cursor-pointer bg-gray-300 hover:bg-inherit" />
+                                <Avatar icon="pi pi-pencil" shape="circle" class="cursor-pointer bg-inherit hover:bg-yellow-400" />
+                                <Avatar icon="pi pi-trash" shape="circle" class="cursor-pointer bg-inherit hover:bg-red-400"
                                     :class="{ 'bg-red-400': taskDelete === task }" @click="taskDelete = task" />
                                 <transition name="modal">
                                     <div v-if="taskDelete === task"
-                                        class="task-popup flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-slate-200 w-44 p-2 rounded shadow-lg z-20">
+                                        class="task-popup flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
                                         <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
                                         <p>تسک {{ taskDelete.name }} حذف شود؟</p>
                                         <div class="flex gap-2">
-                                            <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8"
+                                            <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
                                                 @click="taskDelete = null" />
-                                            <Button label="حذف" class="p-button-sm p-button-danger w-16 h-8"
+                                            <Button label="حذف" class="p-button-sm p-button-danger w-16 h-8 rounded-md"
                                                 @click="deleteTask" />
                                         </div>
                                     </div>
@@ -51,11 +52,11 @@
                     </template>
                 </template>
             </div>
-            <div class="w-1/5 sticky top-4 flex flex-col gap-5">
-                <div class="bg-white h-full rounded-sm flex flex-col p-2 gap-3 shadow-md">
+            <div class="w-full sm:w-3/6 md:w-1/5 sticky top-4 flex flex-col gap-5">
+                <div class="bg-white h-full rounded-xl flex flex-col p-3 gap-3 shadow-md border-t-2 border-green-500">
                     <InputText type="text" placeholder="جستجو تسک" v-model="taskSearch"
-                        :disabled="Object.values(currentTask).length === 0" class="h-10" />
-                    <hr class="bg-light-blue border-none" style="height: .1rem;" />
+                        :disabled="Object.values(currentTask).length === 0" class="h-10 rounded-lg" />
+                        <div class="divider-line"></div>
                     <div class="flex items-center gap-2">
                         <TriStateCheckbox v-model="isDoneTask" :disabled="Object.values(currentTask).length === 0" />
                         <p v-if="isDoneTask === true">تسک های
@@ -67,7 +68,7 @@
                     <div>
                         <p :class="{ 'text-gray-400': Object.values(currentTask).length === 0 }">افراد:</p>
                         <Dropdown v-model="selectedDropTeammate" :options="teammatesDrop" optionLabel="name"
-                            placeholder="همکار" class="drop-down w-full"
+                            placeholder="همکار" class="drop-down w-full text-md border border-slate-300 rounded-lg"
                             :disabled="Object.values(currentTask).length === 0" />
                     </div>
                     <div>
@@ -92,7 +93,7 @@
                         </p>
                     </div>
                 </div>
-                <div class="bg-white h-full rounded-sm p-2 shadow-md">
+                <div class="bg-white h-full rounded-xl p-2 shadow-md border-t-2 border-green-500 mb-4">
                     <div class="flex justify-center w-full h-28 mx-auto">
                         <Chart v-if="chartData.show" type="doughnut" :data="chartData.data" />
                         <p v-else class="mt-10">تسک ثبت شده ای نیست</p>
@@ -333,6 +334,9 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.p-inputtext {
+    padding: 4px 8px !important;
+}
 .p-chip {
     @apply bg-slate-100 cursor-pointer rounded-sm shadow-none;
 

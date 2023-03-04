@@ -5,11 +5,11 @@
                 <template v-if="currentProjects && Object.values(currentProjects).length > 0">
                     <li v-for="project in currentProjects" :key="project.name"
                         class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-full h-72 shadow-md hover:-translate-y-2 transition-all">
+                        <Card class="w-full h-72 shadow-md border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all">
                             <template #header>
                                 <div class="flex mb-1 gap-2 justify-between p-3">
                                     <InputSwitch v-model="project.active" />
-                                    <i class="pi pi-pencil cursor-pointer hover:text-yellow-400" style="font-size: 1.5rem"
+                                    <i class="pi pi-pencil cursor-pointer hover:text-blue-400" style="font-size: 1rem"
                                         @click="currentEditProject(project)"></i>
                                 </div>
                             </template>
@@ -38,11 +38,11 @@
                         </Card>
                     </li>
                     <li class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-60 h-72 shadow-md hover:-translate-y-2 transition-all">
+                        <Card class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl shadow-md hover:-translate-y-2 transition-all">
                             <template #content>
-                                <div class="h-full w-full text-center mt-16">
+                                <div class="h-full w-full text-center">
                                     <p class="mb-4 text-xl">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="h-10" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>
@@ -50,11 +50,11 @@
                 </template>
                 <template v-else>
                     <li class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-60 h-72 hover:-translate-y-2 transition-all shadow-md">
+                        <Card class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all shadow-md">
                             <template #content>
-                                <div class="h-full w-full text-center mt-16">
+                                <div class="h-full w-full text-center">
                                     <p class="mb-4">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="h-10" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>
@@ -126,7 +126,18 @@ export default {
                 direction: 'rtl',
                 pagination: false,
                 gap: "1rem",
-                padding: "0 20px"
+                padding: "0 20px",
+                breakpoints: {
+                    1024: {
+                        perPage: 3,
+                    },
+                    730: {
+                        perPage: 2
+                    },
+                    500: {
+                        perPage: 1
+                    }
+                }
             });
 
             splide.mount();

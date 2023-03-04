@@ -1,9 +1,9 @@
 <template>
-    <nav class="bg-yellow-500 flex justify-between py-1 absolute top-0 left-0 z-30 w-screen h-14">
+    <nav class="bg-yellow-500 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex items-center gap-4 justify-start px-4">
-            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
-            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.5rem"
+            <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white flex items-center">
                 <RouterLink :to="{ path: '/desk/' + currentDesk }">
@@ -25,24 +25,24 @@
         </div>
     </nav>
 
-    <div class="flex gap-1">
-        <div :class="{ 'w-1/5 p-4 translate-x-0': sideBar, 'w-0 p-0 translate-x-full': !sideBar }"
-            class="w-1/5 bg-white transition-all z-20 h-screen pt-20" style="box-shadow: .3em 0 .3em .4em #ccc">
+    <div class="flex relative gap-1">
+        <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
+            class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
+            style="box-shadow: .3em 0 .3em .4em #ccc">
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
-                    class="flex items-center hover:bg-gray-400 hover:text-white hover:font-bold p-2 gap-3 rounded-sm cursor-pointer hover:shadow-sm">
-                    <i class="pi pi-home text-red-600" style="font-size: 1rem;"></i>
+                    class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                    <i class="home-icon pi pi-home text-lg"></i>
                     <span>داشبورد</span>
                 </p>
             </RouterLink>
-            <hr class="bg-light-blue border-none mt-4" style="height: .1rem;" />
+            <div class="divider-line mt-2.5"></div>
         </div>
-
-        <div :class="{ 'w-4/5': sideBar, 'w-full': !sideBar }"
-            class="bg-white transition-all z-20 h-screen pt-28 overflow-y-scroll custom px-12">
-            <Card class="w-full shadow-md relative mb-10">
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="bg-white z-20 h-screen pt-14 sm:pt-28 overflow-y-scroll custom px-0 sm:px-12">
+            <Card class="w-full shadow-none sm:shadow-md relative rounded-2xl border-t-0 sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
                 <template #header>
-                    <div class="cursor-pointer bg-gray-300 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
+                    <div class="cursor-pointer bg-gray-100 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
                         <i class="pi pi-user" style="font-size: 1.2rem"></i>
                         <i v-if="currentTask.isDone" class="pi pi-check absolute top-0 right-0 text-green-500"></i>
@@ -95,32 +95,32 @@
                                 <ul class="splide__list">
                                     <li class="splide__slide">
                                         <label
-                                            class="h-full w-100 flex flex-col items-center px-4 py-8 bg-white rounded-lg tracking-wide border cursor-pointer hover:text-light-blue">
-                                            <i class="pi pi-image"></i>
-                                            <span class="mt-2 text-sm leading-normal">انتخاب عکس</span>
+                                            class="h-full w-100 flex flex-col justify-center items-center px-4 py-8 bg-gray-100 rounded-xl tracking-wide border cursor-pointer hover:text-light-blue">
+                                            <i class="pi pi-image text-xl"></i>
+                                            <span class="mt-2 text-lg leading-normal">انتخاب عکس</span>
                                             <input type='file' class="hidden" />
                                         </label>
                                     </li>
-                                    <li class="splide__slide cursor-pointer relative" v-for="i in 5" :key="i"
+                                    <li class="splide__slide cursor-pointer relative rounded-xl overflow-hidden border border-gray-200" v-for="i in 5" :key="i"
                                         @click="modalImage = true" @mouseenter="shadowBack = i"
                                         @mouseleave="shadowBack = -1">
-                                        <img src="../../../../dashboard.png" class="w-100 h-auto" />
+                                        <img src="/images/dashboard.jpg" class="w-full h-auto mx-auto" />
                                         <div v-if="shadowBack === i"
                                             class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
-                                            <i class="pi pi-eye text-white cursor-pointer" style="font-size: 1.3rem;"></i>
+                                            <i class="pi pi-eye text-white cursor-pointer" style="font-size: 1.8rem;"></i>
                                         </div>
                                     </li>
                                 </ul>
                             </div>
                         </div>
-                        <div class="w-full flex flex-col gap-3 mt-5">
+                        <div class="w-full flex flex-col justify-center items-center gap-3 mt-5">
                             <Dropdown v-model="selectedDropComment" :options="commentSubjectDrop" optionLabel="name"
-                                placeholder="موضوع کامنت" class="drop-down w-1/2" />
-                            <div class="w-1/2 flex items-center justify-center">
-                                <Textarea v-model="comment" :autoResize="true" rows="5" cols="500"
+                                placeholder="موضوع کامنت" class="drop-down w-full sm:w-9/12 md:w-1/2 border rounded-lg" />
+                            <div class="w-full sm:w-9/12 md:w-1/2 flex items-center justify-center">
+                                <Textarea v-model="comment" :autoResize="true" rows="5" cols="500" class="rounded-lg"
                                     placeholder="متن کامنت" />
                             </div>
-                            <Button label="ثبت" class="p-button-sm p-button-success w-1/6" />
+                            <Button label="ثبت" class="p-button-sm p-button-success w-24 sm:w-1/6 text-xl rounded-lg" />
                         </div>
 
                         <div v-if="comment.length > 0 && selectedDropComment && selectedDropComment.code">
@@ -135,7 +135,7 @@
         <div v-if="modalImage" class="fixed inset-0 flex items-center justify-center z-50 lg:z-40">
             <div class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-70" @click="modalImage = false" />
             <div class="w-10/12 bg-gray-300 rounded-md shadow-2xl relative animate-open p-2 h-auto lg:w-6/12">
-                <img src="../../../../dashboard.png" class="w-100 h-auto" />
+                <img src="/images/dashboard.jpg" class="w-100 h-auto" />
             </div>
         </div>
     </transition>
@@ -153,7 +153,15 @@ import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import Knob from 'primevue/knob';
 
-
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
 
 export default {
     name: 'UserPanel',
@@ -177,7 +185,15 @@ export default {
                 direction: 'rtl',
                 pagination: false,
                 gap: '1rem',
-                autoplay: false
+                autoplay: false,
+                breakpoints: {
+                    1024: {
+                        perPage: 2
+                    },
+                    660: {
+                        perPage: 1
+                    }
+                }
             });
 
             const collection: any = document.getElementsByClassName("ql-align-right");
@@ -190,7 +206,7 @@ export default {
         })
         const comment = ref('')
         const deskStore = useDeskStore();
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const modalImage = ref(false)
         const shadowBack = ref(-1)
         const currentProject: any = computed(() => deskStore.currentProject)
