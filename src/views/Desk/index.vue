@@ -115,6 +115,16 @@ import Button from 'primevue/button';
 import Card from 'primevue/card';
 import MultiSelect from 'primevue/multiselect';
 
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
+
 export default {
     name: 'UserPanel',
 
@@ -133,7 +143,7 @@ export default {
     setup() {
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const selectedTeammates = ref<any>([])
         const createNewProject = ref(false)
         const projectName = ref('')

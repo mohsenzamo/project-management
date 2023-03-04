@@ -153,7 +153,15 @@ import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import Knob from 'primevue/knob';
 
-
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
 
 export default {
     name: 'UserPanel',
@@ -198,7 +206,7 @@ export default {
         })
         const comment = ref('')
         const deskStore = useDeskStore();
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const modalImage = ref(false)
         const shadowBack = ref(-1)
         const currentProject: any = computed(() => deskStore.currentProject)

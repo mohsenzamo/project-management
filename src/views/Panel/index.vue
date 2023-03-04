@@ -181,6 +181,16 @@ import Card from 'primevue/card';
 import Chart from 'primevue/chart';
 import InputSwitch from 'primevue/inputswitch';
 
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
+
 export default {
     name: 'UserPanel',
 
@@ -197,7 +207,7 @@ export default {
     setup() {
         const router = useRouter()
         const deskStore = useDeskStore();
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const createNewDesk = ref(false)
         const deskName = ref('')
         const modalEditDesk = ref(false)

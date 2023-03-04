@@ -76,6 +76,16 @@ import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 
+// detect if width of body smaller that 1024px then close the sidebar
+let sidebarDisplay = true;
+window.addEventListener("load", () => {
+    const body = document.querySelector("body") as HTMLBodyElement;
+    const bodyRect = body.getBoundingClientRect();
+    if (bodyRect.width <= 1024) {
+        sidebarDisplay = false;
+    }
+})
+
 export default {
     name: 'UserProfile',
 
@@ -87,7 +97,7 @@ export default {
     },
 
     setup() {
-        const sideBar = ref(true)
+        const sideBar = ref(sidebarDisplay)
         const hoverImage = ref(false)
 
         return {
