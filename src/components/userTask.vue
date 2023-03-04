@@ -30,7 +30,7 @@
                                 <Chip :label="task.deadline.unit + task.deadline.period" icon="pi pi-clock" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip :label="task.responsible" icon="pi pi-user" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip :label="task.point + 'امتیاز'" icon="pi pi-star" class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                <Avatar icon="pi pi-bars" shape="circle" class="cursor-pointer bg-gray-300 hover:bg-inherit" />
+                                <Avatar icon="pi pi-bars" shape="circle" class="flex sm:hidden cursor-pointer bg-gray-300 hover:bg-inherit" />
                                 <Avatar icon="pi pi-pencil" shape="circle" class="cursor-pointer bg-inherit hover:bg-yellow-400" />
                                 <Avatar icon="pi pi-trash" shape="circle" class="cursor-pointer bg-inherit hover:bg-red-400"
                                     :class="{ 'bg-red-400': taskDelete === task }" @click="taskDelete = task" />
