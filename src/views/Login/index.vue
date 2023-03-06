@@ -16,14 +16,14 @@
                             <InputText type="password" placeholder="رمز عبور" class="w-10/12 text-sm rounded-lg" />
                             <InputText type="password" placeholder="تکرار رمز عبور" class="w-10/12 text-sm rounded-lg" />
                             <Button type="button" label="ثبت نام" :loading="false"
-                                class="w-10/12 text-sm font-bold rounded-lg" />
+                                class="p-button-primary w-10/12 text-sm font-bold rounded-lg" />
                         </form>
                     </template>
                     <template v-else>
                         <div class="flex gap-6 sm:gap-2 justify-center mt-4 mb-3">
-                            <Button class="text-sm font-medium rounded-md" label="کارفرما" :loading="false"
+                            <Button class="p-button-primary text-sm font-medium rounded-md" label="کارفرما" :loading="false"
                                 @click="chosechar = 'کارفرما'" />
-                            <Button class="text-sm font-medium rounded-md" label="فریلنسر" :loading="false"
+                            <Button class="p-button-primary text-sm font-medium rounded-md" label="فریلنسر" :loading="false"
                                 @click="chosechar = 'فریلنسر'" />
                         </div>
                     </template>
@@ -51,7 +51,7 @@
                         <InputText v-model="userName" type="text" placeholder="نام کاربری"
                             class="w-10/12 text-sm rounded-lg" />
                         <InputText type="password" placeholder="رمز عبور" class="w-10/12 text-sm rounded-lg" />
-                        <Button type="button" label="ورود" :loading="false" class="w-10/12 text-sm font-bold rounded-lg"
+                        <Button type="button" label="ورود" :loading="false" class="p-button-primary w-10/12 text-sm font-bold rounded-lg"
                             :disabled="!(userName.length > 0)" @click="goPanel" />
                     </form>
                 </template>

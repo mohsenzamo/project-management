@@ -42,7 +42,7 @@
                             <template #content>
                                 <div class="h-full w-full text-center">
                                     <p class="mb-4 text-xl">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="p-button-primary w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>
@@ -54,7 +54,7 @@
                             <template #content>
                                 <div class="h-full w-full text-center">
                                     <p class="mb-4">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="p-button-primary w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>

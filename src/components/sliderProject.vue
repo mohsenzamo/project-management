@@ -16,7 +16,7 @@
                             class="w-44 h-36 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 hover:-translate-y-2 transition-all shadow-md mx-auto">
                             <template #content>
                                 <p class="mb-2 text-lg">پروژه جدید</p>
-                                <Button icon="pi pi-plus" class="p-button-sm p-button-help h-9 w-9"
+                                <Button icon="pi pi-plus" class="p-button-primary p-button-sm p-button-help h-9 w-9"
                                     @click="$emit('callPopupProject')" />
                             </template>
                         </Card>
@@ -28,7 +28,7 @@
                             class="w-44 h-36 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-slate-100 hover:-translate-y-2 transition-all shadow-md mx-auto">
                             <template #content>
                                 <p class="mb-2 text-lg">پروژه جدید</p>
-                                <Button icon="pi pi-plus" class="p-button-sm p-button-help h-9 w-9"
+                                <Button icon="pi pi-plus" class="p-button-primary p-button-sm p-button-help h-9 w-9"
                                     @click="$emit('callPopupProject')" />
                             </template>
                         </Card>

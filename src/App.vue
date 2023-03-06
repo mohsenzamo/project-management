@@ -43,4 +43,9 @@ body {
   margin: 0;
   padding: 0;
 }
+
+.p-button-primary {
+  color: #fff !important;
+  background-color: #2196F3 !important;
+}
 </style>

@@ -54,12 +54,12 @@
                     <p>
                         شما میزِکار فعالی ندارید. لطفاً جهت ادامه یک میزِکار جدید برای خود بسازید:
                     </p>
-                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md"
+                    <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-primary p-button-sm text-sm rounded-md"
                         @click="createNewDesk = true" />
                 </div>
             </div>
             <div v-else>
-                <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-sm text-sm rounded-md mt-4 mr-4"
+                <Button label="ایجاد میزکار جدید" icon="pi pi-plus" class="p-button-primary p-button-sm text-sm rounded-md mt-4 mr-4"
                     @click="createNewDesk = true" />
                 <div :class="{ ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-2': sideBar, ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-3': !sideBar }" class="grid items-center gap-x-5 md:gap-x-10 gap-y-5 p-4 flex-wrap xl:grid-cols-3">
                     <Card v-for="desk in alldesks" :key="desk.name"
