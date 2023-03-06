@@ -289,8 +289,8 @@ export default {
     margin-left: .5rem;
 }
 
-.custom::-webkit-scrollbar {
-    display: none;
-}
+// .custom::-webkit-scrollbar {
+//     display: none;
+// }
 </style>
 

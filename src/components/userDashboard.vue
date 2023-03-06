@@ -35,7 +35,7 @@
                                     <p v-if="task.responsible === 'خودم'"
                                         class="bg-gray-100 flex items-center rounded-md mb-1 p-2  shadow-md">
                                         <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                            offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
+                                            offIcon="pi pi-times" class="p-button-sm w-8 h-8 rounded-full" />
                                         <span class="mx-2">{{ task.name }}</span>
                                     </p>
                                 </template>
@@ -58,7 +58,7 @@
                                         class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
                                         <p class="flex items-center">
                                             <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                                offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
+                                                offIcon="pi pi-times" class="p-button-sm w-8 h-8 rounded-full" />
                                             <span class="mx-2">{{ task.name }}</span>
                                         </p>
                                         <Avatar :label="task.responsible[0]" shape="circle" />
@@ -254,9 +254,9 @@ export default {
     margin-left: .5rem;
 }
 
-.custom::-webkit-scrollbar {
-    display: none;
-}
+// .custom::-webkit-scrollbar {
+//     display: none;
+// }
 
 @keyframes p-progress-spinner-color {
 

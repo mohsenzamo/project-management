@@ -49,7 +49,7 @@
                 </div>
             </div>
             <div v-if="Object.values(selectedDesk.teammates).length > 0">
-                <Card class="w-full shadow-md">
+                <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
                         <div class="bg-blue-500 rounded-t-sm p-2 text-white">
                             همکاران من
@@ -227,8 +227,8 @@ export default {
     margin-left: .5rem;
 }
 
-.custom::-webkit-scrollbar {
-    display: none;
-}
+// .custom::-webkit-scrollbar {
+//     display: none;
+// }
 </style>
 

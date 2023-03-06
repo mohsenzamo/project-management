@@ -69,20 +69,20 @@
             <p class="font-bold my-3">پروژه خود را ویرایش کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">نام پروژه:</p>
-                <InputText v-model="editProjectValue.name" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
+                <InputText v-model="editProjectValue.name" type="text" placeholder="نام پروژه..." class="w-full sm:w-3/5 h-10 rounded-lg" />
             </div>
             <div class="custom mb-3 max-h-40 overflow-y-scroll">
                 <template v-if="Object.values(currentTeammate).length > 0">
                     <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
                     <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="fullName"
-                        placeholder="همکاران" />
+                        placeholder="همکاران" class="w-full sm:w-2/5 rounded-lg" />
                 </template>
                 <p v-else>همکاری برای این میزکار ثبت نشده است</p>
             </div>
-            <div class="flex gap-2">
-                <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditProject = false" />
-                <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10"
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="ثبت" class="p-button-sm p-button-info w-20 h-10 rounded-lg"
                     :disabled="!(editProjectValue.name.length > 0)" @click="editProject" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg" @click="modalEditProject = false" />
             </div>
         </popUp>
     </transition>

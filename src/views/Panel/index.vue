@@ -431,7 +431,8 @@ export default {
     padding: 0 !important;
 }
 
-.custom::-webkit-scrollbar {
-    display: none;
-}</style>
+// .custom::-webkit-scrollbar {
+//     display: none;
+// }
+</style>
 

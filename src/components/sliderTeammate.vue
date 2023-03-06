@@ -12,8 +12,8 @@
                     </li>
                 </template>
                 <template v-else>
-                    <li class="splide__slide py-2 flex justify-center border-t-2 border-blue-400 rounded-2xl">
-                        <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" @click="currentEditDesk" />
+                    <li class="splide__slide py-2 flex justify-center shadow-md border-t-2 border-blue-400 rounded-2xl mb-2">
+                        <Chip label="اضافه کردن همکار جدید" icon="pi pi-plus" class="shadow-none" @click="currentEditDesk" />
                     </li>
                 </template>
             </ul>
