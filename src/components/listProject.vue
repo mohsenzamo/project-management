@@ -1,60 +1,82 @@
 <template>
-    <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
+    <div id="splide1" class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
         <div class="splide__track">
             <ul class="splide__list">
-                <template v-if="currentProjects && Object.values(currentProjects).length > 0">
-                    <li v-for="project in currentProjects" :key="project.name"
+                <template v-if="currentProjects && currentProjects.length > 0">
+                    <li v-for="project in currentProjects" :key="project._id"
                         class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-full h-72 shadow-md border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all">
+                        <Card
+                            class="w-full h-72 shadow-md border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all relative">
                             <template #header>
                                 <div class="flex mb-1 gap-2 justify-between p-3">
-                                    <InputSwitch v-model="project.active" />
-                                    <i class="pi pi-pencil cursor-pointer hover:text-blue-400" style="font-size: 1rem"
-                                        @click="currentEditProject(project)"></i>
+                                    <InputSwitch v-model="project.isActive" @input="projectStatus(project)"
+                                        :disabled="userPosition !== 'manager'" />
+                                    <i v-if="userPosition === 'manager'" class="pi pi-pencil cursor-pointer"
+                                        style="font-size: 1rem"
+                                        :class="{ 'hover:text-blue-400 cursor-pointer': project.isActive, 'cursor-not-allowed': !project.isActive }"
+                                        @click="project.isActive ? currentEditProject(project) : null"></i>
                                 </div>
                             </template>
                             <template #title>
-                                <p @click="project.active ? projectRoutePush(project) : null" class="mb-2 text-center"
-                                    :class="{ 'cursor-pointer': project.active, 'cursor-not-allowed': !project.active }">{{
-                                        project.name }}</p>
+                                <p @click="project.isActive ? projectRoutePush(project._id) : null" class="mb-2 text-center"
+                                    :class="{ 'cursor-pointer': project.isActive, 'cursor-not-allowed': !project.isActive }">
+                                    {{
+                                        project.title }}</p>
                             </template>
                             <template #content>
-                                <div class="mb-4">
+                                <div v-if="projectStatusLoading === project._id"
+                                    class="w-full h-full absolute bg-gray-900 bg-opacity-70 top-0 left-0 rounded-xl flex items-center justify-center z-20">
+                                    <ProgressSpinner />
+                                </div>
+                                <div class="mb-4 z-10">
                                     <p class="mb-1 text-lg">وضعیت پروژه:</p>
                                     <ProgressBar
-                                        :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
+                                        :value="Math.floor((project.number_of_tasks.done_tasks * 100) / (project.number_of_tasks.done_tasks + project.number_of_tasks.undone_tasks))" />
                                 </div>
                                 <div>
                                     <p class="mb-1 text-lg">افراد ثبت شده:</p>
-                                    <div class="flex flex-wrap gap-1 mt-2">
-                                        <p v-if="Object.values(project.teammates).length === 0">-----</p>
+                                    <div class="mt-2 w-full">
+                                        <p v-if="project.teammates.length === 0">-----</p>
                                         <template v-else>
-                                            <Avatar v-for="teammate in project.teammates" :key="teammate.name"
-                                                :label="teammate.fullName[0]" shape="circle" />
+                                            <div id="splide2" class="splide splide_project w-full" role="group">
+                                                <div class="splide__track">
+                                                    <ul class="splide__list">
+                                                        <li v-for="teammate in project.teammates" :key="teammate.username"
+                                                            class="splide__slide items-center flex justify-center py-4">
+                                                            <Chip icon="pi pi-user" :label="teammate.username"
+                                                                class="h-fit rounded-lg overflow-hidden py-1 px-2" />
+                                                        </li>
+                                                    </ul>
+                                                </div>
+                                            </div>
                                         </template>
                                     </div>
                                 </div>
                             </template>
                         </Card>
                     </li>
-                    <li class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl shadow-md hover:-translate-y-2 transition-all">
+                    <li v-if="userPosition === 'manager'" class="splide__slide items-center flex justify-center py-4">
+                        <Card
+                            class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl shadow-md hover:-translate-y-2 transition-all">
                             <template #content>
                                 <div class="h-full w-full text-center">
                                     <p class="mb-4 text-xl">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')"
+                                        class="w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>
                     </li>
                 </template>
-                <template v-else>
+                <template v-else-if="userPosition === 'manager'">
                     <li class="splide__slide items-center flex justify-center py-4">
-                        <Card class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all shadow-md">
+                        <Card
+                            class="w-60 h-72 flex justify-center items-center border-t-2 border-blue-400 rounded-xl hover:-translate-y-2 transition-all shadow-md">
                             <template #content>
                                 <div class="h-full w-full text-center">
                                     <p class="mb-4">ساخت پروژه جدید</p>
-                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')" class="w-10 h-10 rounded-full" />
+                                    <Button icon="pi pi-plus" @click="$emit('callPopupProject')"
+                                        class="w-10 h-10 rounded-full" />
                                 </div>
                             </template>
                         </Card>
@@ -69,20 +91,12 @@
             <p class="font-bold my-3">پروژه خود را ویرایش کنید:</p>
             <div class="mb-3">
                 <p class="mb-2">نام پروژه:</p>
-                <InputText v-model="editProjectValue.name" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
-            </div>
-            <div class="custom mb-3 max-h-40 overflow-y-scroll">
-                <template v-if="Object.values(currentTeammate).length > 0">
-                    <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                    <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="fullName"
-                        placeholder="همکاران" />
-                </template>
-                <p v-else>همکاری برای این میزکار ثبت نشده است</p>
+                <InputText v-model="editProjectValue.title" type="text" placeholder="نام پروژه..." class="w-3/5 h-10" />
             </div>
             <div class="flex gap-2">
                 <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditProject = false" />
                 <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10"
-                    :disabled="!(editProjectValue.name.length > 0)" @click="editProject" />
+                    :disabled="!(editProjectValue.title.length > 0)" @click="editProject" />
             </div>
         </popUp>
     </transition>
@@ -99,28 +113,33 @@ import Button from 'primevue/button';
 import ProgressBar from 'primevue/progressbar';
 import InputSwitch from 'primevue/inputswitch';
 import { useDeskStore } from '@/store/deskStore';
-import Avatar from 'primevue/avatar';
+// import Avatar from 'primevue/avatar';
 import popUp from '@/components/popUp.vue';
 import { useRouter } from 'vue-router';
+import { useProfileStore } from '@/store/profileStore';
 import MultiSelect from 'primevue/multiselect';
+import axios from 'axios';
+import Chip from 'primevue/chip';
+import ProgressSpinner from 'primevue/progressspinner';
 
 export default {
     name: "ListProject",
 
     components: {
-        Avatar,
+        Chip,
         Card,
         Button,
         ProgressBar,
         InputSwitch,
+        ProgressSpinner,
         popUp,
         InputText,
-        MultiSelect
+        // MultiSelect
     },
 
     setup() {
         onMounted(() => {
-            const splide = new Splide('.splide', {
+            const splide1 = new Splide('#splide1', {
                 perPage: 4,
                 perMove: 1,
                 direction: 'rtl',
@@ -140,92 +159,117 @@ export default {
                 }
             });
 
-            splide.mount();
+            const splide2 = new Splide('#splide2', {
+                autoWidth: true,
+                gap: '.2rem',
+                perMove: 1,
+                direction: 'rtl',
+                pagination: false,
+                arrows: false,
+                wheel: true
+            });
+
+            splide1.mount();
+            splide2.mount();
         })
+
+        const profileStore = useProfileStore()
         const modalEditProject = ref(false)
         const deskStore = useDeskStore();
-        const currentDesk: any = computed(() => deskStore.currentDesk)
+        const currentProjects: any = computed(() => deskStore.currentDesk.projects)
         const editProjectValue = ref<any>(null)
-        const projectBeforeChange = ref('')
+        const projectStatusLoading = ref('')
         const projectStore = useProjectStore();
         const router = useRouter()
         const selectedTeammates = ref<any>([])
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+        const userPosition = computed(() => profileStore.userProfile.position)
 
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
-
-        const currentProjects: any = computed(() => {
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                let projectObj: any = {}
-                Object.values(selectedDesk.value.projects).forEach((project: any) => {
-                    let isDoneTask = 0
-                    let isNotDoneTask = 0
-                    if (Object.values(project.tasks).length > 0) {
-                        Object.values(project.tasks).forEach((task: any) => {
-                            task.isDone ? isDoneTask++ : isNotDoneTask++
-                        })
-                    }
-                    const projectNameValue = project.name
-                    projectObj[projectNameValue] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
+        function projectStatus(project: any) {
+            projectStatusLoading.value = project._id
+            const config = {
+                method: 'patch',
+                url: process.env.VUE_APP_BASE_API_URL + '/projects/status/' + project._id,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    isActive: project.isActive,
+                    permision: !project.isActive
+                }
+            };
+            axios(config)
+                .then((res) => {
+                    console.log(res)
+                    projectStatusLoading.value = ''
                 })
-                return projectObj
-            } else {
-                return {}
-            }
-        })
-
-        const currentTeammate = computed(() => {
-            let teamArray: any = []
-            if (selectedDesk.value && Object.values(selectedDesk.value.teammates).length > 0) {
-                Object.values(selectedDesk.value.teammates).forEach((teammate: any) => {
-                    teamArray.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
-                })
-                return teamArray
-            } else {
-                return teamArray
-            }
-        })
+                .catch((error: any) => {
+                    console.log(error);
+                });
+        }
 
         function currentEditProject(project: any) {
             modalEditProject.value = true
             editProjectValue.value = Object.assign({}, project)
-            selectedTeammates.value = []
-            Object.values(project.teammates).forEach((teammate: any) => {
-                selectedTeammates.value.push({ fullName: teammate.fullName, phoneNumber: teammate.phoneNumber })
-            })
-            projectBeforeChange.value = project.name
         }
 
         function editProject() {
             projectStore.changeLoading(true)
-            let objProject: any = {}
-            let teammatesObj: any = {}
-            if (selectedTeammates.value.length > 0) {
-                selectedTeammates.value.forEach((item: any) => {
-                    teammatesObj[item.fullName] = item
-                })
-            }
-
-            objProject = {
-                name: editProjectValue.value.name,
-                tasks: editProjectValue.value.tasks,
-                teammates: teammatesObj,
-                deskId: editProjectValue.value.deskId,
-                active: true,
-                isDoneTask: editProjectValue.value.isDoneTask,
-                isNotDoneTask: editProjectValue.value.isNotDoneTask
+            const config = {
+                method: 'patch',
+                url: process.env.VUE_APP_BASE_API_URL + '/projects/one/' + editProjectValue.value._id,
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
+                    'Content-Type': 'application/json'
+                },
+                data: {
+                    title: editProjectValue.value.title
+                }
             };
-            deskStore.editProject(objProject, projectBeforeChange.value)
-            modalEditProject.value = false
-            setInterval(() => {
-                projectStore.changeLoading(false)
-            }, 1000);
+            axios(config)
+                .then(async () => {
+                    await axios.get(process.env.VUE_APP_BASE_API_URL + '/workdesks/one/' + currentDesk.value._id, {
+                        headers: {
+                            Authorization: `Bearer ${localStorage.getItem("access_token")}`
+                        }
+                    })
+                        .then(async (resdesk) => {
+                            deskStore.setCurrentDesk(resdesk.data[0])
+                            projectStore.changeLoading(false)
+                            modalEditProject.value = false
+                        })
+                        .catch((error) => {
+                            console.log(error);
+                        })
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
+            // let objProject: any = {}
+            // let teammatesObj: any = {}
+            // if (selectedTeammates.value.length > 0) {
+            //     selectedTeammates.value.forEach((item: any) => {
+            //         teammatesObj[item.fullName] = item
+            //     })
+            // }
+
+            // objProject = {
+            //     name: editProjectValue.value.name,
+            //     tasks: editProjectValue.value.tasks,
+            //     teammates: teammatesObj,
+            //     deskId: editProjectValue.value.deskId,
+            //     active: true,
+            //     isDoneTask: editProjectValue.value.isDoneTask,
+            //     isNotDoneTask: editProjectValue.value.isNotDoneTask
+            // };
+            // deskStore.editProject(objProject, projectBeforeChange.value)
         }
 
-        function projectRoutePush(project: any) {
-            deskStore.setCurrentProject(project)
+        function projectRoutePush(id: any) {
             router.push({
                 name: "UserProject",
-                params: { id: project.name },
+                params: { id: id },
             });
         }
 
@@ -233,11 +277,14 @@ export default {
             projectRoutePush,
             editProject,
             currentEditProject,
+            projectStatus,
             modalEditProject,
             currentProjects,
             editProjectValue,
-            currentTeammate,
-            selectedTeammates
+            // currentTeammate,
+            projectStatusLoading,
+            selectedTeammates,
+            userPosition
         }
     },
 }

@@ -29,62 +29,77 @@
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
             class="flex flex-col justify-center items-center bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
-            <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
-            <Card class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12">
-                <template #header>
-                    <label
-                        class="w-24 h-24 flex flex-col justify-center items-center bg-white rounded-full tracking-wide border cursor-pointer overflow-hidden hover:text-light-blue mx-auto"
-                        @mouseenter="hoverImage = true" @mouseleave="hoverImage = false">
-                        <i class="pi pi-user text-3xl"></i>
-                        <!-- <div class="w-full h-full relative">
-                            <img src="../../../../project.png" class="w-full h-full" />
-                            <div v-if="hoverImage"
-                                class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
-                                <i class="pi pi-pencil text-white cursor-pointer" style="font-size: 1.2rem;"></i>
-                            </div>
-                        </div> -->
-                        <input type='file' class="hidden" />
-                    </label>
-                </template>
-                <template #content>
-                    <form class="flex flex-col justify-center items-center gap-2.5">
-                        <InputText type="text" placeholder="نام کاربری" class=" text-sm rounded-lg w-full" />
-                        <InputText type="password" placeholder="رمز عبور" class=" text-sm rounded-lg w-full" />
-                        <Button type="button" label="ثبت"
-                            class="p-button-sm p-button-primary rounded-lg w-full text-sm font-bold" />
-                    </form>
-                </template>
-                <template #footer>
-                    <div class="flex justify-center gap-3">
-                        <Avatar icon="pi pi-instagram" shape="circle"
-                            class="cursor-pointer border border-red-400 bg-transparent text-red-400" />
-                        <Avatar icon="pi pi-whatsapp" shape="circle"
-                            class="cursor-pointer border border-green-400 bg-transparent text-green-400" />
-                        <Avatar icon="pi pi-telegram" shape="circle"
-                            class="cursor-pointer border border-blue-400 bg-transparent text-blue-400" />
-                    </div>
-                </template>
-            </Card>
+            <div v-if="profileLoading">
+                <ProgressSpinner />
+            </div>
+            <template v-else>
+                <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
+                <Card
+                    class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12">
+                    <template #header>
+                        <label
+                            class="w-24 h-24 flex flex-col justify-center items-center bg-white rounded-full tracking-wide border cursor-pointer overflow-hidden hover:text-light-blue mx-auto"
+                            @mouseenter="hoverImage = true" @mouseleave="hoverImage = false">
+                            <i class="pi pi-user text-3xl"></i>
+                            <!-- <div class="w-full h-full relative">
+                                <img src="../../../../project.png" class="w-full h-full" />
+                                <div v-if="hoverImage"
+                                    class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
+                                    <i class="pi pi-pencil text-white cursor-pointer" style="font-size: 1.2rem;"></i>
+                                </div>
+                            </div> -->
+                            <input type='file' class="hidden" />
+                        </label>
+                    </template>
+                    <template #content>
+                        <form class="flex flex-col justify-center items-center gap-2.5">
+                            <p>
+                                {{ profile.position }}
+                            </p>
+                            <InputText v-model="profile.fname" type="text" placeholder="نام"
+                                class=" text-sm rounded-lg w-full" />
+                            <InputText v-model="profile.lname" type="text" placeholder="نام خانوادگی"
+                                class=" text-sm rounded-lg w-full" />
+                            <InputText v-model="profile.username" type="text" placeholder="نام کاربری"
+                                class=" text-sm rounded-lg w-full" />
+                            <InputText v-model="profile.email" type="text" placeholder="ایمیل"
+                                class=" text-sm rounded-lg w-full" />
+                            <InputText v-model="profile.phone" type="text" placeholder="شماره"
+                                class=" text-sm rounded-lg w-full" />
+                            <InputText v-model="profile.age" type="text" placeholder="سن"
+                                class=" text-sm rounded-lg w-full" />
+                            <p class="flex justify-between w-full px-5">
+                                <span>مجموع امتیازها:</span>
+                                <span>{{ profile.point }}</span>
+                            </p>
+                            <Button type="button" label="ثبت"
+                                class="p-button-sm p-button-primary rounded-lg w-full text-sm font-bold" />
+                        </form>
+                    </template>
+                    <template #footer>
+                        <div class="flex justify-center gap-3">
+                            <Avatar icon="pi pi-instagram" shape="circle"
+                                class="cursor-pointer border border-red-400 bg-transparent text-red-400" />
+                            <Avatar icon="pi pi-whatsapp" shape="circle"
+                                class="cursor-pointer border border-green-400 bg-transparent text-green-400" />
+                            <Avatar icon="pi pi-telegram" shape="circle"
+                                class="cursor-pointer border border-blue-400 bg-transparent text-blue-400" />
+                        </div>
+                    </template>
+                </Card>
+            </template>
         </div>
     </div>
 </template>
 
 <script lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-
-// detect if width of body smaller that 1024px then close the sidebar
-let sidebarDisplay = true;
-window.addEventListener("load", () => {
-    const body = document.querySelector("body") as HTMLBodyElement;
-    const bodyRect = body.getBoundingClientRect();
-    if (bodyRect.width <= 1024) {
-        sidebarDisplay = false;
-    }
-})
+import { useProfileStore } from '@/store/profileStore';
+import ProgressSpinner from 'primevue/progressspinner';
 
 export default {
     name: 'UserProfile',
@@ -94,15 +109,38 @@ export default {
         Avatar,
         InputText,
         Card,
+        ProgressSpinner
+    },
+
+    beforeRouteEnter(to: any, from: any, next: any) {
+        const profileStore = useProfileStore()
+        profileStore.changeLoading(true)
+        const accessToken = localStorage.getItem("access_token")
+        const refreshToken = localStorage.getItem("refresh_token")
+        if (accessToken && refreshToken) {
+            profileStore.fetchProfile().then(() => {
+                profileStore.changeLoading(false)
+                next()
+            }).catch(() => {
+                next({ path: '/' })
+            })
+        } else {
+            next({ path: '/' })
+        }
     },
 
     setup() {
-        const sideBar = ref(sidebarDisplay)
+        const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const hoverImage = ref(false)
+        const profileStore = useProfileStore()
+        const profile = computed(() => profileStore.userProfile)
+        const profileLoading = computed(() => profileStore.loading)
 
         return {
             sideBar,
-            hoverImage
+            hoverImage,
+            profile,
+            profileLoading
         }
     },
 }
@@ -115,5 +153,6 @@ export default {
     .p-card-body {
         @apply w-full;
     }
-}</style>
+}
+</style>
 

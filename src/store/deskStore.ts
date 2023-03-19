@@ -1,13 +1,11 @@
 import { defineStore } from "pinia";
-
-interface deskObj {
-  name: string;
-}
+import axios from "axios";
 
 export const useDeskStore = defineStore("useDeskStore", {
   state: () => ({
     allDesks: {} as any,
-    currentDesks: "" as string,
+    currentDesks: {} as any,
+
     selectedDropDesks: {} as object,
     currentProjects: "" as string,
     currentTasks: "" as string,
@@ -17,10 +15,11 @@ export const useDeskStore = defineStore("useDeskStore", {
   }),
   getters: {
     allDesk: (state) => state.allDesks,
+    currentDesk: (state) => state.currentDesks,
     deskLoading: (state) => state.desksLoading,
+
     taskLoading: (state) => state.tasksLoading,
     teammateLoading: (state) => state.teammatesLoading,
-    currentDesk: (state) => state.currentDesks,
     currentTask: (state) => state.currentTasks,
     selectedDropDesk: (state) => state.selectedDropDesks,
     currentProject: (state) => state.currentProjects,
@@ -38,6 +37,94 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
   },
   actions: {
+    fetchDesks() {
+      return new Promise((resolve, reject) => {
+        axios
+          .get(process.env.VUE_APP_BASE_API_URL + "/workdesks", {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          })
+          .then(async (res) => {
+            await res.data.data.forEach((desk: any) => {
+              const objDesk: any = {};
+              objDesk[desk._id] = desk;
+              this.allDesks = Object.assign(this.allDesks, objDesk);
+            });
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    createDesk(deskName: string) {
+      const config = {
+        method: "post",
+        url: process.env.VUE_APP_BASE_API_URL + "/workdesks",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          title: deskName,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((res: any) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    deskStatus(desk: any) {
+      const config = {
+        method: "patch",
+        url: process.env.VUE_APP_BASE_API_URL + "/workdesks/one/" + desk._id,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          isActive: desk.isActive,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((res: any) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    editDesk(editDesk: any) {
+      const config = {
+        method: "patch",
+        url:
+          process.env.VUE_APP_BASE_API_URL + "/workdesks/one/" + editDesk._id,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          title: editDesk.title,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((res: any) => {
+            resolve(res);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
     increment(deskItem: object) {
       this.allDesks = Object.assign(this.allDesks, deskItem);
     },
@@ -97,8 +184,8 @@ export const useDeskStore = defineStore("useDeskStore", {
         objTask
       );
     },
-    setCurrentDesk(deskId: string) {
-      this.currentDesks = deskId;
+    setCurrentDesk(desk: object) {
+      this.currentDesks = desk;
     },
     setCurrentProject(project: any) {
       this.currentProjects = project;
@@ -117,25 +204,6 @@ export const useDeskStore = defineStore("useDeskStore", {
     },
     changeTeammateLoading(bool: boolean) {
       this.teammatesLoading = bool;
-    },
-    editDesk(deskItem: any, deskBefore: string) {
-      if (deskItem.name !== deskBefore) {
-        Object.values(deskItem.projects).forEach((project: any) => {
-          project.deskId = deskItem.name;
-          Object.values(project.tasks).forEach((task: any) => {
-            task.deskId = deskItem.name;
-          });
-        });
-        const objDesk: any = {};
-        objDesk[deskItem.name] = deskItem;
-        this.allDesks = Object.assign(this.allDesks, objDesk);
-        delete this.allDesks[deskBefore];
-      } else {
-        this.allDesks[deskItem.name] = Object.assign(
-          this.allDesks[deskItem.name],
-          deskItem
-        );
-      }
     },
     editProject(projectItem: any, projectBefore: string) {
       if (projectItem.name !== projectBefore) {

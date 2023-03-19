@@ -6,15 +6,15 @@
             <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white flex items-center">
-                <RouterLink :to="{ path: '/desk/' + currentDesk }">
-                    <span class="cursor-pointer">{{ currentDesk }}</span>
+                <RouterLink :to="{ path: '/desk/' + currentDesk._id }">
+                    <span class="cursor-pointer">{{ currentDesk.title }}</span>
                 </RouterLink>
                 <i class="pi pi-angle-left" style="font-size: 1.3rem;"></i>
-                <RouterLink :to="{ path: '/project/' + currentProject.name }">
-                    <span class="cursor-pointer">{{ currentProject.name }}</span>
+                <RouterLink :to="{ path: '/project/' + currentProject._id }">
+                    <span class="cursor-pointer">{{ currentProject.title }}</span>
                 </RouterLink>
                 <i class="pi pi-angle-left" style="font-size: 1.3rem;"></i>
-                <span class="cursor-default">{{ currentTask.name }}</span>
+                <span class="cursor-default">{{ currentTask.title }}</span>
             </p>
         </div>
 
@@ -40,30 +40,47 @@
         </div>
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white z-20 h-screen pt-14 sm:pt-28 overflow-y-scroll custom px-0 sm:px-12">
-            <Card class="w-full shadow-none sm:shadow-md relative rounded-2xl border-t-0 sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
+            <Card
+                class="w-full shadow-none sm:shadow-md relative rounded-2xl border-t-0 sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
                 <template #header>
                     <div class="cursor-pointer bg-gray-100 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
                         <i class="pi pi-user" style="font-size: 1.2rem"></i>
-                        <i v-if="currentTask.isDone" class="pi pi-check absolute top-0 right-0 text-green-500"></i>
-                        <i v-else class="pi pi-clock absolute top-0 right-0 text-blue-500"></i>
-                        <Transition name="status1">
-                            <i v-if="openStatus" class="pi pi-check-circle absolute top-16 text-green-500 cursor-pointer"
-                                style="font-size: 1.3rem;"></i>
-                        </Transition>
-                        <Transition name="status3">
-                            <i v-if="openStatus"
-                                class="pi pi-exclamation-circle absolute top-24 text-yellow-500 cursor-pointer"
-                                style="font-size: 1.3rem;"></i>
-                        </Transition>
-                        <Transition name="status3">
-                            <i v-if="openStatus" class="pi pi-times-circle absolute top-32 text-red-500 cursor-pointer"
-                                style="font-size: 1.3rem;"></i>
-                        </Transition>
+                        <i v-if="currentTask.status === 'done'"
+                            class="pi pi-check absolute top-0 right-0 text-green-500"></i>
+                        <i v-else-if="currentTask.status === 'pending'"
+                            class="pi pi-clock absolute top-0 right-0 text-blue-500"></i>
+                        <i v-else-if="currentTask.status === 'undone'"
+                            class="pi pi-times-circle absolute top-0 right-0 text-red-500"></i>
+                        <template v-if="userPosition === 'manager' && currentTask.status === 'pending'">
+                            <Transition name="status1">
+                                <i v-if="openStatus" class="pi pi-check-circle absolute top-16 text-green-500"
+                                    :class="{ 'cursor-pointer': currentTask.status !== 'done', 'cursor-not-allowed': currentTask.status === 'done' }"
+                                    @click="currentTask.status !== 'done' ? taskStatus('done') : null"
+                                    style="font-size: 1.3rem;"></i>
+                            </Transition>
+                            <Transition name="status3">
+                                <i v-if="openStatus" class="pi pi-times-circle absolute top-24 text-red-500"
+                                    :class="{ 'cursor-pointer': currentTask.status !== 'undone', 'cursor-not-allowed': currentTask.status === 'undone' }"
+                                    @click="currentTask.status !== 'undone' ? taskStatus('undone') : null"
+                                    style="font-size: 1.3rem;"></i>
+                            </Transition>
+                        </template>
+                        <template v-else-if="currentTask.status !== 'pending' && currentTask.status !== 'done'">
+                            <Transition name="status1">
+                                <i v-if="openStatus" class="pi pi-clock absolute top-16 text-blue-500"
+                                    :class="{ 'cursor-pointer': currentTask.status !== 'done', 'cursor-not-allowed': currentTask.status === 'done' }"
+                                    @click="currentTask.status !== 'done' ? taskStatus('pending') : null"
+                                    style="font-size: 1.3rem;"></i>
+                            </Transition>
+                        </template>
                     </div>
                     <div class="absolute top-5 left-24 flex flex-col items-center justify-center">
-                        <Knob v-model="currentTask.deadline.unit" :size="62" class="font-iransans" />
-                        <p>{{ currentTask.deadline.period }}</p>
+                        <Knob v-model="deadlineTask" :valueTemplate="strdeadline" :max="100" :size="62"
+                            valueColor="SlateGray" class="font-iransans" readonly />
+                        <p v-if="currentTask.deadline.unit === 'day'">روز</p>
+                        <p v-else-if="currentTask.deadline.unit === 'hour'">ساعت</p>
+                        <p v-else-if="currentTask.deadline.unit === 'month'">ماه</p>
                     </div>
                     <div class="ribbon">
                         <span class="font-iransans shadow-md bg-light-blue">{{ currentTask.point }}</span>
@@ -71,18 +88,18 @@
                 </template>
                 <template #title>
                     <p class="mt-10 mr-12 text-3xl">
-                        {{ currentTask.name }}
+                        {{ currentTask.title }}
                     </p>
                 </template>
                 <template #content>
                     <div class="px-10">
                         <p class="text-lg mb-3">
                             <span class="ml-2 font-bold">پروژه:</span>
-                            <span>{{ currentTask.projectId }}</span>
+                            <span>{{ currentProject.title }}</span>
                         </p>
                         <p class="text-lg mb-3">
                             <span class="ml-2 font-bold">میزکار:</span>
-                            <span>{{ currentTask.deskId }}</span>
+                            <span>{{ currentDesk.title }}</span>
                         </p>
                         <div class="text-lg mb-5">
                             <p class="ml-2 font-bold">توضیحات:</p>
@@ -90,7 +107,7 @@
                                 class="w-full" />
                             <p v-else>----</p>
                         </div>
-                        <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
+                        <!-- <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
                             <div class="splide__track">
                                 <ul class="splide__list">
                                     <li class="splide__slide">
@@ -112,7 +129,7 @@
                                     </li>
                                 </ul>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="w-full flex flex-col justify-center items-center gap-3 mt-5">
                             <Dropdown v-model="selectedDropComment" :options="commentSubjectDrop" optionLabel="name"
                                 placeholder="موضوع کامنت" class="drop-down w-full sm:w-9/12 md:w-1/2 border rounded-lg" />
@@ -120,30 +137,52 @@
                                 <Textarea v-model="comment" :autoResize="true" rows="5" cols="500" class="rounded-lg"
                                     placeholder="متن کامنت" />
                             </div>
-                            <Button label="ثبت" class="p-button-sm p-button-success w-24 sm:w-1/6 text-xl rounded-lg" />
+                            <Button label="ثبت" class="p-button-sm p-button-success w-24 sm:w-1/6 text-xl rounded-lg"
+                                :disabled="comment.length === 0 || !selectedDropComment" @click="addTaskComment" />
                         </div>
 
-                        <div v-if="comment.length > 0 && selectedDropComment && selectedDropComment.code">
-                            <!-- <Message :closable="false" :severity="selectedDropComment.code">{{ comment }}</Message> -->
+                        <div v-if="currentTask.comments.length > 0">
+                            <Card v-for="comment in currentTask.comments" :key="comment._id" class="mt-5">
+                                <template #header>
+                                    <div class="pr-5 text-white font-semibold text-lg"
+                                        :class="{ 'bg-yellow-500': comment.title === 'warning', 'bg-red-500': comment.title === 'error', 'bg-green-500': comment.title === 'successful', 'bg-blue-500': comment.title === 'guide' }">
+                                        <p v-if="comment.title === 'warning'">اخطار</p>
+                                        <p v-else-if="comment.title === 'error'">ارور</p>
+                                        <p v-else-if="comment.title === 'successful'">موفق</p>
+                                        <p v-else-if="comment.title === 'guide'">راهنما</p>
+                                    </div>
+                                </template>
+                                <template #content>
+                                    <p>
+                                        {{ comment.description }}
+                                    </p>
+                                </template>
+                                <template #footer>
+                                    <Chip icon="pi pi-user" :label="comment.user.username"
+                                        class="h-fit rounded-lg overflow-hidden py-1 px-2" />
+                                </template>
+                            </Card>
                         </div>
                     </div>
                 </template>
             </Card>
         </div>
     </div>
-    <transition name="modal">
+
+    <!-- <transition name="modal">
         <div v-if="modalImage" class="fixed inset-0 flex items-center justify-center z-50 lg:z-40">
             <div class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-70" @click="modalImage = false" />
             <div class="w-10/12 bg-gray-300 rounded-md shadow-2xl relative animate-open p-2 h-auto lg:w-6/12">
                 <img src="/images/dashboard.jpg" class="w-100 h-auto" />
             </div>
         </div>
-    </transition>
+    </transition> -->
 </template>
 
 <script lang="ts">
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
+import { useProfileStore } from '@/store/profileStore';
 import { ref, computed, onMounted } from 'vue'
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
@@ -152,21 +191,15 @@ import Dropdown from 'primevue/dropdown';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import Knob from 'primevue/knob';
-
-// detect if width of body smaller that 1024px then close the sidebar
-let sidebarDisplay = true;
-window.addEventListener("load", () => {
-    const body = document.querySelector("body") as HTMLBodyElement;
-    const bodyRect = body.getBoundingClientRect();
-    if (bodyRect.width <= 1024) {
-        sidebarDisplay = false;
-    }
-})
+import { useTaskStore } from '@/store/taskStore';
+import { useProjectStore } from '@/store/projectStore';
+import Chip from 'primevue/chip';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        Chip,
         Knob,
         Dropdown,
         Avatar,
@@ -177,48 +210,101 @@ export default {
 
     props: ["id"],
 
-    setup() {
-        onMounted(() => {
-            const splide = new Splide('.splide', {
-                perPage: 3,
-                perMove: 1,
-                direction: 'rtl',
-                pagination: false,
-                gap: '1rem',
-                autoplay: false,
-                breakpoints: {
-                    1024: {
-                        perPage: 2
-                    },
-                    660: {
-                        perPage: 1
-                    }
-                }
-            });
+    beforeRouteEnter(to: any, from: any, next: any) {
+        const taskStore = useTaskStore()
+        const deskStore = useDeskStore()
+        if (Object.values(deskStore.allDesk).length === 0) {
+            next({ path: '/panel' })
+        } else {
+            taskStore.changeLoading(true)
+            taskStore.setCurrentTask(to.params.id).then(() => {
+                taskStore.changeLoading(false)
+                next()
+            })
+        }
+    },
 
-            const collection: any = document.getElementsByClassName("ql-align-right");
-            if (collection && collection.length > 0) {
-                Object.values(collection).forEach((elmnt: any) => {
-                    elmnt.style.direction = "rtl";
-                })
-            }
-            splide.mount();
-        })
+    setup(props: any) {
+        // onMounted(() => {
+        //     const splide = new Splide('.splide', {
+        //         perPage: 3,
+        //         perMove: 1,
+        //         direction: 'rtl',
+        //         pagination: false,
+        //         gap: '1rem',
+        //         autoplay: false,
+        //         breakpoints: {
+        //             1024: {
+        //                 perPage: 2
+        //             },
+        //             660: {
+        //                 perPage: 1
+        //             }
+        //         }
+        //     });
+
+        //     const collection: any = document.getElementsByClassName("ql-align-right");
+        //     if (collection && collection.length > 0) {
+        //         Object.values(collection).forEach((elmnt: any) => {
+        //             elmnt.style.direction = "rtl";
+        //         })
+        //     }
+        //     splide.mount();
+        // })
         const comment = ref('')
-        const deskStore = useDeskStore();
-        const sideBar = ref(sidebarDisplay)
+        const profileStore = useProfileStore()
+        const deskStore = useDeskStore()
+        const projectStore = useProjectStore()
+        const taskStore = useTaskStore()
+        const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const modalImage = ref(false)
         const shadowBack = ref(-1)
-        const currentProject: any = computed(() => deskStore.currentProject)
-        const currentTask: any = computed(() => deskStore.currentTask)
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+        const currentProject: any = computed(() => projectStore.currentProject)
+        const currentTask: any = computed(() => taskStore.currentTask)
         const selectedDropComment = ref<any>(null)
         const commentSubjectDrop = ref([
-            { name: 'اخطار', code: 'warn' },
+            { name: 'اخطار', code: 'warning' },
             { name: 'ارور', code: 'error' },
-            { name: 'موفق', code: 'success' },
-            { name: 'راهنما', code: 'info' }
+            { name: 'موفق', code: 'successful' },
+            { name: 'راهنما', code: 'guide' }
         ])
         const openStatus = ref<boolean>(false)
+
+        const strdeadline = computed(() => `${currentTask.value.deadline.n}/{value}`)
+        const userPosition = computed(() => profileStore.userProfile.position)
+
+        const deadlineTask = computed(() => {
+            const timeNow = new Date().getTime();
+            const mines = timeNow - new Date(currentDesk.value.createdAt).getTime();
+            let deadline = 0;
+            if (currentTask.value.deadline.unit === 'day') {
+                deadline = currentTask.value.deadline.n * 24 * 60 * 60 * 1000
+            } else if (currentTask.value.deadline.unit === 'month') {
+                deadline = currentTask.value.deadline.n * 30 * 24 * 60 * 60 * 1000
+            } else if (currentTask.value.deadline.unit === 'hour') {
+                deadline = currentTask.value.deadline.n * 60 * 60 * 1000
+            }
+            return Math.floor((mines * 100) / deadline)
+        })
+
+        function taskStatus(status: string) {
+            taskStore.changeLoading(true)
+            taskStore.changeStatus(props.id, status).then(() => {
+                taskStore.setCurrentTask(props.id).then(() => {
+                    taskStore.changeLoading(false)
+                })
+            })
+        }
+
+        function addTaskComment() {
+            taskStore.changeLoading(true)
+            taskStore.addComment(props.id, selectedDropComment.value.code, comment.value).then(() => {
+                taskStore.setCurrentTask(props.id).then(() => {
+                    taskStore.changeLoading(false)
+                })
+            })
+        }
 
         // let timer = ref<any>(0)
 
@@ -234,16 +320,11 @@ export default {
         //     }
         // })
 
-
-
-        const currentDesk: any = computed(() => deskStore.currentDesk)
-
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
-
         return {
+            taskStatus,
+            addTaskComment,
             currentProject,
             sideBar,
-            selectedDesk,
             currentDesk,
             currentTask,
             selectedDropComment,
@@ -251,7 +332,10 @@ export default {
             comment,
             openStatus,
             modalImage,
-            shadowBack
+            shadowBack,
+            deadlineTask,
+            strdeadline,
+            userPosition
             // currentTaskDeadline
         }
     },

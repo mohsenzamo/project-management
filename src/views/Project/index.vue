@@ -6,11 +6,11 @@
             <i v-else class="pi pi-align-right cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
             <p class="text-xl font-bold text-white flex items-center">
-                <RouterLink :to="{ path: '/desk/' + currentDesk }">
-                    <span class="cursor-pointer">{{ currentDesk }}</span>
+                <RouterLink :to="{ path: '/desk/' + currentDesk._id }">
+                    <span class="cursor-pointer">{{ currentDesk.title }}</span>
                 </RouterLink>
                 <i class="pi pi-angle-left" style="font-size: 1.3rem;"></i>
-                <span class="cursor-default">{{ currentProject.name }}</span>
+                <span class="cursor-default">{{ currentProject.title }}</span>
             </p>
         </div>
 
@@ -33,27 +33,58 @@
                 </p>
             </RouterLink>
             <div class="divider-line mt-2.5"></div>
-            <div class="h-96 flex flex-col justify-start items-end overflow-y-scroll custom">
+            <div class="h-80 flex flex-col justify-start items-end overflow-y-scroll custom">
                 <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
-                    :class="{ 'cursor-not-allowed': Object.values(selectedDesk.projects[id].tasks).length === 0 }">
-                    <i v-if="Object.values(selectedDesk.projects[id].tasks).length > 0"
-                        class="pi pi-angle-down text-yellow-600" style="font-size: 1rem;"></i>
+                    :class="{ 'cursor-not-allowed': currentProject.tasks.length === 0 }">
+                    <i v-if="currentProject.tasks.length > 0" class="pi pi-angle-down text-yellow-600"
+                        style="font-size: 1rem;"></i>
                     <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
                     <span>وظایف</span>
                 </p>
-                <template v-if="Object.values(selectedDesk.projects[id].tasks).length > 0">
-                    <p v-for="task in selectedDesk.projects[id].tasks" :key="task.name" @click="taskRoutePush(task)"
+                <template v-if="currentProject.tasks.length > 0">
+                    <p v-for="task in currentProject.tasks" :key="task.name" @click="taskRoutePush(task)"
                         class="dashboard-item-hover cursor-pointer flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12">
                         <i class="pi pi-check-circle text-yellow-600" style="font-size: 1rem;"></i>
-                        <span>{{ task.name }}</span>
+                        <span>{{ task.title }}</span>
                     </p>
                 </template>
+            </div>
+            <div v-if="currentDesk.teammates.length > 0">
+                <Card class="w-full shadow-md">
+                    <template #header>
+                        <div class="bg-green-500 rounded-t-sm p-2 text-white">
+                            همکاران پروژه
+                        </div>
+                    </template>
+                    <template #content>
+                        <div class="h-32 overflow-y-scroll custom">
+                            <div v-for="teammate in currentProject.teammates" :key="teammate.username"
+                                class="flex items-center gap-2 my-1 justify-between">
+                                <p>{{ teammate.username }}</p>
+                                <div v-if="userPosition === 'manager'">
+                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1" />
+                                    <Avatar icon="pi pi-times" shape="circle" />
+                                </div>
+                            </div>
+                            <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
+                                @click="callProjectTeammate">
+                                <Avatar icon="pi pi-plus" shape="circle" />
+                                <p>اضافه کردن همکار</p>
+                            </div>
+                        </div>
+                    </template>
+                </Card>
             </div>
         </div>
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
-            <userTask @callPopupTask="createNewTask = true" @goTask="taskRoutePush" />
+            <div v-if="taskLoading" class="w-fit mx-auto h-24">
+                <ProgressSpinner />
+            </div>
+            <template v-else>
+                <userTask @callPopupTask="createNewTask = true" @goTask="taskRoutePush" />
+            </template>
         </div>
     </div>
 
@@ -63,23 +94,25 @@
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
                 <div class="w-full sm:w-1/2">
                     <p class="mb-2">نام تسک:</p>
-                    <InputText v-model="taskName" type="text" placeholder="نام تسک..." class="w-full rounded-lg py-1.5 px-3" />
+                    <InputText v-model="taskName" type="text" placeholder="نام تسک..."
+                        class="w-full rounded-lg py-1.5 px-3" />
                 </div>
                 <div class="w-full sm:w-1/2">
                     <p class="mb-2">پروژه مربوط:</p>
-                    <p class="mt-3">{{ currentProject.name }}</p>
+                    <p class="mt-3">{{ currentProject.title }}</p>
                 </div>
             </div>
             <div class="flex items-center flex-shrink flex-wrap mb-4">
                 <div class="w-2/4 sm:w-1/4 flex flex-col justify-center items-center mb-2 sm:mb-0">
                     <p class="mb-2">فرد مسئول:</p>
-                    <Dropdown v-model="selectedDropTeammate" :options="projectTeammateDrop" optionLabel="name"
-                        placeholder="همکار" class="drop-down" />
+                    <Dropdown v-model="selectedDropTeammate" :options="teammatesDrop" optionLabel="name" placeholder="همکار"
+                        class="drop-down" />
                 </div>
                 <div class="w-2/4 sm:w-1/4 flex flex-col justify-center items-center mb-2 sm:mb-0">
                     <template v-if="selectedDropTeammate && Object.values(selectedDropTeammate).length > 0">
                         <p class="mb-2">امتیاز تسک:</p>
-                        <InputNumber v-model="selectedPoint" showButtons dir="ltr" inputClass="w-16" :min="0" class="rounded-lg overflow-hidden" />
+                        <InputNumber v-model="selectedPoint" showButtons dir="ltr" inputClass="w-16" :min="0"
+                            class="rounded-lg overflow-hidden" />
                     </template>
                 </div>
                 <div class="w-2/4 sm:w-1/4 flex flex-col justify-center items-center mb-2 sm:mb-0">
@@ -93,7 +126,8 @@
                     <template
                         v-if="selectedDropDeadlinePeriod && Object.values(selectedDropDeadlinePeriod).length > 0 && selectedPoint !== 0">
                         <p class="mb-2">واحد دوره:</p>
-                        <InputNumber v-model="selectedUnit" showButtons dir="ltr" inputClass="w-16" :min="0" class="rounded-lg overflow-hidden" />
+                        <InputNumber v-model="selectedUnit" showButtons dir="ltr" inputClass="w-16" :min="0"
+                            class="rounded-lg overflow-hidden" />
                     </template>
                 </div>
             </div>
@@ -119,9 +153,34 @@
             </div>
             <div class="w-full flex justify-center items-center gap-2">
                 <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
-                    :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0)"
-                    @click="addTask" />
-                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg" @click="createNewTask = false" />
+                    :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0 && taskDescription)"
+                    :loading="taskLoading" @click="addTask" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="createNewTask = false" />
+            </div>
+        </popUp>
+    </transition>
+
+
+    <transition name="modal">
+        <popUp v-if="addProjectTeammate" @close="addProjectTeammate = false">
+            <p class="font-bold my-3">همکار به پروژه خود دعوت کنید:</p>
+            <div class="mb-3">
+                <p class="mb-2">نام پروژه:</p>
+                <InputText v-model="currentProject.title" type="text" placeholder="نام پروژه..."
+                    class="w-full sm:w-3/5 h-10 rounded-lg" disabled />
+            </div>
+            <div class="mb-3">
+
+                <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
+                <MultiSelect v-model="selectedProjectTeammates" :options="currentDeskTeammate" optionLabel="username"
+                    placeholder="همکاران" class="w-full sm:w-2/5 rounded-lg" />
+            </div>
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button :loading="projectLoading" label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                    @click="addTeammate" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="addProjectTeammate = false" />
             </div>
         </popUp>
     </transition>
@@ -132,6 +191,8 @@ import { ref, computed, watch } from 'vue'
 import InputText from 'primevue/inputtext';
 import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
+import { useProjectStore } from '@/store/projectStore';
+import { useProfileStore } from '@/store/profileStore';
 import { useRouter } from 'vue-router';
 import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
@@ -139,16 +200,10 @@ import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputNumber from 'primevue/inputnumber';
 import Editor from 'primevue/editor';
-
-// detect if width of body smaller that 1024px then close the sidebar
-let sidebarDisplay = true;
-window.addEventListener("load", () => {
-    const body = document.querySelector("body") as HTMLBodyElement;
-    const bodyRect = body.getBoundingClientRect();
-    if (bodyRect.width <= 1024) {
-        sidebarDisplay = false;
-    }
-})
+import Card from 'primevue/card';
+import { useTaskStore } from '@/store/taskStore';
+import ProgressSpinner from 'primevue/progressspinner';
+import MultiSelect from 'primevue/multiselect';
 
 export default {
     name: 'UserPanel',
@@ -156,33 +211,89 @@ export default {
     components: {
         Editor,
         userTask,
+        Card,
         Button,
         Avatar,
         popUp,
         InputText,
         Dropdown,
-        InputNumber
+        InputNumber,
+        ProgressSpinner,
+        MultiSelect
     },
 
     props: ["id"],
 
+    beforeRouteEnter(to: any, from: any, next: any) {
+        const projectStore = useProjectStore()
+        const deskStore = useDeskStore()
+        if (Object.values(deskStore.allDesk).length === 0) {
+            next({ path: '/panel' })
+        } else {
+            projectStore.changeLoading(true)
+            projectStore.setCurrentProject(to.params.id).then(() => {
+                projectStore.changeLoading(false)
+                next()
+            })
+        }
+    },
+
     setup() {
-        const deskStore = useDeskStore();
-        const sideBar = ref(sidebarDisplay)
+        const deskStore = useDeskStore()
+        const projectStore = useProjectStore()
+        const taskStore = useTaskStore()
+        const profileStore = useProfileStore()
+        const router = useRouter()
+        const selectedProjectTeammates = ref<any>([])
+
+        const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const createNewTask = ref(false)
+        const addProjectTeammate = ref(false)
         const taskName = ref('')
-        const selectedDropProject = ref<any>(null)
         const selectedDropTeammate = ref<any>(null)
         const selectedDropDeadlinePeriod = ref<any>(null)
+        const projectLoading = computed(() => projectStore.projectLoading)
         const selectedPoint = ref<number>(0)
         const selectedUnit = ref<number>(0)
         const taskDescription = ref<any>(null)
-        const router = useRouter()
+        const deadlinePeriodDrop = ref([
+            { name: 'ساعت', code: 'hour' },
+            { name: 'روز', code: 'day' },
+            { name: 'ماه', code: 'month' }
+        ])
 
-        const currentProject: any = computed(() => deskStore.currentProject)
+        const userPosition = computed(() => profileStore.userProfile.position)
+        const taskLoading = computed(() => taskStore.taskLoading)
+        const currentProject: any = computed(() => projectStore.currentProject)
         const currentDesk: any = computed(() => deskStore.currentDesk)
+        const teammatesDrop: any = computed(() => {
+            let teammateArray: any = []
+            console.log(currentProject.value, 4444)
+            currentProject.value.teammates.forEach((teammate: any) => {
+                teammateArray.push({ name: teammate.username, code: teammate.username })
+            })
+            return teammateArray
+        })
 
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
+        const currentDeskTeammate = computed(() => {
+            let teamArray: any = []
+            if (currentDesk.value && currentDesk.value.teammates.length > 0) {
+                currentDesk.value.teammates.forEach((teammateDesk: any) => {
+                    let teammateIsThere = false
+                    currentProject.value.teammates.forEach((teammateProject: any) => {
+                        if (teammateDesk.username === teammateProject.username) {
+                            teammateIsThere = true
+                        }
+                    })
+                    if (!teammateIsThere) {
+                        teamArray.push({ username: teammateDesk.username })
+                    }
+                })
+                return teamArray
+            } else {
+                return teamArray
+            }
+        })
 
         watch(createNewTask, () => {
             taskName.value = ''
@@ -193,79 +304,63 @@ export default {
             selectedUnit.value = 0
         })
 
-        function addTask() {
-            deskStore.changeTaskLoading(true)
-            deskStore.setTask(deskStore.currentDesk, currentProject.value.name, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value)
-            createNewTask.value = false
-            setInterval(() => {
-                deskStore.changeTaskLoading(false)
-            }, 1000);
+        function callProjectTeammate() {
+            addProjectTeammate.value = true
+            // currentProject.value.teammates.forEach((teammate: any) => {
+            //     selectedProjectTeammates.value.push({
+            //         username: teammate.username
+            //     })
+            // })
         }
 
-        const currentProjects = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
-                return selectedDesk.value.projects
-            } else {
-                return []
-            }
-        })
-
-        const projectTeammateDrop = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0 && currentProject.value) {
-                const drops = Object.values(currentProject.value.teammates).map((item: any) => {
-                    return { name: item.fullName, code: item.fullName };
-                });
-                drops.push({ name: 'خودم', code: 'خودم' })
-                return drops
-            } else {
-                return []
-            }
-        })
-
-        const deadlinePeriodDrop = ref([
-            { name: 'ساعت', code: 'ساعت' },
-            { name: 'روز', code: 'روز' },
-            { name: 'هفته', code: 'هفته' }
-        ])
-
-
-        const projectsDrop = computed(() => {
-            if (selectedDesk.value && Object.values(selectedDesk.value.projects).length > 0) {
-                const drops = Object.values(selectedDesk.value.projects).map((item: any) => {
-                    return { name: item.name, code: item.name };
-                });
-                return drops
-            } else {
-                return []
-            }
-        })
+        function addTask() {
+            taskStore.changeLoading(true)
+            taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value).then(() => {
+                taskStore.changeLoading(false)
+                createNewTask.value = false
+            })
+        }
 
         function taskRoutePush(task: any) {
-            deskStore.setCurrentTask(task)
             router.push({
                 name: "UserTask",
-                params: { id: task.name },
+                params: { id: task._id },
             });
+        }
+
+        function addTeammate() {
+            projectStore.changeLoading(true)
+            projectStore.addTeammates(currentProject.value._id, selectedProjectTeammates.value).then(() => {
+                projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                    projectStore.changeLoading(false)
+                    addProjectTeammate.value = false
+                })
+            })
         }
 
         return {
             addTask,
             taskRoutePush,
-            selectedDropProject,
+            addTeammate,
+            callProjectTeammate,
+            userPosition,
+            currentDeskTeammate,
             selectedDropTeammate,
+            selectedProjectTeammates,
             taskDescription,
             taskName,
             currentProject,
-            projectsDrop,
-            projectTeammateDrop,
             deadlinePeriodDrop,
+            teammatesDrop,
             sideBar,
-            selectedDesk,
             createNewTask,
             currentDesk,
             selectedPoint,
             selectedUnit,
-            selectedDropDeadlinePeriod
+            selectedDropDeadlinePeriod,
+            taskLoading,
+            addProjectTeammate,
+            projectLoading
         }
     },
 }

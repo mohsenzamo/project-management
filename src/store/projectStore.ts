@@ -1,56 +1,57 @@
 import { defineStore } from "pinia";
-
-interface projectObj {
-  name: string;
-  teammate: [];
-}
+import axios from "axios";
 
 export const useProjectStore = defineStore("useProjectStore", {
   state: () => ({
-    allProjects: {} as any,
+    currentProjects: {} as any,
     projectsLoading: false as boolean,
-    // currentProjects: "" as string,
-    // selectedDropProjects: {} as object,
   }),
   getters: {
-    allProject: (state) => state.allProjects,
+    currentProject: (state) => state.currentProjects,
     projectLoading: (state) => state.projectsLoading,
-    selectedProject: (state) => {
-      return (projectId: any) => {
-        return state.allProjects[projectId];
-      };
-    },
-    // currentProject: (state) => state.currentProjects,
-    // selectedDropProject: (state) => state.selectedDropProjects,
-    // projectDrop: (state) => {
-    //   return (projectId: any) => {
-    //     const drops = state.allProjects[projectId].map((item: any) => {
-    //       console.log(item,'item')
-    //       return { name: item.name, code: item.name };
-    //     });
-    //     console.log(drops,1222)
-    //     drops.push({ name: "پروژه جدید", code: 0 });
-    //     return drops;
-    //   };
-    // },
   },
   actions: {
-    addProject(deskName: string, project: object) {
-      const objProject: any = {};
-
-      if (this.allProjects[deskName] && this.allProjects[deskName].length > 0) {
-        this.allProjects[deskName].push(project);
-      } else {
-        objProject[deskName] = [project];
-        this.allProjects = Object.assign(this.allProjects, objProject);
-      }
+    setCurrentProject(id: any) {
+      return new Promise((resolve, reject) => {
+        axios
+          .get(process.env.VUE_APP_BASE_API_URL + "/projects/one/" + id, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            },
+          })
+          .then(async (res) => {
+            console.log(res.data[0], 98);
+            this.currentProjects = Object.assign({}, res.data[0]);
+            resolve(res);
+          })
+          .catch(function (error) {
+            console.log(error);
+            reject(error);
+          });
+      });
     },
-    // setCurrentProject(projectId: string) {
-    //   this.currentProjects = projectId;
-    // },
-    // setSelectedDropProject(project: object) {
-    //   this.selectedDropProjects = project;
-    // },
+    addTeammates(projectId: any, teammates: any) {
+      return new Promise((resolve, reject) => {
+         teammates.forEach(async (teammate:any) => {
+          const config = {
+            method: "post",
+            url:
+              process.env.VUE_APP_BASE_API_URL +
+              "/teammates/project/" +
+              projectId,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              username: teammate.username,
+            },
+          };
+          const result = await axios(config);
+        });
+        resolve('success');
+      });
+    },
     changeLoading(bool: boolean) {
       this.projectsLoading = bool;
     },

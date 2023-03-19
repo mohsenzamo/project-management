@@ -4,7 +4,6 @@
             <ProgressSpinner />
         </div>
         <template v-else>
-
             <div class="my-2 px-3">
                 <p class="text-2xl font-bold mb-2">پروژه ها:</p>
                 <div v-if="projectLoading" class="w-fit mx-auto h-80 pt-24">
@@ -21,7 +20,7 @@
                 <sliderTeammate v-else></sliderTeammate>
             </div>
 
-            <div class="flex flex-col md:flex-row gap-3 mt-5 px-3">
+            <!-- <div class="flex flex-col md:flex-row gap-3 mt-5 px-3">
                 <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
                         <div class="bg-green-600 rounded-t-sm p-2 text-white">
@@ -104,7 +103,7 @@
                         </div>
                     </template>
                 </Card>
-            </div>
+            </div> -->
         </template>
     </div>
 </template>
@@ -125,13 +124,13 @@ export default {
     name: 'UserDashboard',
 
     components: {
-        Avatar,
-        Card,
+        // Avatar,
+        // Card,
         listProject,
         sliderTeammate,
-        ProgressBar,
+        // ProgressBar,
         ProgressSpinner,
-        ToggleButton
+        // ToggleButton
     },
 
     setup() {
@@ -140,25 +139,25 @@ export default {
         const deskLoading = computed(() => deskStore.deskLoading)
         const projectLoading = computed(() => projectStore.projectLoading)
         const teammateLoading = computed(() => deskStore.teammateLoading)
-        const currentProjects: any = computed(() => {
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                let projectObj: any = {}
-                Object.values(selectedDesk.value.projects).forEach((project: any) => {
-                    let isDoneTask = 0
-                    let isNotDoneTask = 0
-                    if (Object.values(project.tasks).length > 0) {
-                        Object.values(project.tasks).forEach((task: any) => {
-                            task.isDone ? isDoneTask++ : isNotDoneTask++
-                        })
-                    }
-                    const projectNameValue = project.name
-                    projectObj[projectNameValue] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
-                })
-                return projectObj
-            } else {
-                return {}
-            }
-        })
+        // const currentProjects: any = computed(() => {
+        //     if (Object.values(selectedDesk.value.projects).length > 0) {
+        //         let projectObj: any = {}
+        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
+        //             let isDoneTask = 0
+        //             let isNotDoneTask = 0
+        //             if (Object.values(project.tasks).length > 0) {
+        //                 Object.values(project.tasks).forEach((task: any) => {
+        //                     task.isDone ? isDoneTask++ : isNotDoneTask++
+        //                 })
+        //             }
+        //             const projectNameValue = project.name
+        //             projectObj[projectNameValue] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
+        //         })
+        //         return projectObj
+        //     } else {
+        //         return {}
+        //     }
+        // })
 
         const checked = ref(true)
         const sideBar = ref(true)
@@ -166,43 +165,43 @@ export default {
         const desksDrop = computed(() => deskStore.desksDrop)
         const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
         const currentDesk: any = computed(() => deskStore.currentDesk)
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
+        // const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
 
-        const currentTask: any = computed(() => {
-            let taskObj: any = {}
-            if (Object.values(selectedDesk.value.projects).length > 0) {
-                Object.values(selectedDesk.value.projects).forEach((project: any) => {
-                    Object.values(project.tasks).forEach((task: any) => {
-                        taskObj[task.name] = task
-                    })
-                })
-                return taskObj
-            } else {
-                return taskObj
-            }
-        })
+        // const currentTask: any = computed(() => {
+        //     let taskObj: any = {}
+        //     if (Object.values(selectedDesk.value.projects).length > 0) {
+        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
+        //             Object.values(project.tasks).forEach((task: any) => {
+        //                 taskObj[task.name] = task
+        //             })
+        //         })
+        //         return taskObj
+        //     } else {
+        //         return taskObj
+        //     }
+        // })
 
-        const isTeammateTask: any = computed(() => {
-            let isThere = false
-            Object.values(currentTask.value).forEach((task: any) => {
-                task.responsible !== 'خودم' ? isThere = true : null
-            })
-            return isThere
-        })
+        // const isTeammateTask: any = computed(() => {
+        //     let isThere = false
+        //     Object.values(currentTask.value).forEach((task: any) => {
+        //         task.responsible !== 'خودم' ? isThere = true : null
+        //     })
+        //     return isThere
+        // })
 
-        const isMyTask: any = computed(() => {
-            let isThere = false
-            Object.values(currentTask.value).forEach((task: any) => {
-                task.responsible === 'خودم' ? isThere = true : null
-            })
-            return isThere
-        })
+        // const isMyTask: any = computed(() => {
+        //     let isThere = false
+        //     Object.values(currentTask.value).forEach((task: any) => {
+        //         task.responsible === 'خودم' ? isThere = true : null
+        //     })
+        //     return isThere
+        // })
 
         return {
-            isTeammateTask,
-            currentProjects,
-            isMyTask,
-            currentTask,
+            // isTeammateTask,
+            // currentProjects,
+            // isMyTask,
+            // currentTask,
             selectedDropDesk,
             sideBar,
             checked,
