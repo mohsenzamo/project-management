@@ -14,13 +14,10 @@
 
             <div class="my-2 px-3">
                 <p class="text-2xl font-bold mb-2">همکاران:</p>
-                <div v-if="teammateLoading" class="w-fit mx-auto h-24">
-                    <ProgressSpinner />
-                </div>
-                <sliderTeammate v-else></sliderTeammate>
+                <sliderTeammate></sliderTeammate>
             </div>
 
-            <!-- <div class="flex flex-col md:flex-row gap-3 mt-5 px-3">
+            <div class="flex flex-col md:flex-row gap-3 mt-5 px-3">
                 <Card class="w-full shadow-md rounded-lg overflow-hidden">
                     <template #header>
                         <div class="bg-green-600 rounded-t-sm p-2 text-white">
@@ -30,13 +27,20 @@
                     <template #content>
                         <div class="w-full flex flex-col gap-4 mx-0">
                             <template v-if="isMyTask">
-                                <template v-for="task in currentTask" :key="task.name">
-                                    <p v-if="task.responsible === 'خودم'"
-                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2  shadow-md">
-                                        <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                            offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
-                                        <span class="mx-2">{{ task.name }}</span>
-                                    </p>
+                                <template v-for="task in currentDesk.tasks" :key="task._id">
+                                    <div v-if="task.responsible.username === currentUsername"
+                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
+                                        <p class="flex items-center">
+                                            <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <span class="mx-2">{{ task.title }}</span>
+                                        </p>
+                                        <Avatar :label="task.responsible.username[0]" shape="circle" />
+                                    </div>
                                 </template>
                             </template>
                             <p v-else class="text-center">تسکی برای انجام ندارم</p>
@@ -52,15 +56,19 @@
                     <template #content>
                         <div class="w-full flex flex-col gap-4 mx-0">
                             <template v-if="isTeammateTask">
-                                <template v-for="task in currentTask" :key="task.name">
-                                    <div v-if="task.responsible !== 'خودم'"
+                                <template v-for="task in currentDesk.tasks" :key="task._id">
+                                    <div v-if="task.responsible.username !== currentUsername"
                                         class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
                                         <p class="flex items-center">
-                                            <ToggleButton v-model="task.isDone" onLabel="" offLabel="" onIcon="pi pi-check"
-                                                offIcon="pi pi-times" class="p-button-sm h-8 w-8" />
-                                            <span class="mx-2">{{ task.name }}</span>
+                                            <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle"
+                                                class="cursor-pointer bg-inherit" />
+                                            <span class="mx-2">{{ task.title }}</span>
                                         </p>
-                                        <Avatar :label="task.responsible[0]" shape="circle" />
+                                        <Avatar :label="task.responsible.username[0]" shape="circle" />
                                     </div>
                                 </template>
                             </template>
@@ -78,23 +86,23 @@
                     </template>
                     <template #content>
                         <div class="w-full flex flex-col gap-4 mx-0">
-                            <template v-if="Object.values(currentProjects).length > 0">
-                                <div v-for="project in currentProjects" :key="project.name"
+                            <template v-if="currentDesk.projects.length > 0">
+                                <div v-for="project in currentDesk.projects" :key="project._id"
                                     class="bg-gray-100 text-sm py-2 px-4 rounded-md shadow-md">
                                     <p class="text-xl font-medium mb-2">
                                         <span class="ml-1">پروژه:</span>
-                                        <span>{{ project.name }}</span>
+                                        <span>{{ project.title }}</span>
                                     </p>
                                     <ProgressBar
-                                        :value="Math.floor((project.isDoneTask * 100) / (project.isDoneTask + project.isNotDoneTask))" />
+                                        :value="Math.floor((project.number_of_tasks.done_tasks * 100) / (project.number_of_tasks.done_tasks + project.number_of_tasks.undone_tasks))" />
                                     <div class="flex flex-row-reverse gap-2 mt-2">
                                         <p>
                                             <span class="ml-1">کارهای انجام شده:</span>
-                                            <span>{{ project.isDoneTask }}</span>
+                                            <span>{{ project.number_of_tasks.done_tasks }}</span>
                                         </p>
                                         <p>
                                             <span class="ml-1">کارهای باقی مانده:</span>
-                                            <span>{{ project.isNotDoneTask }}</span>
+                                            <span>{{ project.number_of_tasks.undone_tasks }}</span>
                                         </p>
                                     </div>
                                 </div>
@@ -103,113 +111,76 @@
                         </div>
                     </template>
                 </Card>
-            </div> -->
+            </div>
         </template>
     </div>
 </template>
 
 <script lang="ts">
 import { ref, computed, watch, onMounted } from 'vue';
-import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
+import { useProfileStore } from '@/store/profileStore';
+import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
 import sliderTeammate from '@/components/sliderTeammate.vue';
 import ProgressBar from 'primevue/progressbar';
 import ProgressSpinner from 'primevue/progressspinner';
-import ToggleButton from 'primevue/togglebutton';
 import listProject from './listProject.vue';
 
 export default {
     name: 'UserDashboard',
 
     components: {
-        // Avatar,
-        // Card,
+        Avatar,
+        Card,
         listProject,
         sliderTeammate,
-        // ProgressBar,
-        ProgressSpinner,
-        // ToggleButton
+        ProgressBar,
+        ProgressSpinner
     },
 
     setup() {
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
-        const deskLoading = computed(() => deskStore.deskLoading)
-        const projectLoading = computed(() => projectStore.projectLoading)
-        const teammateLoading = computed(() => deskStore.teammateLoading)
-        // const currentProjects: any = computed(() => {
-        //     if (Object.values(selectedDesk.value.projects).length > 0) {
-        //         let projectObj: any = {}
-        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
-        //             let isDoneTask = 0
-        //             let isNotDoneTask = 0
-        //             if (Object.values(project.tasks).length > 0) {
-        //                 Object.values(project.tasks).forEach((task: any) => {
-        //                     task.isDone ? isDoneTask++ : isNotDoneTask++
-        //                 })
-        //             }
-        //             const projectNameValue = project.name
-        //             projectObj[projectNameValue] = Object.assign(project, { isDoneTask: isDoneTask, isNotDoneTask: isNotDoneTask })
-        //         })
-        //         return projectObj
-        //     } else {
-        //         return {}
-        //     }
-        // })
+        const profileStore = useProfileStore()
 
         const checked = ref(true)
         const sideBar = ref(true)
 
-        const desksDrop = computed(() => deskStore.desksDrop)
-        const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
-        const currentDesk: any = computed(() => deskStore.currentDesk)
-        // const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
+        const deskLoading = computed(() => deskStore.deskLoading)
+        const projectLoading = computed(() => projectStore.projectLoading)
+        const currentUsername = computed(() => profileStore.userProfile.username)
+        const currentDesk = computed(() => deskStore.currentDesk)
+        const isMyTask = computed(() => {
+            let isIt = false
+            currentDesk.value.tasks.forEach((task: any) => {
+                if (task.responsible.username === currentUsername.value) {
+                    isIt = true
+                }
+            })
+            return isIt
+        })
 
-        // const currentTask: any = computed(() => {
-        //     let taskObj: any = {}
-        //     if (Object.values(selectedDesk.value.projects).length > 0) {
-        //         Object.values(selectedDesk.value.projects).forEach((project: any) => {
-        //             Object.values(project.tasks).forEach((task: any) => {
-        //                 taskObj[task.name] = task
-        //             })
-        //         })
-        //         return taskObj
-        //     } else {
-        //         return taskObj
-        //     }
-        // })
-
-        // const isTeammateTask: any = computed(() => {
-        //     let isThere = false
-        //     Object.values(currentTask.value).forEach((task: any) => {
-        //         task.responsible !== 'خودم' ? isThere = true : null
-        //     })
-        //     return isThere
-        // })
-
-        // const isMyTask: any = computed(() => {
-        //     let isThere = false
-        //     Object.values(currentTask.value).forEach((task: any) => {
-        //         task.responsible === 'خودم' ? isThere = true : null
-        //     })
-        //     return isThere
-        // })
+        const isTeammateTask = computed(() => {
+            let isIt = false
+            currentDesk.value.tasks.forEach((task: any) => {
+                if (task.responsible.username !== currentUsername.value) {
+                    isIt = true
+                }
+            })
+            return isIt
+        })
 
         return {
-            // isTeammateTask,
-            // currentProjects,
-            // isMyTask,
-            // currentTask,
-            selectedDropDesk,
+            isMyTask,
+            isTeammateTask,
             sideBar,
             checked,
-            desksDrop,
-            alldesks: deskStore.allDesk,
             deskLoading,
             projectLoading,
-            teammateLoading
+            currentDesk,
+            currentUsername
         }
     },
 }

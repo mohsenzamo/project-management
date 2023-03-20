@@ -19,20 +19,136 @@ export const useProjectStore = defineStore("useProjectStore", {
               Authorization: `Bearer ${localStorage.getItem("access_token")}`,
             },
           })
-          .then(async (res) => {
-            console.log(res.data[0], 98);
+          .then((res) => {
             this.currentProjects = Object.assign({}, res.data[0]);
             resolve(res);
           })
-          .catch(function (error) {
-            console.log(error);
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    addProject(deskId: string, projectName: string) {
+      const config = {
+        method: "post",
+        url: process.env.VUE_APP_BASE_API_URL + "/projects/" + deskId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          title: projectName,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    removeTeammate(projectId: string, username: string) {
+      const config = {
+        method: "delete",
+        url:
+          process.env.VUE_APP_BASE_API_URL + "/teammates/project/" + projectId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          username: username,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    editProject(editProjectValue: any) {
+      const config = {
+        method: "patch",
+        url:
+          process.env.VUE_APP_BASE_API_URL +
+          "/projects/one/" +
+          editProjectValue._id,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          title: editProjectValue.title,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    changeProjectStatus(projectId: string, status: boolean) {
+      const config = {
+        method: "patch",
+        url: process.env.VUE_APP_BASE_API_URL + "/projects/status/" + projectId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          isActive: status,
+          permision: !status,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    increasePoint(username: string, point: number, reason: string) {
+      console.log(reason, 3);
+      const config = {
+        method: "post",
+        url: process.env.VUE_APP_BASE_API_URL + "/points",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          username: username,
+          point: point,
+          reason: reason,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
             reject(error);
           });
       });
     },
     addTeammates(projectId: any, teammates: any) {
       return new Promise((resolve, reject) => {
-         teammates.forEach(async (teammate:any) => {
+        teammates.forEach(async (teammate: any) => {
           const config = {
             method: "post",
             url:
@@ -49,7 +165,7 @@ export const useProjectStore = defineStore("useProjectStore", {
           };
           const result = await axios(config);
         });
-        resolve('success');
+        resolve("success");
       });
     },
     changeLoading(bool: boolean) {

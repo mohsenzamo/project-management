@@ -49,7 +49,7 @@
                     </p>
                 </template>
             </div>
-            <div v-if="currentDesk.teammates.length > 0">
+            <div v-if="currentDesk.teammates.length > 0 && !projectLoading">
                 <Card class="w-full shadow-md">
                     <template #header>
                         <div class="bg-green-500 rounded-t-sm p-2 text-white">
@@ -61,9 +61,11 @@
                             <div v-for="teammate in currentProject.teammates" :key="teammate.username"
                                 class="flex items-center gap-2 my-1 justify-between">
                                 <p>{{ teammate.username }}</p>
-                                <div v-if="userPosition === 'manager'">
-                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1" />
-                                    <Avatar icon="pi pi-times" shape="circle" />
+                                <div v-if="userPosition === 'manager' && currentUsername !== teammate.username">
+                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1 cursor-pointer"
+                                        @click="teammatePoint = teammate.username" />
+                                    <Avatar icon="pi pi-times" shape="circle" class="cursor-pointer"
+                                        @click="removeProjectTeammate(teammate.username)" />
                                 </div>
                             </div>
                             <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
@@ -79,7 +81,7 @@
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
             class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
-            <div v-if="taskLoading" class="w-fit mx-auto h-24">
+            <div v-if="taskLoading && projectLoading" class="w-fit mx-auto h-24">
                 <ProgressSpinner />
             </div>
             <template v-else>
@@ -161,7 +163,6 @@
         </popUp>
     </transition>
 
-
     <transition name="modal">
         <popUp v-if="addProjectTeammate" @close="addProjectTeammate = false">
             <p class="font-bold my-3">همکار به پروژه خود دعوت کنید:</p>
@@ -184,6 +185,36 @@
             </div>
         </popUp>
     </transition>
+
+    <transition name="modal">
+        <popUp v-if="teammatePoint" @close="teammatePoint = ''">
+            <p class="font-bold my-3">اضافه کردن امتیاز به همکار:</p>
+            <div class="mb-3">
+                <p class="mb-2">نام کاربری همکار:</p>
+                <p>{{ teammatePoint }}</p>
+            </div>
+            <div class="mb-3 flex w-full">
+                <div class="w-1/3">
+                    <p class="mb-2">مقدار امتیاز:</p>
+                    <InputNumber v-model="extraPoint" showButtons dir="ltr" inputClass="w-16" :min="0"
+                        class="rounded-lg overflow-hidden" />
+                </div>
+                <div class="w-2/3">
+                    <p class="mb-2">دلیل امتیاز:</p>
+                    <div class="w-full flex items-center justify-center">
+                        <Textarea v-model="reasonPoint" :autoResize="true" rows="5" cols="500" class="rounded-lg"
+                            placeholder="متن کامنت" />
+                    </div>
+                </div>
+            </div>
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button :loading="projectLoading" label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                    @click="increaseTeammatePoint" />
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="teammatePoint = ''" />
+            </div>
+        </popUp>
+    </transition>
 </template>
 
 <script lang="ts">
@@ -199,6 +230,7 @@ import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import Dropdown from 'primevue/dropdown';
 import InputNumber from 'primevue/inputnumber';
+import Textarea from 'primevue/textarea';
 import Editor from 'primevue/editor';
 import Card from 'primevue/card';
 import { useTaskStore } from '@/store/taskStore';
@@ -209,6 +241,7 @@ export default {
     name: 'UserPanel',
 
     components: {
+        Textarea,
         Editor,
         userTask,
         Card,
@@ -249,11 +282,13 @@ export default {
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const createNewTask = ref(false)
         const addProjectTeammate = ref(false)
+        const teammatePoint = ref('')
         const taskName = ref('')
+        const reasonPoint = ref('')
         const selectedDropTeammate = ref<any>(null)
         const selectedDropDeadlinePeriod = ref<any>(null)
-        const projectLoading = computed(() => projectStore.projectLoading)
         const selectedPoint = ref<number>(0)
+        const extraPoint = ref<number>(0)
         const selectedUnit = ref<number>(0)
         const taskDescription = ref<any>(null)
         const deadlinePeriodDrop = ref([
@@ -262,13 +297,14 @@ export default {
             { name: 'ماه', code: 'month' }
         ])
 
+        const projectLoading = computed(() => projectStore.projectLoading)
         const userPosition = computed(() => profileStore.userProfile.position)
+        const currentUsername = computed(() => profileStore.userProfile.username)
         const taskLoading = computed(() => taskStore.taskLoading)
         const currentProject: any = computed(() => projectStore.currentProject)
         const currentDesk: any = computed(() => deskStore.currentDesk)
         const teammatesDrop: any = computed(() => {
             let teammateArray: any = []
-            console.log(currentProject.value, 4444)
             currentProject.value.teammates.forEach((teammate: any) => {
                 teammateArray.push({ name: teammate.username, code: teammate.username })
             })
@@ -338,7 +374,28 @@ export default {
             })
         }
 
+        function removeProjectTeammate(username: string) {
+            projectStore.changeLoading(true)
+            projectStore.removeTeammate(currentProject.value._id, username).then(() => {
+                projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                    projectStore.changeLoading(false)
+                })
+            })
+        }
+
+        function increaseTeammatePoint() {
+            projectStore.changeLoading(true)
+            projectStore.increasePoint(teammatePoint.value, extraPoint.value, reasonPoint.value).then(() => {
+                projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                    projectStore.changeLoading(false)
+                    teammatePoint.value = ''
+                })
+            })
+        }
+
         return {
+            removeProjectTeammate,
+            increaseTeammatePoint,
             addTask,
             taskRoutePush,
             addTeammate,
@@ -347,11 +404,14 @@ export default {
             currentDeskTeammate,
             selectedDropTeammate,
             selectedProjectTeammates,
+            currentUsername,
+            teammatePoint,
             taskDescription,
             taskName,
             currentProject,
             deadlinePeriodDrop,
             teammatesDrop,
+            reasonPoint,
             sideBar,
             createNewTask,
             currentDesk,
@@ -360,7 +420,8 @@ export default {
             selectedDropDeadlinePeriod,
             taskLoading,
             addProjectTeammate,
-            projectLoading
+            projectLoading,
+            extraPoint
         }
     },
 }

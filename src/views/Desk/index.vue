@@ -30,14 +30,14 @@
                 <div class="divider-line mt-2.5"></div>
                 <div class="h-96 flex flex-col justify-start items-end overflow-y-scroll custom">
                     <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
-                        :class="{ 'cursor-not-allowed text-gray-500': currentProjects.length === 0 }">
-                        <i v-if="currentProjects.length > 0" class="pi pi-angle-down text-green-600"
+                        :class="{ 'cursor-not-allowed text-gray-500': currentProject.length === 0 }">
+                        <i v-if="currentProject.length > 0" class="pi pi-angle-down text-green-600"
                             style="font-size: 1rem;"></i>
                         <i v-else class="pi pi-angle-left text-gray-500" style="font-size: 1rem;"></i>
                         <span>پروژه ها</span>
                     </p>
-                    <template v-if="currentProjects.length > 0">
-                        <p v-for="project in currentProjects" :key="project._id"
+                    <template v-if="currentProject.length > 0">
+                        <p v-for="project in currentProject" :key="project._id"
                             @click="project.isActive ? projectRoutePush(project._id) : null"
                             class="flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12"
                             :class="{ 'dashboard-item-hover cursor-pointer': project.isActive, 'cursor-not-allowed': !project.isActive }">
@@ -89,14 +89,6 @@
                 <InputText v-model="projectName" type="text" placeholder="نام پروژه..."
                     class="w-full sm:w-3/5 h-10 rounded-lg" />
             </div>
-            <!-- <div class="mb-3">
-                <template v-if="Object.values(currentTeammate).length > 0">
-                    <p class="mb-2">همکاران خود را به پروژه خود دعوت نمایید:</p>
-                    <MultiSelect v-model="selectedTeammates" :options="currentTeammate" optionLabel="username"
-                        placeholder="همکاران" class="w-full sm:w-2/5 rounded-lg" />
-                </template>
-                <p v-else>همکاری برای این میزکار ثبت نشده است</p>
-            </div> -->
             <div class="w-full flex justify-center items-center gap-2">
                 <Button :loading="projectLoading" label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
                     :disabled="!(projectName.length > 0)" @click="addProject" />
@@ -117,17 +109,12 @@ import { useRouter } from 'vue-router';
 import userDashboard from '@/components/userDashboard.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
-import Card from 'primevue/card';
-import MultiSelect from 'primevue/multiselect';
-import axios from 'axios';
 import ProgressSpinner from 'primevue/progressspinner';
 
 export default {
     name: 'UserPanel',
 
     components: {
-        // Card,
-        // MultiSelect,
         Button,
         Avatar,
         userDashboard,
@@ -144,99 +131,43 @@ export default {
         if (Object.values(deskStore.allDesk).length === 0) {
             next({ path: '/panel' })
         } else {
-            axios.get(process.env.VUE_APP_BASE_API_URL + '/workdesks/one/' + to.params.id, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("access_token")}`
-                }
+            deskStore.setCurrentDesk(to.params.id).then(() => {
+                deskStore.changeLoading(false)
+                next()
+            }).catch(() => {
+                next({ path: '/panel' })
             })
-                .then(async (resdesk) => {
-                    console.log(resdesk,99)
-                    deskStore.setCurrentDesk(resdesk.data[0])
-                    deskStore.changeLoading(false)
-                    next()
-                })
-                .catch(function (error) {
-                    console.log(error);
-                    next({ path: '/panel' })
-                })
         }
     },
 
-    setup(props: any) {
+    setup() {
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
+        const router = useRouter()
+
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
-        const selectedTeammates = ref<any>([])
         const createNewProject = ref(false)
         const projectName = ref('')
-        const router = useRouter()
+
         const currentDesk: any = computed(() => deskStore.currentDesk)
-        const currentProjects: any = computed(() => deskStore.currentDesk.projects)
+        const currentProject: any = computed(() => deskStore.currentDesk.projects)
         const deskLoading = computed(() => deskStore.deskLoading)
         const projectLoading = computed(() => projectStore.projectLoading)
 
-        // const currentTeammate = computed(() => {
-        //     let teamArray: any = []
-        //     if (currentDesk.value && currentDesk.value.teammates.length > 0) {
-        //         currentDesk.value.teammates.forEach((teammate: any) => {
-        //             teamArray.push({ username: teammate.username })
-        //         })
-        //         return teamArray
-        //     } else {
-        //         return teamArray
-        //     }
-        // })
 
         watch(createNewProject, () => {
-            selectedTeammates.value = []
             projectName.value = ''
         })
 
 
         function addProject() {
             projectStore.changeLoading(true)
-
-            // let teammatesObj: any = {}
-            // if (selectedTeammates.value.length > 0) {
-            //     selectedTeammates.value.forEach((item: any) => {
-            //         teammatesObj[item.fullName] = item
-            //     })
-            // }
-
-            // deskStore.setProject(deskStore.currentDesk, projectName.value, teammatesObj)
-            const config = {
-                method: 'post',
-                url: process.env.VUE_APP_BASE_API_URL + '/projects/' + currentDesk.value._id,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
-                    'Content-Type': 'application/json'
-                },
-                data: {
-                    title: projectName.value
-                }
-            };
-            axios(config)
-                .then(async (response) => {
-                    console.log(response)
-                    axios.get(process.env.VUE_APP_BASE_API_URL + '/workdesks/one/' + currentDesk.value._id, {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("access_token")}`
-                        }
-                    })
-                        .then(async (resdesk) => {
-                            deskStore.setCurrentDesk(resdesk.data[0])
-                            projectStore.changeLoading(false)
-                            createNewProject.value = false
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
-                })
-                .catch((error) => {
-                    console.log(error);
+            projectStore.addProject(currentDesk.value._id, projectName.value).then(() => {
+                deskStore.setCurrentDesk(currentDesk.value._id).then(() => {
                     projectStore.changeLoading(false)
                     createNewProject.value = false
-                });
+                })
+            })
         }
 
         function projectRoutePush(id: any) {
@@ -250,14 +181,11 @@ export default {
             addProject,
             projectRoutePush,
             sideBar,
-            // selectedDesk,
             createNewProject,
-            // currentTeammate,
             currentDesk,
             projectName,
-            selectedTeammates,
             deskLoading,
-            currentProjects,
+            currentProject,
             projectLoading
         }
     },

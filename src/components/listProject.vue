@@ -36,20 +36,12 @@
                                 <div>
                                     <p class="mb-1 text-lg">افراد ثبت شده:</p>
                                     <div class="mt-2 w-full">
-                                        <p v-if="project.teammates.length === 0">-----</p>
-                                        <template v-else>
-                                            <div id="splide2" class="splide splide_project w-full" role="group">
-                                                <div class="splide__track">
-                                                    <ul class="splide__list">
-                                                        <li v-for="teammate in project.teammates" :key="teammate.username"
-                                                            class="splide__slide items-center flex justify-center py-4">
-                                                            <Chip icon="pi pi-user" :label="teammate.username"
-                                                                class="h-fit rounded-lg overflow-hidden py-1 px-2" />
-                                                        </li>
-                                                    </ul>
-                                                </div>
+                                        <div class="whitespace-nowrap overflow-x-scroll custom py-1">
+                                            <div v-for="teammate in project.teammates" :key="teammate.username" class="inline-block mx-1">
+                                                <Chip icon="pi pi-user" :label="teammate.username"
+                                                    class="h-fit rounded-lg overflow-hidden py-1 px-2" />
                                             </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
@@ -103,24 +95,21 @@
 </template>
 
 <script lang="ts">
-import Splide from '@splidejs/splide';
-import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 import { ref, computed, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
+import { useProfileStore } from '@/store/profileStore';
 import { useProjectStore } from '@/store/projectStore';
+import { useDeskStore } from '@/store/deskStore';
 import InputText from 'primevue/inputtext';
 import Card from 'primevue/card';
 import Button from 'primevue/button';
 import ProgressBar from 'primevue/progressbar';
 import InputSwitch from 'primevue/inputswitch';
-import { useDeskStore } from '@/store/deskStore';
-// import Avatar from 'primevue/avatar';
 import popUp from '@/components/popUp.vue';
-import { useRouter } from 'vue-router';
-import { useProfileStore } from '@/store/profileStore';
-import MultiSelect from 'primevue/multiselect';
-import axios from 'axios';
 import Chip from 'primevue/chip';
 import ProgressSpinner from 'primevue/progressspinner';
+import Splide from '@splidejs/splide';
+import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
 export default {
     name: "ListProject",
@@ -134,7 +123,6 @@ export default {
         ProgressSpinner,
         popUp,
         InputText,
-        // MultiSelect
     },
 
     setup() {
@@ -159,113 +147,41 @@ export default {
                 }
             });
 
-            const splide2 = new Splide('#splide2', {
-                autoWidth: true,
-                gap: '.2rem',
-                perMove: 1,
-                direction: 'rtl',
-                pagination: false,
-                arrows: false,
-                wheel: true
-            });
-
             splide1.mount();
-            splide2.mount();
         })
 
         const profileStore = useProfileStore()
-        const modalEditProject = ref(false)
+        const projectStore = useProjectStore();
         const deskStore = useDeskStore();
-        const currentProjects: any = computed(() => deskStore.currentDesk.projects)
+        const router = useRouter()
+
+        const modalEditProject = ref(false)
         const editProjectValue = ref<any>(null)
         const projectStatusLoading = ref('')
-        const projectStore = useProjectStore();
-        const router = useRouter()
-        const selectedTeammates = ref<any>([])
+
         const currentDesk: any = computed(() => deskStore.currentDesk)
+        const currentProjects: any = computed(() => deskStore.currentDesk.projects)
         const userPosition = computed(() => profileStore.userProfile.position)
 
         function projectStatus(project: any) {
             projectStatusLoading.value = project._id
-            const config = {
-                method: 'patch',
-                url: process.env.VUE_APP_BASE_API_URL + '/projects/status/' + project._id,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
-                    'Content-Type': 'application/json'
-                },
-                data: {
-                    isActive: project.isActive,
-                    permision: !project.isActive
-                }
-            };
-            axios(config)
-                .then((res) => {
-                    console.log(res)
-                    projectStatusLoading.value = ''
-                })
-                .catch((error: any) => {
-                    console.log(error);
-                });
+            projectStore.changeProjectStatus(project._id, project.isActive).then(() => {
+                projectStatusLoading.value = ''
+            })
         }
-
         function currentEditProject(project: any) {
             modalEditProject.value = true
             editProjectValue.value = Object.assign({}, project)
         }
-
         function editProject() {
             projectStore.changeLoading(true)
-            const config = {
-                method: 'patch',
-                url: process.env.VUE_APP_BASE_API_URL + '/projects/one/' + editProjectValue.value._id,
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
-                    'Content-Type': 'application/json'
-                },
-                data: {
-                    title: editProjectValue.value.title
-                }
-            };
-            axios(config)
-                .then(async () => {
-                    await axios.get(process.env.VUE_APP_BASE_API_URL + '/workdesks/one/' + currentDesk.value._id, {
-                        headers: {
-                            Authorization: `Bearer ${localStorage.getItem("access_token")}`
-                        }
-                    })
-                        .then(async (resdesk) => {
-                            deskStore.setCurrentDesk(resdesk.data[0])
-                            projectStore.changeLoading(false)
-                            modalEditProject.value = false
-                        })
-                        .catch((error) => {
-                            console.log(error);
-                        })
+            projectStore.editProject(editProjectValue.value).then(() => {
+                deskStore.setCurrentDesk(currentDesk.value._id).then(() => {
+                    projectStore.changeLoading(false)
+                    modalEditProject.value = false
                 })
-                .catch((error) => {
-                    console.log(error);
-                });
-            // let objProject: any = {}
-            // let teammatesObj: any = {}
-            // if (selectedTeammates.value.length > 0) {
-            //     selectedTeammates.value.forEach((item: any) => {
-            //         teammatesObj[item.fullName] = item
-            //     })
-            // }
-
-            // objProject = {
-            //     name: editProjectValue.value.name,
-            //     tasks: editProjectValue.value.tasks,
-            //     teammates: teammatesObj,
-            //     deskId: editProjectValue.value.deskId,
-            //     active: true,
-            //     isDoneTask: editProjectValue.value.isDoneTask,
-            //     isNotDoneTask: editProjectValue.value.isNotDoneTask
-            // };
-            // deskStore.editProject(objProject, projectBeforeChange.value)
+            })
         }
-
         function projectRoutePush(id: any) {
             router.push({
                 name: "UserProject",
@@ -281,9 +197,7 @@ export default {
             modalEditProject,
             currentProjects,
             editProjectValue,
-            // currentTeammate,
             projectStatusLoading,
-            selectedTeammates,
             userPosition
         }
     },

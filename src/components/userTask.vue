@@ -23,8 +23,10 @@
                             <div class="flex gap-2 items-center">
                                 <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
                                     class="cursor-pointer bg-inherit" />
-                                <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle" class="cursor-pointer bg-inherit" />
-                                <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle" class="cursor-pointer bg-inherit" />
+                                <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle"
+                                    class="cursor-pointer bg-inherit" />
+                                <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle"
+                                    class="cursor-pointer bg-inherit" />
                                 <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.title }}</p>
                             </div>
                             <div class="flex gap-2 items-center relative">
@@ -66,7 +68,8 @@
                                 </div>
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-pencil" shape="circle"
                                     class="cursor-pointer bg-inherit hover:bg-yellow-400" @click="setChangedTask(task)" />
-                                <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle" class="cursor-pointer bg-inherit hover:bg-red-400"
+                                <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle"
+                                    class="cursor-pointer bg-inherit hover:bg-red-400"
                                     :class="{ 'bg-red-400': taskDelete === task }"
                                     @click="(taskDelete = task) && (taskBars = false)" />
                                 <transition name="modal">
@@ -211,26 +214,26 @@
 </template>
 
 <script lang="ts">
-import Dropdown from 'primevue/dropdown';
+import { ref, computed, watch } from 'vue'
+import { useTaskStore } from '@/store/taskStore';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
-import { ref, computed, watch } from 'vue'
-import Checkbox from 'primevue/checkbox';
+import { useProfileStore } from '@/store/profileStore';
+import Dropdown from 'primevue/dropdown';
 import Chip from 'primevue/chip';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import TriStateCheckbox from 'primevue/tristatecheckbox';
 import InputText from 'primevue/inputtext';
 import InlineMessage from 'primevue/inlinemessage';
-import ToggleButton from 'primevue/togglebutton';
-import { useProfileStore } from '@/store/profileStore';
 import Avatar from 'primevue/avatar';
 import RadioButton from 'primevue/radiobutton';
 import Chart from 'primevue/chart';
-import { useTaskStore } from '@/store/taskStore';
 import popUp from '@/components/popUp.vue';
 import InputNumber from 'primevue/inputnumber';
 import Editor from 'primevue/editor';
+import ToggleButton from 'primevue/togglebutton';
+import Checkbox from 'primevue/checkbox';
 
 export default {
     name: "UserTask",
@@ -251,37 +254,36 @@ export default {
         popUp,
         InputNumber,
         Editor
-        // ToggleButton
     },
 
     setup() {
         const projectStore = useProjectStore()
         const taskStore = useTaskStore()
         const profileStore = useProfileStore()
+        const deskStore = useDeskStore()
+
         const taskSearch = ref('')
         const foundedTask = ref<any>([])
         const notFoundedTask = ref(false)
-        const deleteTaskPopup = ref(false)
         const isDoneTask = ref(null)
         const taskDelete = ref<any>(null)
-        const deskStore = useDeskStore()
-        const currentDesk: any = computed(() => deskStore.currentDesk)
-        const selectedDesk: any = computed(() => deskStore.selectedDesk(currentDesk.value))
-        const taskLoading = computed(() => deskStore.taskLoading)
-        const selectedDropDesk = computed(() => deskStore.selectedDropDesk)
         const selectedDropTeammate = ref({ name: 'همه', code: 'همه' })
         const selectedDropTeammateChange = ref<any>(null)
-        const deskLoading = computed(() => deskStore.deskLoading)
-        const userPosition = computed(() => profileStore.userProfile.position)
         const selectedSort = ref('not')
         const taskBars = ref(false)
-        const editTaskPopup = ref(false)
         const taskChange = ref<any>(null)
         const deadlinePeriod = ref<any>(null)
+        const deadlinePeriodDrop = ref([
+            { name: 'ساعت', code: 'hour' },
+            { name: 'روز', code: 'day' },
+            { name: 'ماه', code: 'month' }
+        ])
 
+        const deskLoading = computed(() => deskStore.deskLoading)
+        const currentTask: any = computed(() => currentProject.value.tasks)
+        const userPosition = computed(() => profileStore.userProfile.position)
+        const taskLoading = computed(() => taskStore.taskLoading)
         const currentProject: any = computed(() => projectStore.currentProject)
-
-
         const teammatesDrop: any = computed(() => {
             let teammateArray: any = []
             teammateArray.push({ name: 'همه', code: 'همه' })
@@ -290,7 +292,6 @@ export default {
             })
             return teammateArray
         })
-
         const teammatesDropChange: any = computed(() => {
             let teammateArray: any = []
             currentProject.value.teammates.forEach((teammate: any) => {
@@ -298,9 +299,6 @@ export default {
             })
             return teammateArray
         })
-
-        const currentTask: any = computed(() => currentProject.value.tasks)
-
         const chartData = computed(() => {
             const optionChart = {
                 show: currentProject.value.number_of_tasks.done_tasks + currentProject.value.number_of_tasks.undone_tasks === 0 ? false : true,
@@ -318,16 +316,10 @@ export default {
             return optionChart
         })
 
-        const deadlinePeriodDrop = ref([
-            { name: 'ساعت', code: 'hour' },
-            { name: 'روز', code: 'day' },
-            { name: 'ماه', code: 'month' }
-        ])
-
         function deleteTask() {
-            deskStore.changeTaskLoading(true)
+            taskStore.changeLoading(true)
             taskStore.deleteTask(currentProject.value._id, taskDelete.value).then(() => {
-                deskStore.changeTaskLoading(false)
+                taskStore.changeLoading(true)
                 taskDelete.value = null
             })
         }
@@ -429,28 +421,24 @@ export default {
         return {
             editTask,
             setChangedTask,
+            deleteTask,
             chartData,
             teammatesDropChange,
             taskDelete,
             currentTask,
             deadlinePeriod,
             foundedTask,
+            taskLoading,
             selectedSort,
             notFoundedTask,
             taskSearch,
-            deleteTask,
-            // tasksChecked,
             taskChange,
-            taskLoading,
-            selectedDropDesk,
             deskLoading,
             isDoneTask,
             teammatesDrop,
             selectedDropTeammate,
-            deleteTaskPopup,
             selectedDropTeammateChange,
             taskBars,
-            editTaskPopup,
             currentProject,
             deadlinePeriodDrop,
             userPosition
@@ -502,5 +490,4 @@ export default {
         left: 8px;
         @apply border-b-slate-300
     }
-}
-</style>
+}</style>

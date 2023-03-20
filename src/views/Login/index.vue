@@ -223,7 +223,7 @@ export default {
 
 <style lang="scss">
 .p-card {
-    // @apply font-yekan shadow-2xl sm: rounded-2xl;
+    // @apply font-yekan shadow-2xl sm:rounded-2xl;
 
     .p-card-body {
         @apply w-full;
