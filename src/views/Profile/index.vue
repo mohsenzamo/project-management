@@ -130,9 +130,11 @@ export default {
     },
 
     setup() {
+        const profileStore = useProfileStore()
+
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const hoverImage = ref(false)
-        const profileStore = useProfileStore()
+        
         const profile = computed(() => profileStore.userProfile)
         const profileLoading = computed(() => profileStore.loading)
 

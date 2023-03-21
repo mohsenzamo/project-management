@@ -22,7 +22,6 @@ export const useTaskStore = defineStore("useTaskStore", {
             },
           })
           .then((res) => {
-            console.log(res.data);
             this.currentTasks = Object.assign({}, res.data);
             resolve(res);
           })

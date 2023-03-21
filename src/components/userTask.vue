@@ -1,6 +1,6 @@
 <template>
     <div class="w-full h-screen p-4">
-        <div v-if="userPosition === 'manager'" class="w-full flex justify-center sm:justify-start mb-4">
+        <div v-if="userPosition === 'manager'" class="w-full flex mb-4">
             <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info p-button-sm text-sm rounded-md"
                 @click="$emit('callPopupTask')" />
         </div>
@@ -43,29 +43,30 @@
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip :label="task.point + 'امتیاز'" icon="pi pi-star"
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                <div class="relative">
-                                    <Avatar icon="pi pi-bars" shape="circle"
-                                        class="flex sm:hidden cursor-pointer bg-gray-300 hover:bg-inherit"
-                                        @click="(taskBars = !taskBars) && (taskDelete = null)" />
-                                    <!-- <transition name="modal">
-                                        <div v-if="taskBars"
-                                            class="task-popup-bars flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
-                                            <Chip v-if="task.deadline.unit === 'month'" :label="task.deadline.n + 'ماه'"
-                                                icon="pi pi-clock"
-                                                class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                            <Chip v-else-if="task.deadline.unit === 'hour'"
-                                                :label="task.deadline.n + 'ساعت'" icon="pi pi-clock"
-                                                class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                            <Chip v-else-if="task.deadline.unit === 'day'" :label="task.deadline.n + 'روز'"
-                                                icon="pi pi-clock"
-                                                class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                            <Chip :label="task.responsible.username" icon="pi pi-user"
-                                                class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                            <Chip :label="task.point + 'امتیاز'" icon="pi pi-star"
-                                                class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
-                                        </div>
-                                    </transition> -->
-                                </div>
+                                <Avatar icon="pi pi-bars" shape="circle"
+                                    class="flex sm:hidden cursor-pointer bg-gray-300 hover:bg-inherit"
+                                    :class="{ 'bg-gray-300': taskBars === task }"
+                                    @click="(taskBars ? taskBars = null : taskBars = task) && (taskDelete = null)" />
+                                <transition name="modal">
+                                    <div v-if="taskBars === task"
+                                        class="task-popup-bars flex flex-col items-center justify-center gap-2 absolute top-12 left-20 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                                        <Chip v-if="taskBars.deadline.unit === 'month'" :label="taskBars.deadline.n + 'ماه'"
+                                            icon="pi pi-clock"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                        <Chip v-else-if="taskBars.deadline.unit === 'hour'"
+                                            :label="taskBars.deadline.n + 'ساعت'" icon="pi pi-clock"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                        <Chip v-else-if="taskBars.deadline.unit === 'day'"
+                                            :label="taskBars.deadline.n + 'روز'" icon="pi pi-clock"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                        <Chip :label="taskBars.responsible.username" icon="pi pi-user"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                        <Chip :label="taskBars.point + 'امتیاز'" icon="pi pi-star"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                        <Button label="بستن" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                                            @click="taskBars = null" />
+                                    </div>
+                                </transition>
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-pencil" shape="circle"
                                     class="cursor-pointer bg-inherit hover:bg-yellow-400" @click="setChangedTask(task)" />
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle"
@@ -270,7 +271,7 @@ export default {
         const selectedDropTeammate = ref({ name: 'همه', code: 'همه' })
         const selectedDropTeammateChange = ref<any>(null)
         const selectedSort = ref('not')
-        const taskBars = ref(false)
+        const taskBars = ref<any>(null)
         const taskChange = ref<any>(null)
         const deadlinePeriod = ref<any>(null)
         const deadlinePeriodDrop = ref([
@@ -490,4 +491,5 @@ export default {
         left: 8px;
         @apply border-b-slate-300
     }
-}</style>
+}
+</style>

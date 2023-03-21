@@ -1,4 +1,12 @@
 <template>
+    <transition name="error">
+        <errorMassege v-if="errorHandling" @close="errorHandling = false">
+            <p class="m-2">
+                مشکلی به وجود آمده لطفا دوباره تلاش کنید
+            </p>
+        </errorMassege>
+    </transition>
+
     <nav class="bg-blue-500 flex justify-between py-1 absolute top-0 left-0 z-20 w-screen h-14">
         <div class="flex flex-row items-center gap-4 justify-center px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
@@ -48,28 +56,6 @@
                     </template>
                 </div>
             </div>
-            <!-- <div v-if="currentDesk.teammates.length > 0">
-                <Card class="w-full shadow-md">
-                    <template #header>
-                        <div class="bg-blue-500 rounded-t-sm p-2 text-white">
-                            همکاران من
-                        </div>
-                    </template>
-                    <template #content>
-                        <div class="h-32 overflow-y-scroll custom">
-                            <div class="flex items-center gap-2 my-1">
-                                <Avatar label="خ" shape="circle" />
-                                <p>خودم</p>
-                            </div>
-                            <div v-for="teammate in currentDesk.teammates" :key="teammate.username"
-                                class="flex items-center gap-2 my-1">
-                                <Avatar :label="teammate.username[0]" shape="circle" />
-                                <p>{{ teammate.username }}</p>
-                            </div>
-                        </div>
-                    </template>
-                </Card>
-            </div> -->
         </div>
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
@@ -110,11 +96,13 @@ import userDashboard from '@/components/userDashboard.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
+import errorMassege from '@/components/errorMassege.vue';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        errorMassege,
         Button,
         Avatar,
         userDashboard,
@@ -147,6 +135,7 @@ export default {
 
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const createNewProject = ref(false)
+        const errorHandling = ref(false)
         const projectName = ref('')
 
         const currentDesk: any = computed(() => deskStore.currentDesk)
@@ -162,11 +151,16 @@ export default {
 
         function addProject() {
             projectStore.changeLoading(true)
+            errorHandling.value = false
             projectStore.addProject(currentDesk.value._id, projectName.value).then(() => {
                 deskStore.setCurrentDesk(currentDesk.value._id).then(() => {
                     projectStore.changeLoading(false)
                     createNewProject.value = false
                 })
+            }).catch(() => {
+                projectStore.changeLoading(false)
+                createNewProject.value = false
+                errorHandling.value = true
             })
         }
 
@@ -186,7 +180,8 @@ export default {
             projectName,
             deskLoading,
             currentProject,
-            projectLoading
+            projectLoading,
+            errorHandling
         }
     },
 }
@@ -210,4 +205,3 @@ export default {
     display: none;
 }
 </style>
-

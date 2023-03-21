@@ -1,4 +1,12 @@
 <template>
+    <transition name="error">
+        <errorMassege v-if="errorHandling" @close="errorHandling = false">
+            <p class="m-2">
+                مشکلی به وجود آمده لطفا دوباره تلاش کنید
+            </p>
+        </errorMassege>
+    </transition>
+    
     <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex flex-row items-center gap-4 justify-center px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
@@ -166,6 +174,7 @@ import Card from 'primevue/card';
 import Chart from 'primevue/chart';
 import InputSwitch from 'primevue/inputswitch';
 import ProgressSpinner from 'primevue/progressspinner';
+import errorMassege from '@/components/errorMassege.vue';
 
 export default {
     name: 'UserPanel',
@@ -178,7 +187,8 @@ export default {
         InputText,
         ProgressSpinner,
         Card,
-        InputSwitch
+        InputSwitch,
+        errorMassege
     },
 
     beforeRouteEnter(to: any, from: any, next: any) {
@@ -209,6 +219,7 @@ export default {
         const createNewDesk = ref(false)
         const deskName = ref('')
         const modalEditDesk = ref(false)
+        const errorHandling = ref(false)
         const editDeskValue = ref<any>(null)
         let editDeskTeammate = ref<any>([])
         const deskStatusLoading = ref<any>('')
@@ -218,10 +229,11 @@ export default {
 
         function deskStatus(desk: any) {
             deskStatusLoading.value = desk._id
+            errorHandling.value = false
             deskStore.deskStatus(desk).then(() => {
                 deskStatusLoading.value = ''
-            }).catch((err) => {
-                console.log(err)
+            }).catch(() => {
+                errorHandling.value = true
             })
         }
 
@@ -232,13 +244,14 @@ export default {
 
         function editDesk() {
             deskStore.changeLoading(true)
+            errorHandling.value = false
             deskStore.editDesk(editDeskValue.value).then(() => {
                 deskStore.fetchDesks().then(() => {
                     modalEditDesk.value = false
                     deskStore.changeLoading(false)
                 })
-            }).catch((err) => {
-                console.log(err)
+            }).catch(() => {
+                errorHandling.value = true
             })
         }
 
@@ -265,11 +278,14 @@ export default {
 
         function createDesk() {
             deskStore.changeLoading(true)
+            errorHandling.value = false
             deskStore.createDesk(deskName.value).then(() => {
                 deskStore.fetchDesks().then(() => {
                     createNewDesk.value = false
                     deskStore.changeLoading(false)
                 })
+            }).catch(()=>{
+                errorHandling.value = true
             })
         }
 
@@ -300,7 +316,8 @@ export default {
             modalEditDesk,
             editDeskValue,
             editDeskTeammate,
-            deskStatusLoading
+            deskStatusLoading,
+            errorHandling
         }
     },
 }

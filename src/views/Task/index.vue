@@ -1,4 +1,12 @@
 <template>
+    <transition name="error">
+        <errorMassege v-if="errorHandling" @close="errorHandling = false">
+            <p class="m-2">
+                مشکلی به وجود آمده لطفا دوباره تلاش کنید
+            </p>
+        </errorMassege>
+    </transition>
+
     <nav class="bg-yellow-500 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex items-center gap-4 justify-start px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
@@ -180,25 +188,27 @@
 </template>
 
 <script lang="ts">
-import Splide from '@splidejs/splide';
-import '@splidejs/splide/dist/css/themes/splide-default.min.css';
-import { useProfileStore } from '@/store/profileStore';
 import { ref, computed, onMounted } from 'vue'
-import Avatar from 'primevue/avatar';
+import { useProfileStore } from '@/store/profileStore';
 import { useDeskStore } from '@/store/deskStore';
+import { useTaskStore } from '@/store/taskStore';
+import { useProjectStore } from '@/store/projectStore';
+import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
 import Dropdown from 'primevue/dropdown';
 import Textarea from 'primevue/textarea';
 import Button from 'primevue/button';
 import Knob from 'primevue/knob';
-import { useTaskStore } from '@/store/taskStore';
-import { useProjectStore } from '@/store/projectStore';
 import Chip from 'primevue/chip';
+import errorMassege from '@/components/errorMassege.vue';
+// import Splide from '@splidejs/splide';
+// import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        errorMassege,
         Chip,
         Knob,
         Dropdown,
@@ -251,29 +261,30 @@ export default {
         //     }
         //     splide.mount();
         // })
-        const comment = ref('')
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
         const projectStore = useProjectStore()
         const taskStore = useTaskStore()
+
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
+        const comment = ref('')
         const modalImage = ref(false)
+        const errorHandling = ref(false)
         const shadowBack = ref(-1)
-        const currentDesk: any = computed(() => deskStore.currentDesk)
-        const currentProject: any = computed(() => projectStore.currentProject)
-        const currentTask: any = computed(() => taskStore.currentTask)
         const selectedDropComment = ref<any>(null)
+        const openStatus = ref<boolean>(false)
         const commentSubjectDrop = ref([
             { name: 'اخطار', code: 'warning' },
             { name: 'ارور', code: 'error' },
             { name: 'موفق', code: 'successful' },
             { name: 'راهنما', code: 'guide' }
         ])
-        const openStatus = ref<boolean>(false)
 
+        const currentDesk: any = computed(() => deskStore.currentDesk)
+        const currentProject: any = computed(() => projectStore.currentProject)
+        const currentTask: any = computed(() => taskStore.currentTask)
         const strdeadline = computed(() => `${currentTask.value.deadline.n}/{value}`)
         const userPosition = computed(() => profileStore.userProfile.position)
-
         const deadlineTask = computed(() => {
             const timeNow = new Date().getTime();
             const mines = timeNow - new Date(currentDesk.value.createdAt).getTime();
@@ -290,19 +301,27 @@ export default {
 
         function taskStatus(status: string) {
             taskStore.changeLoading(true)
+            errorHandling.value = false
             taskStore.changeStatus(props.id, status).then(() => {
                 taskStore.setCurrentTask(props.id).then(() => {
                     taskStore.changeLoading(false)
                 })
+            }).catch(() => {
+                taskStore.changeLoading(false)
+                errorHandling.value = true
             })
         }
 
         function addTaskComment() {
             taskStore.changeLoading(true)
+            errorHandling.value = false
             taskStore.addComment(props.id, selectedDropComment.value.code, comment.value).then(() => {
                 taskStore.setCurrentTask(props.id).then(() => {
                     taskStore.changeLoading(false)
                 })
+            }).catch(() => {
+                taskStore.changeLoading(false)
+                errorHandling.value = true
             })
         }
 
@@ -335,7 +354,8 @@ export default {
             shadowBack,
             deadlineTask,
             strdeadline,
-            userPosition
+            userPosition,
+            errorHandling
             // currentTaskDeadline
         }
     },

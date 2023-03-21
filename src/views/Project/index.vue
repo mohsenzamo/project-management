@@ -1,4 +1,12 @@
 <template>
+    <transition name="error">
+        <errorMassege v-if="errorHandling" @close="errorHandling = false">
+            <p class="m-2">
+                مشکلی به وجود آمده لطفا دوباره تلاش کنید
+            </p>
+        </errorMassege>
+    </transition>
+
     <nav class="bg-green-500 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex flex-row items-center gap-4 justify-center px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
@@ -62,15 +70,17 @@
                                 class="flex items-center gap-2 my-1 justify-between">
                                 <p>{{ teammate.username }}</p>
                                 <div v-if="userPosition === 'manager' && currentUsername !== teammate.username">
-                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1 cursor-pointer hover:bg-yellow-500 hover:text-white"
+                                    <Avatar icon="pi pi-star" shape="circle"
+                                        class="ml-1 cursor-pointer hover:bg-yellow-500 hover:text-white"
                                         @click="teammatePoint = teammate.username" />
-                                    <Avatar icon="pi pi-times" shape="circle" class="cursor-pointer hover:bg-red-500 hover:text-white"
+                                    <Avatar icon="pi pi-times" shape="circle"
+                                        class="cursor-pointer hover:bg-red-500 hover:text-white"
                                         @click="removeProjectTeammate(teammate.username)" />
                                 </div>
                             </div>
                             <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
                                 @click="callProjectTeammate">
-                                <Avatar icon="pi pi-plus" shape="circle" class="hover:bg-blue-500 hover:text-white"/>
+                                <Avatar icon="pi pi-plus" shape="circle" class="hover:bg-blue-500 hover:text-white" />
                                 <p>اضافه کردن همکار</p>
                             </div>
                         </div>
@@ -236,11 +246,13 @@ import Card from 'primevue/card';
 import { useTaskStore } from '@/store/taskStore';
 import ProgressSpinner from 'primevue/progressspinner';
 import MultiSelect from 'primevue/multiselect';
+import errorMassege from '@/components/errorMassege.vue';
 
 export default {
     name: 'UserPanel',
 
     components: {
+        errorMassege,
         Textarea,
         Editor,
         userTask,
@@ -282,6 +294,7 @@ export default {
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const createNewTask = ref(false)
         const addProjectTeammate = ref(false)
+        const errorHandling = ref(false)
         const teammatePoint = ref('')
         const taskName = ref('')
         const reasonPoint = ref('')
@@ -351,9 +364,14 @@ export default {
 
         function addTask() {
             taskStore.changeLoading(true)
+            errorHandling.value = false
             taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value).then(() => {
                 taskStore.changeLoading(false)
                 createNewTask.value = false
+            }).catch(() => {
+                taskStore.changeLoading(false)
+                createNewTask.value = false
+                errorHandling.value = true
             })
         }
 
@@ -366,30 +384,44 @@ export default {
 
         function addTeammate() {
             projectStore.changeLoading(true)
+            errorHandling.value = false
             projectStore.addTeammates(currentProject.value._id, selectedProjectTeammates.value).then(() => {
                 projectStore.setCurrentProject(currentProject.value._id).then(() => {
                     projectStore.changeLoading(false)
                     addProjectTeammate.value = false
                 })
+            }).catch(() => {
+                projectStore.changeLoading(false)
+                addProjectTeammate.value = false
+                errorHandling.value = true
             })
         }
 
         function removeProjectTeammate(username: string) {
             projectStore.changeLoading(true)
+            errorHandling.value = false
             projectStore.removeTeammate(currentProject.value._id, username).then(() => {
                 projectStore.setCurrentProject(currentProject.value._id).then(() => {
                     projectStore.changeLoading(false)
                 })
+            }).catch(() => {
+                projectStore.changeLoading(false)
+                errorHandling.value = true
             })
         }
 
         function increaseTeammatePoint() {
             projectStore.changeLoading(true)
+            errorHandling.value = false
             projectStore.increasePoint(teammatePoint.value, extraPoint.value, reasonPoint.value).then(() => {
                 projectStore.setCurrentProject(currentProject.value._id).then(() => {
                     projectStore.changeLoading(false)
                     teammatePoint.value = ''
                 })
+            }).catch(() => {
+                projectStore.changeLoading(false)
+                teammatePoint.value = ''
+                errorHandling.value = true
             })
         }
 
@@ -400,6 +432,7 @@ export default {
             taskRoutePush,
             addTeammate,
             callProjectTeammate,
+            errorHandling,
             userPosition,
             currentDeskTeammate,
             selectedDropTeammate,
