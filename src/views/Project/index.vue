@@ -62,15 +62,15 @@
                                 class="flex items-center gap-2 my-1 justify-between">
                                 <p>{{ teammate.username }}</p>
                                 <div v-if="userPosition === 'manager' && currentUsername !== teammate.username">
-                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1 cursor-pointer"
+                                    <Avatar icon="pi pi-star" shape="circle" class="ml-1 cursor-pointer hover:bg-yellow-500 hover:text-white"
                                         @click="teammatePoint = teammate.username" />
-                                    <Avatar icon="pi pi-times" shape="circle" class="cursor-pointer"
+                                    <Avatar icon="pi pi-times" shape="circle" class="cursor-pointer hover:bg-red-500 hover:text-white"
                                         @click="removeProjectTeammate(teammate.username)" />
                                 </div>
                             </div>
                             <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
                                 @click="callProjectTeammate">
-                                <Avatar icon="pi pi-plus" shape="circle" />
+                                <Avatar icon="pi pi-plus" shape="circle" class="hover:bg-blue-500 hover:text-white"/>
                                 <p>اضافه کردن همکار</p>
                             </div>
                         </div>

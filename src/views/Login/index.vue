@@ -10,6 +10,10 @@
                     ثبت نام
                 </template>
                 <template #content>
+                    <InlineMessage v-if="registerError" severity="error">لطفا در وارد کردن اطلاعات بیشتر دقت کنید
+                    </InlineMessage>
+                    <InlineMessage v-if="loginError" severity="error">ورود به سایت با مشکل مواجه شد لطفا دوباره تلاش کنید
+                    </InlineMessage>
                     <template v-if="chosechar">
                         <form class="w-full flex flex-col justify-center items-center gap-2.5">
                             <InputText v-model="firstNameR" type="text" placeholder="نام"
@@ -91,6 +95,8 @@
                     ورود
                 </template>
                 <template #content>
+                    <InlineMessage v-if="loginError" severity="error" class="mb-2">ورود به سایت با مشکل مواجه شد لطفا دوباره تلاش کنید
+                    </InlineMessage>
                     <form class="w-full flex flex-col justify-center items-center gap-2.5">
                         <InputText v-model="userNameL" type="text" placeholder="نام کاربری"
                             class="w-10/12 text-sm rounded-lg" />
@@ -114,31 +120,35 @@
 
 <script lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useProfileStore } from '@/store/profileStore';
+import { useRouter } from 'vue-router';
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import { useRouter } from 'vue-router';
 import InputNumber from 'primevue/inputnumber';
-import InputMask from 'primevue/inputmask';
 import Password from 'primevue/password';
-import { useProfileStore } from '@/store/profileStore';
+import InlineMessage from 'primevue/inlinemessage';
+// import InputMask from 'primevue/inputmask';
 
 export default {
     name: 'LoginPage',
 
     components: {
         InputNumber,
-        // InputMask,
+        InlineMessage,
         Card,
         Avatar,
         InputText,
         Button,
-        Password
+        Password,
+        // InputMask,
     },
 
     setup() {
-        const formValue = ref(false)
+        const router = useRouter()
+        const profileStore = useProfileStore()
+
         const passwordL = ref('')
         const passwordR = ref('')
         const passwordRR = ref('')
@@ -150,8 +160,10 @@ export default {
         const ageR = ref(0)
         const chosechar = ref('')
         const userNameL = ref('')
-        const router = useRouter()
-        const profileStore = useProfileStore()
+        const formValue = ref(false)
+        const registerError = ref(false)
+        const loginError = ref(false)
+
         const profileLoading = computed(() => profileStore.loading)
 
         function goPanel() {
@@ -175,27 +187,35 @@ export default {
 
         function register() {
             profileStore.changeLoading(true)
+            registerError.value = false
+            loginError.value = false
             profileStore.register(userNameR.value, passwordR.value, chosechar.value, firstNameR.value, lastNameR.value, ageR.value, phoneR.value, emailR.value).then(() => {
                 profileStore.login(userNameR.value, passwordR.value).then(() => {
                     profileStore.changeLoading(false)
                     router.push({
                         name: "UserPanel"
                     });
+                }).catch(() => {
+                    profileStore.changeLoading(false)
+                    loginError.value = true
                 })
-            }).catch((err) => {
-                console.log(err);
+            }).catch(() => {
+                profileStore.changeLoading(false)
+                registerError.value = true
             })
         }
 
         function login() {
             profileStore.changeLoading(true)
+            loginError.value = false
             profileStore.login(userNameL.value, passwordL.value).then(() => {
                 profileStore.changeLoading(false)
                 router.push({
                     name: "UserPanel"
                 });
-            }).catch((err) => {
-                console.log(err);
+            }).catch(() => {
+                profileStore.changeLoading(false)
+                loginError.value = true
             })
         }
 
@@ -215,7 +235,9 @@ export default {
             emailR,
             phoneR,
             ageR,
-            profileLoading
+            profileLoading,
+            registerError,
+            loginError
         }
     },
 }

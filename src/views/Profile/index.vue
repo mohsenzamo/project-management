@@ -35,7 +35,7 @@
             <template v-else>
                 <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
                 <Card
-                    class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12">
+                    class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12 mb-5">
                     <template #header>
                         <label
                             class="w-24 h-24 flex flex-col justify-center items-center bg-white rounded-full tracking-wide border cursor-pointer overflow-hidden hover:text-light-blue mx-auto"
@@ -147,12 +147,26 @@ export default {
 </script>
 
 <style lang="scss">
+.custom::-webkit-scrollbar {
+    display: none;
+}
+
 .p-card {
     @apply font-yekan;
 
     .p-card-body {
         @apply w-full;
     }
+}
+
+.selected-sidebar {
+    color: #212121;
+    font-weight: 500;
+    background-color: #e8e8e8;
+}
+
+.home-icon {
+    color: #D45044
 }
 </style>
 
