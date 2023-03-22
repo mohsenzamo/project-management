@@ -68,9 +68,9 @@
                                     </div>
                                 </transition>
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-pencil" shape="circle"
-                                    class="cursor-pointer bg-inherit hover:bg-yellow-400" @click="setChangedTask(task)" />
+                                    class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white" @click="setChangedTask(task)" />
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle"
-                                    class="cursor-pointer bg-inherit hover:bg-red-400"
+                                    class="cursor-pointer bg-inherit hover:bg-red-400 hover:text-white"
                                     :class="{ 'bg-red-400': taskDelete === task }"
                                     @click="(taskDelete = task) && (taskBars = false)" />
                                 <transition name="modal">

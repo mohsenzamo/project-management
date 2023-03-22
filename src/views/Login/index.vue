@@ -16,28 +16,28 @@
                     </InlineMessage>
                     <template v-if="chosechar">
                         <form class="w-full flex flex-col justify-center items-center gap-2.5">
-                            <InputText v-model="firstNameR" type="text" placeholder="نام"
-                                class="w-10/12 text-sm rounded-lg" />
+                            <InputText v-model="firstNameR" type="text" placeholder="نام" class="w-10/12 text-sm rounded-lg"
+                                @keyup.enter="register" />
 
                             <InputText v-model="lastNameR" type="text" placeholder="نام خانوادگی"
-                                class="w-10/12 text-sm rounded-lg" />
+                                class="w-10/12 text-sm rounded-lg" @keyup.enter="register" />
 
                             <InputText v-model="userNameR" type="text" placeholder="نام کاربری"
-                                class="w-10/12 text-sm rounded-lg" />
+                                class="w-10/12 text-sm rounded-lg" @keyup.enter="register" />
 
-                            <InputText v-model="emailR" type="text" placeholder="ایمیل"
-                                class="w-10/12 text-sm rounded-lg" />
+                            <InputText v-model="emailR" type="text" placeholder="ایمیل" class="w-10/12 text-sm rounded-lg"
+                                @keyup.enter="register" />
 
 
                             <!-- <InputMask v-model="phoneR" mask="9999-9999999" dir="ltr" /> -->
 
                             <InputText v-model="phoneR" type="number" placeholder="شماره همراه"
-                                class="w-10/12 text-sm rounded-lg" />
+                                class="w-10/12 text-sm rounded-lg" @keyup.enter="register" />
 
 
 
                             <InputNumber v-model="ageR" showButtons dir="ltr" inputClass="w-16" :min="0"
-                                class="rounded-lg overflow-hidden" />
+                                class="rounded-lg overflow-hidden" @keyup.enter="register" />
 
                             <!-- <InputText v-model="passwordR" type="password" placeholder="رمز عبور"
                                 class="w-10/12 text-sm rounded-lg" /> -->
@@ -95,13 +95,14 @@
                     ورود
                 </template>
                 <template #content>
-                    <InlineMessage v-if="loginError" severity="error" class="mb-2">ورود به سایت با مشکل مواجه شد لطفا دوباره تلاش کنید
+                    <InlineMessage v-if="loginError" severity="error" class="mb-2">ورود به سایت با مشکل مواجه شد لطفا دوباره
+                        تلاش کنید
                     </InlineMessage>
                     <form class="w-full flex flex-col justify-center items-center gap-2.5">
                         <InputText v-model="userNameL" type="text" placeholder="نام کاربری"
-                            class="w-10/12 text-sm rounded-lg" />
+                            class="w-10/12 text-sm rounded-lg" @keyup.enter="login" />
                         <InputText v-model="passwordL" type="password" placeholder="رمز عبور"
-                            class="w-10/12 text-sm rounded-lg" />
+                            class="w-10/12 text-sm rounded-lg" @keyup.enter="login" />
                         <Button type="button" label="ورود" :loading="profileLoading"
                             class="w-10/12 text-sm font-bold rounded-lg" :disabled="!(userNameL.length > 0)"
                             @click="login" />

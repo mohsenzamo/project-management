@@ -87,6 +87,9 @@
                     </template>
                 </Card>
             </div>
+            <div v-else class="w-fit mx-auto h-24">
+                <ProgressSpinner />
+            </div>
         </div>
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
@@ -386,10 +389,13 @@ export default {
             projectStore.changeLoading(true)
             errorHandling.value = false
             projectStore.addTeammates(currentProject.value._id, selectedProjectTeammates.value).then(() => {
-                projectStore.setCurrentProject(currentProject.value._id).then(() => {
-                    projectStore.changeLoading(false)
-                    addProjectTeammate.value = false
-                })
+                setTimeout(() => {
+                    projectStore.setCurrentProject(currentProject.value._id).then((res) => {
+                        console.log(res, 2222)
+                        projectStore.changeLoading(false)
+                        addProjectTeammate.value = false
+                    })
+                }, 1000);
             }).catch(() => {
                 projectStore.changeLoading(false)
                 addProjectTeammate.value = false

@@ -148,6 +148,7 @@ export const useProjectStore = defineStore("useProjectStore", {
     },
     addTeammates(projectId: any, teammates: any) {
       return new Promise((resolve, reject) => {
+        let isDone = true;
         teammates.forEach(async (teammate: any) => {
           const config = {
             method: "post",
@@ -163,9 +164,15 @@ export const useProjectStore = defineStore("useProjectStore", {
               username: teammate.username,
             },
           };
-          const result = await axios(config);
+          await axios(config).catch(() => {
+            isDone = false;
+          });
         });
-        resolve("success");
+        if (isDone) {
+          resolve("success");
+        } else {
+          reject("fail");
+        }
       });
     },
     changeLoading(bool: boolean) {
