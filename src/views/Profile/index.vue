@@ -33,7 +33,7 @@
                 <ProgressSpinner />
             </div>
             <template v-else>
-                <p class="text-xl mt-5 mr-3">تنظیمات حساب کاربری:</p>
+                <p class="text-xl mt-5 mr-3">حساب کاربری</p>
                 <Card
                     class="w-full sm:w-9/12 md:w-2/5 border-t-0 sm:border-t-2 border-t-purple-400 p-5 mx-auto shadow-none sm:shadow-2xl rounded-xl mt-0 sm:mt-12 mb-5">
                     <template #header>
@@ -52,27 +52,63 @@
                         </label>
                     </template>
                     <template #content>
+                        <InlineMessage v-if="profileError" severity="error" class="mb-2">تغییر مشخصات با مشکل مواجه شد لطفا
+                            دوباره تلاش کنید</InlineMessage>
                         <form class="flex flex-col justify-center items-center gap-2.5">
                             <p>
                                 {{ profile.position }}
                             </p>
-                            <InputText v-model="profile.fname" type="text" placeholder="نام"
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>تغییر مشخصات:</span>
+                                <InputSwitch v-model="isEditProfile" />
+                            </p>
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>نام:</span>
+                                <span v-if="!isEditProfile">{{ profile.fname }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.fname" type="text" placeholder="نام"
                                 class=" text-sm rounded-lg w-full" />
-                            <InputText v-model="profile.lname" type="text" placeholder="نام خانوادگی"
+
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>نام خانوادگی:</span>
+                                <span v-if="!isEditProfile">{{ profile.lname }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.lname" type="text"
+                                placeholder="نام خانوادگی" class=" text-sm rounded-lg w-full" />
+
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>نام کاربری:</span>
+                                <span v-if="!isEditProfile">{{ profile.username }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.username" type="text"
+                                placeholder="نام کاربری" class=" text-sm rounded-lg w-full" />
+
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>ایمیل:</span>
+                                <span v-if="!isEditProfile">{{ profile.email }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.email" type="text"
+                                placeholder="ایمیل" class=" text-sm rounded-lg w-full" disabled />
+
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>شماره:</span>
+                                <span v-if="!isEditProfile">{{ profile.email }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.phone" type="text"
+                                placeholder="شماره" class=" text-sm rounded-lg w-full" disabled />
+
+                            <p class="self-start flex justify-between w-full px-5">
+                                <span>سن:</span>
+                                <span v-if="!isEditProfile">{{ profile.age }}</span>
+                            </p>
+                            <InputText v-if="isEditProfile" v-model="changeableProfile.age" type="number" placeholder="سن"
                                 class=" text-sm rounded-lg w-full" />
-                            <InputText v-model="profile.username" type="text" placeholder="نام کاربری"
-                                class=" text-sm rounded-lg w-full" />
-                            <InputText v-model="profile.email" type="text" placeholder="ایمیل"
-                                class=" text-sm rounded-lg w-full" />
-                            <InputText v-model="profile.phone" type="text" placeholder="شماره"
-                                class=" text-sm rounded-lg w-full" />
-                            <InputText v-model="profile.age" type="text" placeholder="سن"
-                                class=" text-sm rounded-lg w-full" />
+
                             <p class="flex justify-between w-full px-5">
                                 <span>مجموع امتیازها:</span>
                                 <span>{{ profile.point }}</span>
                             </p>
-                            <Button type="button" label="ثبت"
+                            <Button v-if="isEditProfile" @click="changeProfile" type="button" label="ثبت"
                                 class="p-button-sm p-button-primary rounded-lg w-full text-sm font-bold" />
                         </form>
                     </template>
@@ -93,23 +129,27 @@
 </template>
 
 <script lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import Card from 'primevue/card';
 import Avatar from 'primevue/avatar';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import { useProfileStore } from '@/store/profileStore';
 import ProgressSpinner from 'primevue/progressspinner';
+import InputSwitch from 'primevue/inputswitch';
+import InlineMessage from 'primevue/inlinemessage';
 
 export default {
     name: 'UserProfile',
 
     components: {
+        InputSwitch,
         Button,
         Avatar,
         InputText,
         Card,
-        ProgressSpinner
+        ProgressSpinner,
+        InlineMessage
     },
 
     beforeRouteEnter(to: any, from: any, next: any) {
@@ -134,21 +174,68 @@ export default {
 
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const hoverImage = ref(false)
-        
+        const isEditProfile = ref(false)
+        const profileError = ref(false)
+        const changeableProfile = ref<any>({})
+
         const profile = computed(() => profileStore.userProfile)
         const profileLoading = computed(() => profileStore.loading)
 
+        watch(isEditProfile, (newData) => {
+            newData ? changeableProfile.value = Object.assign({}, profile.value) : changeableProfile.value = {}
+        })
+
+        function changeProfile() {
+            profileStore.changeLoading(true)
+            profileError.value = false
+            profileStore.changeProfile(changeableProfile.value).then(() => {
+                profileStore.fetchProfile().then(() => {
+                    profileStore.changeLoading(false)
+                })
+            }).catch(() => {
+                profileError.value = true
+            })
+        }
+
         return {
+            changeProfile,
             sideBar,
             hoverImage,
             profile,
-            profileLoading
+            profileLoading,
+            isEditProfile,
+            changeableProfile,
+            profileError
         }
     },
 }
 </script>
 
 <style lang="scss">
+.modal-enter-from {
+    opacity: 0;
+}
+
+.modal-enter-to {
+    opacity: 1;
+}
+
+.modal-enter-to {
+    transition: all .5s ease;
+}
+
+.modal-leave-from {
+    opacity: 1;
+}
+
+.modal-leave-to {
+    opacity: 0;
+}
+
+.modal-leave-active {
+    transition: all .5s ease;
+}
+
 .custom::-webkit-scrollbar {
     display: none;
 }

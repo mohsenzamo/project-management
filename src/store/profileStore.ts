@@ -75,6 +75,48 @@ export const useProfileStore = defineStore("useProfileStore", {
           });
       });
     },
+    changeProfile(changeableProfile: any) {
+      let config = {};
+      if (changeableProfile.username === this.profile.username) {
+        config = {
+          method: "patch",
+          url: process.env.VUE_APP_BASE_API_URL + "/profile",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "application/json",
+          },
+          data: {
+            fname: changeableProfile.fname,
+            lname: changeableProfile.lname,
+            age: changeableProfile.age,
+          },
+        };
+      } else {
+        config = {
+          method: "patch",
+          url: process.env.VUE_APP_BASE_API_URL + "/profile",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "application/json",
+          },
+          data: {
+            fname: changeableProfile.fname,
+            lname: changeableProfile.lname,
+            age: changeableProfile.age,
+            username: changeableProfile.username,
+          },
+        };
+      }
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
     changeLoading(bool: boolean) {
       this.loading = bool;
     },
