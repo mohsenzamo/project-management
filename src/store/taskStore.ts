@@ -45,15 +45,13 @@ export const useTaskStore = defineStore("useTaskStore", {
         url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
+          "Content-Type": "multipart/form-data",
         },
         data: {
           title: taskName,
           description: taskDescription,
-          deadline: {
-            unit: selectedDropDeadlinePeriod,
-            n: selectedUnit,
-          },
+          deadline_unit: selectedDropDeadlinePeriod,
+          deadline_n: selectedUnit,
           responsible: selectedDropTeammate,
           point: selectedPoint,
         },

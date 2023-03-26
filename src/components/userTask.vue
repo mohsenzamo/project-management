@@ -68,7 +68,8 @@
                                     </div>
                                 </transition>
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-pencil" shape="circle"
-                                    class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white" @click="setChangedTask(task)" />
+                                    class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white"
+                                    @click="setChangedTask(task)" />
                                 <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle"
                                     class="cursor-pointer bg-inherit hover:bg-red-400 hover:text-white"
                                     :class="{ 'bg-red-400': taskDelete === task }"
@@ -417,6 +418,7 @@ export default {
             taskStore.changeLoading(true)
             taskStore.editTask(currentProject.value._id, taskChange.value, selectedDropTeammateChange.value.code, deadlinePeriod.value.code).then(() => {
                 taskStore.changeLoading(false)
+                taskChange.value = null
             })
         }
         return {

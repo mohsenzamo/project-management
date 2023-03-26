@@ -252,15 +252,16 @@ export default {
         //             }
         //         }
         //     });
-
-        //     const collection: any = document.getElementsByClassName("ql-align-right");
-        //     if (collection && collection.length > 0) {
-        //         Object.values(collection).forEach((elmnt: any) => {
-        //             elmnt.style.direction = "rtl";
-        //         })
-        //     }
         //     splide.mount();
         // })
+        onMounted(() => {
+            const collection = document.getElementsByClassName("ql-direction-rtl");
+            if (Object.values(collection).length > 0) {
+                Object.values(collection).forEach((elmnt: any) => {
+                    elmnt.dir = "rtl"
+                })
+            }
+        })
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
         const projectStore = useProjectStore()
@@ -400,10 +401,6 @@ export default {
 .status3-leave-to {
     opacity: 0;
     top: 0;
-}
-
-.w-full::v-deep .ql-align-right .ql-direction-rtl {
-    @apply bg-blue-800
 }
 
 .ribbon {
