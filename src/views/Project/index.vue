@@ -65,7 +65,12 @@
                         </div>
                     </template>
                     <template #content>
-                        <div class="h-32 overflow-y-scroll custom">
+                        <div class="h-32 overflow-y-scroll project-temmate-box pl-1">
+                            <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
+                                @click="callProjectTeammate">
+                                <Avatar icon="pi pi-plus" shape="circle" class="hover:bg-blue-500 hover:text-white" />
+                                <p>اضافه کردن همکار</p>
+                            </div>
                             <div v-for="teammate in currentProject.teammates" :key="teammate.username"
                                 class="flex items-center gap-2 my-1 justify-between">
                                 <p>{{ teammate.username }}</p>
@@ -77,11 +82,6 @@
                                         class="cursor-pointer hover:bg-red-500 hover:text-white"
                                         @click="removeProjectTeammate(teammate.username)" />
                                 </div>
-                            </div>
-                            <div v-if="userPosition === 'manager'" class="flex items-center gap-2 my-1 cursor-pointer"
-                                @click="callProjectTeammate">
-                                <Avatar icon="pi pi-plus" shape="circle" class="hover:bg-blue-500 hover:text-white" />
-                                <p>اضافه کردن همکار</p>
                             </div>
                         </div>
                     </template>
@@ -467,6 +467,20 @@ export default {
 </script>
 
 <style lang="scss">
+.project-temmate-box::-webkit-scrollbar {
+    width: 5px;
+}
+
+.project-temmate-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    @apply rounded;
+}
+
+.project-temmate-box::-webkit-scrollbar-thumb {
+    background: #888;
+    @apply rounded;
+}
+
 .p-inputnumber-button-group {
     @apply h-11 my-auto;
 }
