@@ -38,6 +38,9 @@
                                 <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.title }}</p>
                             </div>
                             <div class="flex gap-2 items-center relative">
+                                <Chip v-if="task.dependentTaskId && taskFound(task.dependentTaskId)"
+                                    :label="taskFound(task.dependentTaskId)" icon="pi pi-paperclip"
+                                    class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip v-if="task.deadline.unit === 'month'" :label="task.deadline.n + 'ماه'"
                                     icon="pi pi-clock"
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
@@ -59,6 +62,9 @@
                                 <transition name="modal">
                                     <div v-if="taskBars === task"
                                         class="task-popup-bars flex flex-col items-center justify-center gap-2 absolute top-12 left-20 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                                        <Chip v-if="task.dependentTaskId && taskFound(task.dependentTaskId)"
+                                            :label="taskFound(task.dependentTaskId)" icon="pi pi-paperclip"
+                                            class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                         <Chip v-if="taskBars.deadline.unit === 'month'" :label="taskBars.deadline.n + 'ماه'"
                                             icon="pi pi-clock"
                                             class="bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
@@ -302,8 +308,6 @@ import Chart from 'primevue/chart';
 import popUp from '@/components/popUp.vue';
 import InputNumber from 'primevue/inputnumber';
 import Editor from 'primevue/editor';
-import ToggleButton from 'primevue/togglebutton';
-import Checkbox from 'primevue/checkbox';
 
 export default {
     name: "UserTask",
@@ -529,12 +533,23 @@ export default {
             })
         }
 
+        function taskFound(taskId: string) {
+            let found: any = null
+            currentProject.value.tasks.forEach((task: any) => {
+                if (task._id === taskId) {
+                    found = task.title
+                }
+            })
+            return found
+        }
+
         return {
             editTask,
             setChangedTask,
             deleteTask,
             callTaskResponsibleMember,
             editSuggestion,
+            taskFound,
             isSuggestion,
             isTask,
             taskResponsibleModal,

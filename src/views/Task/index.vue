@@ -85,7 +85,8 @@
                         class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
                         <Button label="پیشنهاد در انتظار تایید" icon="pi pi-times-circle" :loading="taskLoading"
-                            class="p-button-sm p-button-warning text-md rounded-lg" @click="setSuggestionToTask" :disabled="userPosition !== 'manager'"/>
+                            class="p-button-sm p-button-warning text-md rounded-lg" @click="setSuggestionToTask"
+                            :disabled="userPosition !== 'manager'" />
                     </div>
                     <template v-if="currentTask.type === 'task'">
                         <div v-if="currentTask.status === 'undone' && currentTask.responsible.username === userName"
@@ -133,6 +134,11 @@
                         <p class="text-lg mb-3">
                             <span class="ml-2 font-bold">میزکار:</span>
                             <span>{{ currentDesk.title }}</span>
+                        </p>
+                        <p v-if="currentTask.dependentTaskId && currentTask.dependentTaskId.length > 0"
+                            class="text-lg mb-3">
+                            <span class="ml-2 font-bold">تسک مربوط:</span>
+                            <span>{{ taskFound(currentTask.dependentTaskId) }}</span>
                         </p>
                         <div class="text-lg mb-5">
                             <p class="ml-2 font-bold">توضیحات:</p>
@@ -403,11 +409,22 @@ export default {
         //     }
         // })
 
+        function taskFound(taskId: string) {
+            let found: any = null
+            currentProject.value.tasks.forEach((task: any) => {
+                if (task._id === taskId) {
+                    found = task.title
+                }
+            })
+            return found
+        }
+
         return {
             taskStatus,
             addTaskComment,
             logOut,
             setSuggestionToTask,
+            taskFound,
             currentProject,
             sideBar,
             currentDesk,

@@ -122,7 +122,7 @@
             <p v-if="isTask" class="font-bold my-2">تسک جدید ایجاد کنید:</p>
             <p v-if="isSuggestion" class="font-bold my-2">پیشنهاد جدید ایجاد کنید:</p>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
-                <div class="w-full sm:w-1/2">
+                <div class="w-full sm:w-1/3">
                     <p v-if="isTask" class="mb-2">نام تسک:</p>
                     <p v-if="isSuggestion" class="mb-2">نام پیشنهاد:</p>
                     <InputText v-if="isTask" v-model="taskName" type="text" placeholder="نام تسک..."
@@ -130,9 +130,14 @@
                     <InputText v-if="isSuggestion" v-model="taskName" type="text" placeholder="نام پیشنهاد..."
                         class="w-full rounded-lg py-1.5 px-3" />
                 </div>
-                <div class="w-full sm:w-1/2">
+                <div class="w-full sm:w-1/3 text-center">
                     <p class="mb-2">پروژه مربوط:</p>
                     <p class="mt-3">{{ currentProject.title }}</p>
+                </div>
+                <div class="w-full sm:w-1/3 flex flex-col justify-center items-center mb-2 sm:mb-0">
+                    <p class="mb-2">تسک مربوط:</p>
+                    <Dropdown v-model="selectedDropTask" :options="taskDrop" optionLabel="name" placeholder="تسک"
+                        class="drop-down" />
                 </div>
             </div>
             <div class="flex items-center flex-shrink flex-wrap mb-4">
@@ -331,6 +336,7 @@ export default {
         const taskName = ref('')
         const reasonPoint = ref('')
         const selectedDropTeammate = ref<any>(null)
+        const selectedDropTask = ref<any>(null)
         const selectedDropDeadlinePeriod = ref<any>(null)
         const selectedPoint = ref<number>(0)
         const extraPoint = ref<number>(0)
@@ -354,6 +360,17 @@ export default {
                 teammateArray.push({ name: teammate.username, code: teammate.username })
             })
             return teammateArray
+        })
+
+        const taskDrop: any = computed(() => {
+            let arr: any = []
+            currentProject.value.tasks.forEach((task: any) => {
+                if (task.type === 'task') {
+                    arr.push({ name: task.title, code: task._id })
+                }
+            })
+            arr.push({ name: 'هیچ کدام', code: 0 })
+            return arr
         })
 
         const currentDeskTeammate = computed(() => {
@@ -408,7 +425,7 @@ export default {
         function addTask() {
             taskStore.changeLoading(true)
             errorHandling.value = false
-            taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value).then(() => {
+            taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, selectedDropTask.value.code).then(() => {
                 taskStore.changeLoading(false)
                 createNewTask.value = false
             }).catch(() => {
@@ -495,6 +512,7 @@ export default {
             logOut,
             addSuggestion,
             isSuggestion,
+            selectedDropTask,
             isTask,
             logOutPopup,
             errorHandling,
@@ -509,6 +527,7 @@ export default {
             currentProject,
             deadlinePeriodDrop,
             teammatesDrop,
+            taskDrop,
             reasonPoint,
             sideBar,
             createNewTask,

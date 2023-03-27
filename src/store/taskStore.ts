@@ -38,24 +38,46 @@ export const useTaskStore = defineStore("useTaskStore", {
       selectedDropTeammate: any,
       selectedPoint: number,
       selectedDropDeadlinePeriod: any,
-      selectedUnit: number
+      selectedUnit: number,
+      selectedTask: any
     ) {
-      const config = {
-        method: "post",
-        url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "multipart/form-data",
-        },
-        data: {
-          title: taskName,
-          description: taskDescription,
-          deadline_unit: selectedDropDeadlinePeriod,
-          deadline_n: selectedUnit,
-          responsible: selectedDropTeammate,
-          point: selectedPoint,
-        },
-      };
+      let config = {};
+      if (selectedTask === 0) {
+        config = {
+          method: "post",
+          url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "multipart/form-data",
+          },
+          data: {
+            title: taskName,
+            description: taskDescription,
+            deadline_unit: selectedDropDeadlinePeriod,
+            deadline_n: selectedUnit,
+            responsible: selectedDropTeammate,
+            point: selectedPoint,
+          },
+        };
+      } else {
+        config = {
+          method: "post",
+          url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+            "Content-Type": "multipart/form-data",
+          },
+          data: {
+            title: taskName,
+            description: taskDescription,
+            deadline_unit: selectedDropDeadlinePeriod,
+            deadline_n: selectedUnit,
+            responsible: selectedDropTeammate,
+            point: selectedPoint,
+            dependentTaskId: selectedTask,
+          },
+        };
+      }
       return new Promise((resolve, reject) => {
         axios(config)
           .then((response) => {
