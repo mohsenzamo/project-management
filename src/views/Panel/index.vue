@@ -6,7 +6,7 @@
             </p>
         </errorMassege>
     </transition>
-    
+
     <nav class="bg-light-pink flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex flex-row items-center gap-4 justify-center px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
@@ -16,7 +16,20 @@
             <p class="text-xl font-bold text-white">پنل کاربر</p>
         </div>
 
-        <div class="flex items-center gap-4 justify-end px-4">
+        <div class="flex items-center gap-4 justify-end px-4 relative">
+            <Avatar icon="pi pi-power-off" class="cursor-pointer" shape="circle" @click="logOutPopup = true" />
+            <transition name="modal">
+                <div v-if="logOutPopup"
+                    class="logout-popup flex flex-col items-center justify-center gap-2 absolute top-14 left-16 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                    <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
+                    <p>از حساب خارج میشوید؟</p>
+                    <div class="flex gap-2">
+                        <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                            @click="logOutPopup = false" />
+                        <Button label="خروج" class="p-button-sm p-button-danger w-16 h-8 rounded-md" @click="logOut" />
+                    </div>
+                </div>
+            </transition>
             <RouterLink :to="{ name: 'UserProfile' }">
                 <Avatar icon="pi pi-user" class="" shape="circle" />
             </RouterLink>
@@ -108,13 +121,18 @@
                                     </template>
                                     <p v-else class="mt-20">تسک ثبت شده ای موجود نیست</p>
                                 </div>
-                                <div class="flex justify-between items-center mt-4">
+                                <div class="flex justify-around items-center mt-4">
                                     <p>
-                                        <span class="ml-1">تعداد پروژه ها:</span>
+                                        <span class="ml-1">تعداد پروژه:</span>
                                         <span class="font-iransans">{{ desk.number_of_projects }}</span>
                                     </p>
                                     <p>
-                                        <span class="ml-1">تعداد همکار ها:</span>
+                                        <span class="ml-1">تعداد تسک:</span>
+                                        <span class="font-iransans">{{ desk.number_of_tasks.done_tasks +
+                                            desk.number_of_tasks.undone_tasks }}</span>
+                                    </p>
+                                    <p>
+                                        <span class="ml-1">تعداد همکار:</span>
                                         <span class="font-iransans">{{ desk.teammates.length }}</span>
                                     </p>
                                 </div>
@@ -219,6 +237,7 @@ export default {
         const createNewDesk = ref(false)
         const deskName = ref('')
         const modalEditDesk = ref(false)
+        const logOutPopup = ref(false)
         const errorHandling = ref(false)
         const editDeskValue = ref<any>(null)
         let editDeskTeammate = ref<any>([])
@@ -226,6 +245,13 @@ export default {
         const deskLoading = computed(() => deskStore.deskLoading)
         const userPosition = computed(() => profileStore.userProfile.position)
         const alldesks = computed(() => deskStore.allDesk)
+
+        function logOut() {
+            localStorage.clear();
+            router.push({
+                name: "Login",
+            });
+        }
 
         function deskStatus(desk: any) {
             deskStatusLoading.value = desk._id
@@ -284,7 +310,7 @@ export default {
                     createNewDesk.value = false
                     deskStore.changeLoading(false)
                 })
-            }).catch(()=>{
+            }).catch(() => {
                 errorHandling.value = true
             })
         }
@@ -307,6 +333,7 @@ export default {
             createDesk,
             currentEditDesk,
             userPosition,
+            logOutPopup,
             alldesks,
             deskLoading,
             deskName,
@@ -317,13 +344,27 @@ export default {
             editDeskValue,
             editDeskTeammate,
             deskStatusLoading,
-            errorHandling
+            errorHandling,
+            logOut
         }
     },
 }
 </script>
 
 <style lang="scss">
+.logout-popup {
+    &::before {
+        content: "\A";
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 13px solid;
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        @apply border-b-slate-300
+    }
+}
+
 .sidebar {
     font-size: 16px;
     color: #616161;

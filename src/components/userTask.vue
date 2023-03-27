@@ -143,7 +143,7 @@
 
     <transition name="modal">
         <popUp v-if="taskChange" @close="taskChange = null">
-            <p class="font-bold my-3">تسک خود را ویرایش کنید:</p>
+            <p class="font-bold my-2">تسک خود را ویرایش کنید:</p>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
                 <div class="w-full sm:w-1/2">
                     <p class="mb-2">نام تسک:</p>
@@ -183,33 +183,35 @@
                     </template>
                 </div>
             </div>
-            <div class="mb-5">
-                <p class="mb-2">توضیحات:</p>
-                <Editor v-model="taskChange.description" editorStyle="height: 150px" dir="ltr"
-                    class="rounded-xl overflow-hidden">
-                    <template #toolbar>
-                        <span class="ql-formats">
-                            <button class="ql-bold"></button>
-                            <button class="ql-italic"></button>
-                            <button class="ql-underline"></button>
-                            <button class="ql-link"></button>
-                            <select class="ql-size">
-                                <option value="small"></option>
-                                <option selected></option>
-                                <option value="large"></option>
-                                <option value="huge"></option>
-                            </select>
-                            <button class="ql-direction" value="rtl"></button>
-                        </span>
-                    </template>
-                </Editor>
-            </div>
-            <div class="w-full flex justify-center items-center gap-2">
-                <Button label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg" :loading="taskLoading"
-                    :disabled="!(taskChange.title.length > 0 && taskChange.point !== 0 && selectedDropTeammateChange && deadlinePeriod && taskChange.deadline.n !== 0 && taskChange.description)"
-                    @click="editTask" />
-                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
-                    @click="taskChange = null" />
+            <div class="flex">
+                <div class="w-2/3">
+                    <p>توضیحات:</p>
+                    <Editor v-model="taskChange.description" editorStyle="height: 150px" dir="ltr"
+                        class="rounded-xl overflow-hidden">
+                        <template #toolbar>
+                            <span class="ql-formats">
+                                <button class="ql-bold"></button>
+                                <button class="ql-italic"></button>
+                                <button class="ql-underline"></button>
+                                <button class="ql-link"></button>
+                                <select class="ql-size">
+                                    <option value="small"></option>
+                                    <option selected></option>
+                                    <option value="large"></option>
+                                    <option value="huge"></option>
+                                </select>
+                                <button class="ql-direction" value="rtl"></button>
+                            </span>
+                        </template>
+                    </Editor>
+                </div>
+                <div class="w-1/3 flex flex-col justify-center items-center gap-2 pt-5">
+                    <Button label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg" :loading="taskLoading"
+                        :disabled="!(taskChange.title.length > 0 && taskChange.point !== 0 && selectedDropTeammateChange && deadlinePeriod && taskChange.deadline.n !== 0 && taskChange.description)"
+                        @click="editTask" />
+                    <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                        @click="taskChange = null" />
+                </div>
             </div>
         </popUp>
     </transition>

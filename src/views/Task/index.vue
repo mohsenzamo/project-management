@@ -26,7 +26,20 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-4 justify-end px-4">
+        <div class="flex items-center gap-4 justify-end px-4 relative">
+            <Avatar icon="pi pi-power-off" class="cursor-pointer" shape="circle" @click="logOutPopup = true" />
+            <transition name="modal">
+                <div v-if="logOutPopup"
+                    class="logout-popup flex flex-col items-center justify-center gap-2 absolute top-14 left-16 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                    <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
+                    <p>از حساب خارج میشوید؟</p>
+                    <div class="flex gap-2">
+                        <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                            @click="logOutPopup = false" />
+                        <Button label="خروج" class="p-button-sm p-button-danger w-16 h-8 rounded-md" @click="logOut" />
+                    </div>
+                </div>
+            </transition>
             <RouterLink :to="{ name: 'UserProfile' }">
                 <Avatar icon="pi pi-user" class="" shape="circle" />
             </RouterLink>
@@ -60,28 +73,6 @@
                             class="pi pi-clock absolute top-0 right-0 text-blue-500"></i>
                         <i v-else-if="currentTask.status === 'undone'"
                             class="pi pi-times-circle absolute top-0 right-0 text-red-500"></i>
-                        <template v-if="userPosition === 'manager' && currentTask.status === 'pending'">
-                            <Transition name="status1">
-                                <i v-if="openStatus" class="pi pi-check-circle absolute top-16 text-green-500"
-                                    :class="{ 'cursor-pointer': currentTask.status !== 'done', 'cursor-not-allowed': currentTask.status === 'done' }"
-                                    @click="currentTask.status !== 'done' ? taskStatus('done') : null"
-                                    style="font-size: 1.3rem;"></i>
-                            </Transition>
-                            <Transition name="status3">
-                                <i v-if="openStatus" class="pi pi-times-circle absolute top-24 text-red-500"
-                                    :class="{ 'cursor-pointer': currentTask.status !== 'undone', 'cursor-not-allowed': currentTask.status === 'undone' }"
-                                    @click="currentTask.status !== 'undone' ? taskStatus('undone') : null"
-                                    style="font-size: 1.3rem;"></i>
-                            </Transition>
-                        </template>
-                        <template v-else-if="currentTask.status !== 'pending' && currentTask.status !== 'done'">
-                            <Transition name="status1">
-                                <i v-if="openStatus" class="pi pi-clock absolute top-16 text-blue-500"
-                                    :class="{ 'cursor-pointer': currentTask.status !== 'done', 'cursor-not-allowed': currentTask.status === 'done' }"
-                                    @click="currentTask.status !== 'done' ? taskStatus('pending') : null"
-                                    style="font-size: 1.3rem;"></i>
-                            </Transition>
-                        </template>
                     </div>
                     <div class="absolute top-5 left-24 flex flex-col items-center justify-center">
                         <Knob v-model="deadlineTask" :valueTemplate="strdeadline" :max="100" :size="62"
@@ -89,6 +80,32 @@
                         <p v-if="currentTask.deadline.unit === 'day'">روز</p>
                         <p v-else-if="currentTask.deadline.unit === 'hour'">ساعت</p>
                         <p v-else-if="currentTask.deadline.unit === 'month'">ماه</p>
+                    </div>
+                    <div v-if="currentTask.status === 'undone' && currentTask.responsible.username === userName"
+                        class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                        @click="openStatus = !openStatus">
+                        <Button label="تسک در حال انجام" icon="pi pi-times-circle" :loading="taskLoading"
+                            class="p-button-sm p-button-danger text-md rounded-lg" @click="taskStatus('pending')" />
+                    </div>
+                    <template v-if="currentTask.status === 'pending'">
+                        <div v-if="userPosition === 'manager'"
+                            class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                            @click="openStatus = !openStatus">
+                            <SelectButton dir="ltr" v-model="value" :options="options" optionLabel="name" aria-labelledby="basic"
+                                class="rounded-xl" />
+                        </div>
+                        <div v-if="userPosition !== 'manager' && currentTask.responsible.username === userName"
+                            class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                            @click="openStatus = !openStatus">
+                            <Button label="تسک در انتضار تایید" icon="pi pi-clock" :loading="taskLoading"
+                                class="p-button-sm p-button-warning text-md rounded-lg" disabled />
+                        </div>
+                    </template>
+                    <div v-if="currentTask.status === 'done'"
+                        class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                        @click="openStatus = !openStatus">
+                        <Button v-if="currentTask.status === 'done'" label="تسک تایید شد" icon="pi pi-check"
+                            :loading="taskLoading" class="p-button-sm p-button-success text-md rounded-lg" />
                     </div>
                     <div class="ribbon">
                         <span class="font-iransans shadow-md bg-light-blue">{{ currentTask.point }}</span>
@@ -188,11 +205,12 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useProfileStore } from '@/store/profileStore';
 import { useDeskStore } from '@/store/deskStore';
 import { useTaskStore } from '@/store/taskStore';
 import { useProjectStore } from '@/store/projectStore';
+import { useRouter } from 'vue-router';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
 import Dropdown from 'primevue/dropdown';
@@ -201,6 +219,7 @@ import Button from 'primevue/button';
 import Knob from 'primevue/knob';
 import Chip from 'primevue/chip';
 import errorMassege from '@/components/errorMassege.vue';
+import SelectButton from 'primevue/selectbutton';
 // import Splide from '@splidejs/splide';
 // import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
@@ -215,7 +234,8 @@ export default {
         Avatar,
         Card,
         Textarea,
-        Button
+        Button,
+        SelectButton
     },
 
     props: ["id"],
@@ -262,6 +282,7 @@ export default {
                 })
             }
         })
+        const router = useRouter()
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
         const projectStore = useProjectStore()
@@ -269,11 +290,17 @@ export default {
 
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const comment = ref('')
+        const logOutPopup = ref(false)
         const modalImage = ref(false)
         const errorHandling = ref(false)
         const shadowBack = ref(-1)
         const selectedDropComment = ref<any>(null)
         const openStatus = ref<boolean>(false)
+        const value = ref<any>(null);
+        const options = ref([
+            { name: 'تایید تسک', value: 'done' },
+            { name: 'رد تسک', value: 'undone' },
+        ]);
         const commentSubjectDrop = ref([
             { name: 'اخطار', code: 'warning' },
             { name: 'ارور', code: 'error' },
@@ -286,6 +313,8 @@ export default {
         const currentTask: any = computed(() => taskStore.currentTask)
         const strdeadline = computed(() => `${currentTask.value.deadline.n}/{value}`)
         const userPosition = computed(() => profileStore.userProfile.position)
+        const userName = computed(() => profileStore.userProfile.username)
+        const taskLoading = computed(() => taskStore.taskLoading)
         const deadlineTask = computed(() => {
             const timeNow = new Date().getTime();
             const mines = timeNow - new Date(currentDesk.value.createdAt).getTime();
@@ -300,7 +329,14 @@ export default {
             return Math.floor((mines * 100) / deadline)
         })
 
-        function taskStatus(status: string) {
+        function logOut() {
+            localStorage.clear();
+            router.push({
+                name: "Login",
+            });
+        }
+
+        function taskStatus(status: any) {
             taskStore.changeLoading(true)
             errorHandling.value = false
             taskStore.changeStatus(props.id, status).then(() => {
@@ -326,6 +362,10 @@ export default {
             })
         }
 
+        watch(value, (newValue) => {
+            taskStatus(newValue.value)
+        })
+
         // let timer = ref<any>(0)
 
         // const currentTaskDeadline = computed(() => {
@@ -343,6 +383,7 @@ export default {
         return {
             taskStatus,
             addTaskComment,
+            logOut,
             currentProject,
             sideBar,
             currentDesk,
@@ -352,11 +393,16 @@ export default {
             comment,
             openStatus,
             modalImage,
+            logOutPopup,
             shadowBack,
             deadlineTask,
             strdeadline,
             userPosition,
-            errorHandling
+            errorHandling,
+            taskLoading,
+            userName,
+            value,
+            options
             // currentTaskDeadline
         }
     },

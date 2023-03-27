@@ -22,7 +22,20 @@
             </p>
         </div>
 
-        <div class="flex items-center gap-4 justify-end px-4">
+        <div class="flex items-center gap-4 justify-end px-4 relative">
+            <Avatar icon="pi pi-power-off" class="cursor-pointer" shape="circle" @click="logOutPopup = true" />
+            <transition name="modal">
+                <div v-if="logOutPopup"
+                    class="logout-popup flex flex-col items-center justify-center gap-2 absolute top-14 left-16 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                    <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
+                    <p>از حساب خارج میشوید؟</p>
+                    <div class="flex gap-2">
+                        <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                            @click="logOutPopup = false" />
+                        <Button label="خروج" class="p-button-sm p-button-danger w-16 h-8 rounded-md" @click="logOut" />
+                    </div>
+                </div>
+            </transition>
             <RouterLink :to="{ name: 'UserProfile' }">
                 <Avatar icon="pi pi-user" class="" shape="circle" />
             </RouterLink>
@@ -105,7 +118,7 @@
 
     <transition name="modal">
         <popUp v-if="createNewTask" @close="createNewTask = false">
-            <p class="font-bold my-3">تسک جدید ایجاد کنید:</p>
+            <p class="font-bold my-2">تسک جدید ایجاد کنید:</p>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
                 <div class="w-full sm:w-1/2">
                     <p class="mb-2">نام تسک:</p>
@@ -146,32 +159,35 @@
                     </template>
                 </div>
             </div>
-            <div class="mb-5">
-                <p class="mb-2">توضیحات:</p>
-                <Editor v-model="taskDescription" editorStyle="height: 150px" dir="ltr" class="rounded-xl overflow-hidden">
-                    <template #toolbar>
-                        <span class="ql-formats">
-                            <button class="ql-bold"></button>
-                            <button class="ql-italic"></button>
-                            <button class="ql-underline"></button>
-                            <button class="ql-link"></button>
-                            <select class="ql-size">
-                                <option value="small"></option>
-                                <option selected></option>
-                                <option value="large"></option>
-                                <option value="huge"></option>
-                            </select>
-                            <button class="ql-direction" value="rtl"></button>
-                        </span>
-                    </template>
-                </Editor>
-            </div>
-            <div class="w-full flex justify-center items-center gap-2">
-                <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
-                    :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0 && taskDescription)"
-                    :loading="taskLoading" @click="addTask" />
-                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
-                    @click="createNewTask = false" />
+            <div class="flex">
+                <div class="w-2/3">
+                    <p>توضیحات:</p>
+                    <Editor v-model="taskDescription" editorStyle="height: 150px" dir="ltr"
+                        class="rounded-xl overflow-hidden">
+                        <template #toolbar>
+                            <span class="ql-formats">
+                                <button class="ql-bold"></button>
+                                <button class="ql-italic"></button>
+                                <button class="ql-underline"></button>
+                                <button class="ql-link"></button>
+                                <select class="ql-size">
+                                    <option value="small"></option>
+                                    <option selected></option>
+                                    <option value="large"></option>
+                                    <option value="huge"></option>
+                                </select>
+                                <button class="ql-direction" value="rtl"></button>
+                            </span>
+                        </template>
+                    </Editor>
+                </div>
+                <div class="w-1/3 flex flex-col justify-center items-center gap-2 pt-5">
+                    <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                        :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0 && taskDescription)"
+                        :loading="taskLoading" @click="addTask" />
+                    <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                        @click="createNewTask = false" />
+                </div>
             </div>
         </popUp>
     </transition>
@@ -296,6 +312,7 @@ export default {
 
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const createNewTask = ref(false)
+        const logOutPopup = ref(false)
         const addProjectTeammate = ref(false)
         const errorHandling = ref(false)
         const teammatePoint = ref('')
@@ -356,6 +373,13 @@ export default {
             selectedUnit.value = 0
         })
 
+        function logOut() {
+            localStorage.clear();
+            router.push({
+                name: "Login",
+            });
+        }
+
         function callProjectTeammate() {
             addProjectTeammate.value = true
             // currentProject.value.teammates.forEach((teammate: any) => {
@@ -390,8 +414,7 @@ export default {
             errorHandling.value = false
             projectStore.addTeammates(currentProject.value._id, selectedProjectTeammates.value).then(() => {
                 setTimeout(() => {
-                    projectStore.setCurrentProject(currentProject.value._id).then((res) => {
-                        console.log(res, 2222)
+                    projectStore.setCurrentProject(currentProject.value._id).then(() => {
                         projectStore.changeLoading(false)
                         addProjectTeammate.value = false
                     })
@@ -438,6 +461,8 @@ export default {
             taskRoutePush,
             addTeammate,
             callProjectTeammate,
+            logOut,
+            logOutPopup,
             errorHandling,
             userPosition,
             currentDeskTeammate,

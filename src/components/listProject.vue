@@ -37,10 +37,11 @@
                                     <p class="mb-1 text-lg">افراد ثبت شده:</p>
                                     <div class="mt-2 w-full">
                                         <div class="whitespace-nowrap overflow-x-scroll custom py-1">
-                                            <div v-for="teammate in project.teammates" :key="teammate.username" class="inline-block mx-1">
-                                                <Chip icon="pi pi-user" :label="teammate.username"
-                                                    class="h-fit rounded-lg overflow-hidden py-1 px-2" />
-                                            </div>
+                                            <Chip icon="pi pi-user" :label="project.teammates[0].username"
+                                                class="h-fit rounded-lg overflow-hidden py-1 px-2" />
+                                            <Chip v-if="project.teammates.length > 1" icon="pi pi-arrow-left"
+                                                class="h-fit rounded-lg overflow-hidden py-1 px-2 mr-2"
+                                                @click="teammateProjectModal = project" />
                                         </div>
                                     </div>
                                 </div>
@@ -89,6 +90,16 @@
                 <Button label="انصراف" class="p-button-sm p-button-danger w-16 h-10" @click="modalEditProject = false" />
                 <Button label="ثبت" class="p-button-sm p-button-info w-16 h-10"
                     :disabled="!(editProjectValue.title.length > 0)" @click="editProject" />
+            </div>
+        </popUp>
+    </transition>
+
+    <transition name="modal">
+        <popUp v-if="teammateProjectModal" @close="teammateProjectModal = null">
+            <p class="font-bold my-3">همکاران پروژه {{ teammateProjectModal.title }}:</p>
+            <div class="flex gap-2">
+                <Chip v-for="teammate in teammateProjectModal.teammates" :key="teammate.username" icon="pi pi-user"
+                    :label="teammate.username" class="h-fit rounded-lg overflow-hidden py-1 px-2" />
             </div>
         </popUp>
     </transition>
@@ -157,6 +168,7 @@ export default {
 
         const modalEditProject = ref(false)
         const editProjectValue = ref<any>(null)
+        const teammateProjectModal = ref<any>(null)
         const projectStatusLoading = ref('')
 
         const currentDesk: any = computed(() => deskStore.currentDesk)
@@ -194,6 +206,7 @@ export default {
             editProject,
             currentEditProject,
             projectStatus,
+            teammateProjectModal,
             modalEditProject,
             currentProjects,
             editProjectValue,

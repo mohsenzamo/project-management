@@ -16,7 +16,20 @@
             <p class="text-xl font-bold text-white cursor-default">{{ currentDesk.title }}</p>
         </div>
 
-        <div class="flex items-center gap-4 justify-end px-4">
+        <div class="flex items-center gap-4 justify-end px-4 relative">
+            <Avatar icon="pi pi-power-off" class="cursor-pointer" shape="circle" @click="logOutPopup = true" />
+            <transition name="modal">
+                <div v-if="logOutPopup"
+                    class="logout-popup flex flex-col items-center justify-center gap-2 absolute top-14 left-16 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                    <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
+                    <p>از حساب خارج میشوید؟</p>
+                    <div class="flex gap-2">
+                        <Button label="انصراف" class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                            @click="logOutPopup = false" />
+                        <Button label="خروج" class="p-button-sm p-button-danger w-16 h-8 rounded-md" @click="logOut" />
+                    </div>
+                </div>
+            </transition>
             <RouterLink :to="{ name: 'UserProfile' }">
                 <Avatar icon="pi pi-user" class="" shape="circle" />
             </RouterLink>
@@ -137,6 +150,7 @@ export default {
         const createNewProject = ref(false)
         const errorHandling = ref(false)
         const projectName = ref('')
+        const logOutPopup = ref(false)
 
         const currentDesk: any = computed(() => deskStore.currentDesk)
         const currentProject: any = computed(() => deskStore.currentDesk.projects)
@@ -148,6 +162,12 @@ export default {
             projectName.value = ''
         })
 
+        function logOut() {
+            localStorage.clear();
+            router.push({
+                name: "Login",
+            });
+        }
 
         function addProject() {
             projectStore.changeLoading(true)
@@ -174,9 +194,11 @@ export default {
         return {
             addProject,
             projectRoutePush,
+            logOut,
             sideBar,
             createNewProject,
             currentDesk,
+            logOutPopup,
             projectName,
             deskLoading,
             currentProject,
