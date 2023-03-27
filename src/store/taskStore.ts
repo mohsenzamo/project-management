@@ -95,7 +95,6 @@ export const useTaskStore = defineStore("useTaskStore", {
             });
           })
           .catch((error) => {
-            console.log(error);
             reject(error);
           });
       });
@@ -151,7 +150,6 @@ export const useTaskStore = defineStore("useTaskStore", {
             resolve(response);
           })
           .catch((error) => {
-            console.log(error);
             reject(error);
           });
       });

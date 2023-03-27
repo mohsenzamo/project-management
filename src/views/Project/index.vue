@@ -111,18 +111,23 @@
                 <ProgressSpinner />
             </div>
             <template v-else>
-                <userTask @callPopupTask="createNewTask = true" @goTask="taskRoutePush" />
+                <userTask @callPopupTask="(createNewTask = true) && (isTask = true)"
+                    @callPopupSuggestion="(createNewTask = true) && (isSuggestion = true)" @goTask="taskRoutePush" />
             </template>
         </div>
     </div>
 
     <transition name="modal">
         <popUp v-if="createNewTask" @close="createNewTask = false">
-            <p class="font-bold my-2">تسک جدید ایجاد کنید:</p>
+            <p v-if="isTask" class="font-bold my-2">تسک جدید ایجاد کنید:</p>
+            <p v-if="isSuggestion" class="font-bold my-2">پیشنهاد جدید ایجاد کنید:</p>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
                 <div class="w-full sm:w-1/2">
-                    <p class="mb-2">نام تسک:</p>
-                    <InputText v-model="taskName" type="text" placeholder="نام تسک..."
+                    <p v-if="isTask" class="mb-2">نام تسک:</p>
+                    <p v-if="isSuggestion" class="mb-2">نام پیشنهاد:</p>
+                    <InputText v-if="isTask" v-model="taskName" type="text" placeholder="نام تسک..."
+                        class="w-full rounded-lg py-1.5 px-3" />
+                    <InputText v-if="isSuggestion" v-model="taskName" type="text" placeholder="نام پیشنهاد..."
                         class="w-full rounded-lg py-1.5 px-3" />
                 </div>
                 <div class="w-full sm:w-1/2">
@@ -182,9 +187,12 @@
                     </Editor>
                 </div>
                 <div class="w-1/3 flex flex-col justify-center items-center gap-2 pt-5">
-                    <Button label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                    <Button v-if="isTask" label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
                         :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0 && taskDescription)"
                         :loading="taskLoading" @click="addTask" />
+                    <Button v-if="isSuggestion" label="ایجاد" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                        :disabled="!(taskName.length > 0 && selectedPoint !== 0 && selectedDropTeammate && selectedDropDeadlinePeriod && selectedUnit !== 0 && taskDescription)"
+                        :loading="taskLoading" @click="addSuggestion" />
                     <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
                         @click="createNewTask = false" />
                 </div>
@@ -248,12 +256,13 @@
 
 <script lang="ts">
 import { ref, computed, watch } from 'vue'
-import InputText from 'primevue/inputtext';
-import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProfileStore } from '@/store/profileStore';
+import { useSuggestionStore } from '@/store/suggestionStore'
 import { useRouter } from 'vue-router';
+import InputText from 'primevue/inputtext';
+import Avatar from 'primevue/avatar';
 import userTask from '@/components/userTask.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
@@ -307,6 +316,7 @@ export default {
         const projectStore = useProjectStore()
         const taskStore = useTaskStore()
         const profileStore = useProfileStore()
+        const suggestionStore = useSuggestionStore()
         const router = useRouter()
         const selectedProjectTeammates = ref<any>([])
 
@@ -315,6 +325,8 @@ export default {
         const logOutPopup = ref(false)
         const addProjectTeammate = ref(false)
         const errorHandling = ref(false)
+        const isSuggestion = ref(false)
+        const isTask = ref(false)
         const teammatePoint = ref('')
         const taskName = ref('')
         const reasonPoint = ref('')
@@ -364,13 +376,17 @@ export default {
             }
         })
 
-        watch(createNewTask, () => {
+        watch(createNewTask, (newValue: any) => {
             taskName.value = ''
             taskDescription.value = ''
             selectedDropTeammate.value = null
             selectedDropDeadlinePeriod.value = null
             selectedPoint.value = 0
             selectedUnit.value = 0
+            if (!newValue) {
+                isTask.value = false
+                isSuggestion.value = false
+            }
         })
 
         function logOut() {
@@ -395,6 +411,21 @@ export default {
             taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value).then(() => {
                 taskStore.changeLoading(false)
                 createNewTask.value = false
+            }).catch(() => {
+                taskStore.changeLoading(false)
+                createNewTask.value = false
+                errorHandling.value = true
+            })
+        }
+
+        function addSuggestion() {
+            taskStore.changeLoading(true)
+            errorHandling.value = false
+            suggestionStore.postSuggestion(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value).then(() => {
+                projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                    taskStore.changeLoading(false)
+                    createNewTask.value = false
+                })
             }).catch(() => {
                 taskStore.changeLoading(false)
                 createNewTask.value = false
@@ -462,6 +493,9 @@ export default {
             addTeammate,
             callProjectTeammate,
             logOut,
+            addSuggestion,
+            isSuggestion,
+            isTask,
             logOutPopup,
             errorHandling,
             userPosition,

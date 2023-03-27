@@ -64,7 +64,7 @@
             <Card
                 class="w-full shadow-none sm:shadow-md relative rounded-2xl border-t-0 sm:border-t-4 border-orange-300 mb-0 sm:mb-10">
                 <template #header>
-                    <div class="cursor-pointer bg-gray-100 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
+                    <div class="bg-gray-100 w-14 h-14 absolute top-5 left-5 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
                         <i class="pi pi-user" style="font-size: 1.2rem"></i>
                         <i v-if="currentTask.status === 'done'"
@@ -81,32 +81,40 @@
                         <p v-else-if="currentTask.deadline.unit === 'hour'">ساعت</p>
                         <p v-else-if="currentTask.deadline.unit === 'month'">ماه</p>
                     </div>
-                    <div v-if="currentTask.status === 'undone' && currentTask.responsible.username === userName"
+                    <div v-if="currentTask.type === 'suggestion'"
                         class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
-                        <Button label="تسک در حال انجام" icon="pi pi-times-circle" :loading="taskLoading"
-                            class="p-button-sm p-button-danger text-md rounded-lg" @click="taskStatus('pending')" />
+                        <Button label="پیشنهاد در انتظار تایید" icon="pi pi-times-circle" :loading="taskLoading"
+                            class="p-button-sm p-button-warning text-md rounded-lg" @click="setSuggestionToTask" :disabled="userPosition !== 'manager'"/>
                     </div>
-                    <template v-if="currentTask.status === 'pending'">
-                        <div v-if="userPosition === 'manager'"
+                    <template v-if="currentTask.type === 'task'">
+                        <div v-if="currentTask.status === 'undone' && currentTask.responsible.username === userName"
                             class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
                             @click="openStatus = !openStatus">
-                            <SelectButton dir="ltr" v-model="value" :options="options" optionLabel="name" aria-labelledby="basic"
-                                class="rounded-xl" />
+                            <Button label="تسک در حال انجام" icon="pi pi-times-circle" :loading="taskLoading"
+                                class="p-button-sm p-button-danger text-md rounded-lg" @click="taskStatus('pending')" />
                         </div>
-                        <div v-if="userPosition !== 'manager' && currentTask.responsible.username === userName"
+                        <template v-if="currentTask.status === 'pending'">
+                            <div v-if="userPosition === 'manager'"
+                                class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                                @click="openStatus = !openStatus">
+                                <SelectButton dir="ltr" v-model="value" :options="options" optionLabel="name"
+                                    aria-labelledby="basic" class="rounded-xl" />
+                            </div>
+                            <div v-if="userPosition !== 'manager' && currentTask.responsible.username === userName"
+                                class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
+                                @click="openStatus = !openStatus">
+                                <Button label="تسک در انتضار تایید" icon="pi pi-clock" :loading="taskLoading"
+                                    class="p-button-sm p-button-warning text-md rounded-lg" disabled />
+                            </div>
+                        </template>
+                        <div v-if="currentTask.status === 'done'"
                             class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
                             @click="openStatus = !openStatus">
-                            <Button label="تسک در انتضار تایید" icon="pi pi-clock" :loading="taskLoading"
-                                class="p-button-sm p-button-warning text-md rounded-lg" disabled />
+                            <Button v-if="currentTask.status === 'done'" label="تسک تایید شد" icon="pi pi-check"
+                                :loading="taskLoading" class="p-button-sm p-button-success text-md rounded-lg" />
                         </div>
                     </template>
-                    <div v-if="currentTask.status === 'done'"
-                        class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
-                        @click="openStatus = !openStatus">
-                        <Button v-if="currentTask.status === 'done'" label="تسک تایید شد" icon="pi pi-check"
-                            :loading="taskLoading" class="p-button-sm p-button-success text-md rounded-lg" />
-                    </div>
                     <div class="ribbon">
                         <span class="font-iransans shadow-md bg-light-blue">{{ currentTask.point }}</span>
                     </div>
@@ -210,6 +218,7 @@ import { useProfileStore } from '@/store/profileStore';
 import { useDeskStore } from '@/store/deskStore';
 import { useTaskStore } from '@/store/taskStore';
 import { useProjectStore } from '@/store/projectStore';
+import { useSuggestionStore } from '@/store/suggestionStore';
 import { useRouter } from 'vue-router';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
@@ -287,6 +296,7 @@ export default {
         const deskStore = useDeskStore()
         const projectStore = useProjectStore()
         const taskStore = useTaskStore()
+        const suggestionStore = useSuggestionStore()
 
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const comment = ref('')
@@ -366,6 +376,19 @@ export default {
             taskStatus(newValue.value)
         })
 
+        function setSuggestionToTask() {
+            taskStore.changeLoading(true)
+            errorHandling.value = false
+            suggestionStore.setSuggestionToTask(props.id).then(() => {
+                taskStore.setCurrentTask(props.id).then(() => {
+                    taskStore.changeLoading(false)
+                })
+            }).catch(() => {
+                taskStore.changeLoading(false)
+                errorHandling.value = true
+            })
+        }
+
         // let timer = ref<any>(0)
 
         // const currentTaskDeadline = computed(() => {
@@ -384,6 +407,7 @@ export default {
             taskStatus,
             addTaskComment,
             logOut,
+            setSuggestionToTask,
             currentProject,
             sideBar,
             currentDesk,

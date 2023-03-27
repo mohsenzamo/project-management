@@ -167,7 +167,7 @@
                             <div class="flex flex-col">
                                 <Button @click="(exchangeModal = true) && (exchangePoint = 0)" type="button"
                                     label="تبدیل امتیاز" icon="pi pi-sync"
-                                    class="p-button-sm rounded-lg w-fit text-sm font-bold" dir="ltr"
+                                    class="p-button-sm rounded-lg w-fit text-sm font-bold"
                                     :disabled="profile.point === 0" />
                                 <div>
                                     <p v-if="exchangeHistory.length === 0" class="text-center text-lg">سابقه ای موجود نیست

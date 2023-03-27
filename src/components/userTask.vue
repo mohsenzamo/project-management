@@ -4,6 +4,10 @@
             <Button icon="pi pi-plus" label="تسک جدید" class="p-button-info p-button-sm text-sm rounded-md"
                 @click="$emit('callPopupTask')" />
         </div>
+        <div v-if="userPosition === 'employer'" class="w-full flex mb-4">
+            <Button icon="pi pi-plus" label="پیشنهاد جدید" class="p-button-info p-button-sm text-sm rounded-md"
+                @click="$emit('callPopupSuggestion')" />
+        </div>
         <div class="flex flex-col md:flex-row justify-center md:justify-start items-center md:items-start gap-4">
             <div v-if="taskLoading || deskLoading" class="w-full md:w-4/5 flex mt-40">
                 <ProgressSpinner />
@@ -21,12 +25,16 @@
                         <div v-for="task in foundedTask.length === 0 ? currentTask : foundedTask" :key="task._id"
                             class="w-full mx-auto mb-3 bg-slate-100 rounded-xl flex justify-between items-center border-r-2 border-green-500 py-2 px-3 shadow-md">
                             <div class="flex gap-2 items-center">
-                                <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
-                                    class="cursor-pointer bg-inherit" />
-                                <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle"
-                                    class="cursor-pointer bg-inherit" />
-                                <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle"
-                                    class="cursor-pointer bg-inherit" />
+                                <template v-if="task.type === 'task'">
+                                    <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
+                                        class="cursor-pointer bg-inherit" />
+                                    <Avatar v-else-if="task.status === 'undone'" icon="pi pi-times" shape="circle"
+                                        class="cursor-pointer bg-inherit" />
+                                    <Avatar v-else-if="task.status === 'pending'" icon="pi pi-clock" shape="circle"
+                                        class="cursor-pointer bg-inherit" />
+                                </template>
+                                <Avatar v-else icon="pi pi-question" shape="circle" class="cursor-pointer bg-inherit" />
+
                                 <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.title }}</p>
                             </div>
                             <div class="flex gap-2 items-center relative">
@@ -68,18 +76,26 @@
                                             @click="taskBars = null" />
                                     </div>
                                 </transition>
-                                <Avatar v-if="userPosition === 'manager'" icon="pi pi-pencil" shape="circle"
-                                    class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white"
+                                <Avatar v-if="userPosition === 'manager' && task.type === 'task'" icon="pi pi-pencil"
+                                    shape="circle" class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white"
                                     @click="setChangedTask(task)" />
-                                <Avatar v-if="userPosition === 'manager'" icon="pi pi-trash" shape="circle"
-                                    class="cursor-pointer bg-inherit hover:bg-red-400 hover:text-white"
+                                <Avatar v-if="userPosition === 'employer' && task.type === 'suggestion'" icon="pi pi-pencil"
+                                    shape="circle" class="cursor-pointer bg-inherit hover:bg-yellow-400 hover:text-white"
+                                    @click="setChangedTask(task)" />
+                                <Avatar v-if="userPosition === 'manager' && task.type === 'task'" icon="pi pi-trash"
+                                    shape="circle" class="cursor-pointer bg-inherit hover:bg-red-400 hover:text-white"
+                                    :class="{ 'bg-red-400': taskDelete === task }"
+                                    @click="(taskDelete = task) && (taskBars = false)" />
+                                <Avatar v-if="userPosition === 'employer' && task.type === 'suggestion'" icon="pi pi-trash"
+                                    shape="circle" class="cursor-pointer bg-inherit hover:bg-red-400 hover:text-white"
                                     :class="{ 'bg-red-400': taskDelete === task }"
                                     @click="(taskDelete = task) && (taskBars = false)" />
                                 <transition name="modal">
                                     <div v-if="taskDelete === task"
                                         class="task-popup-delete flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
                                         <i class="pi pi-exclamation-circle" style="font-size: 1.8rem;"></i>
-                                        <p>تسک {{ taskDelete.title }} حذف شود؟</p>
+                                        <p v-if="taskDelete.type === 'task'">تسک {{ taskDelete.title }} حذف شود؟</p>
+                                        <p v-else>پیشنهاد {{ taskDelete.title }} حذف شود؟</p>
                                         <div class="flex gap-2">
                                             <Button label="انصراف"
                                                 class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
@@ -182,11 +198,15 @@
 
     <transition name="modal">
         <popUp v-if="taskChange" @close="taskChange = null">
-            <p class="font-bold my-2">تسک خود را ویرایش کنید:</p>
+            <p v-if="isTask" class="font-bold my-2">تسک خود را ویرایش کنید:</p>
+            <p v-if="isSuggestion" class="font-bold my-2">پیشنهاد خود را ویرایش کنید:</p>
             <div class="flex flex-col sm:flex-row gap-2 sm:gap-4 mb-3">
                 <div class="w-full sm:w-1/2">
-                    <p class="mb-2">نام تسک:</p>
-                    <InputText v-model="taskChange.title" type="text" placeholder="نام تسک..."
+                    <p v-if="isTask" class="mb-2">نام تسک:</p>
+                    <p v-if="isSuggestion" class="mb-2">نام پیشنهاد:</p>
+                    <InputText v-if="isTask" v-model="taskChange.title" type="text" placeholder="نام تسک..."
+                        class="w-full rounded-lg py-1.5 px-3" />
+                    <InputText v-if="isSuggestion" v-model="taskChange.title" type="text" placeholder="نام پیشنهاد..."
                         class="w-full rounded-lg py-1.5 px-3" />
                 </div>
                 <div class="w-full sm:w-1/2">
@@ -245,9 +265,14 @@
                     </Editor>
                 </div>
                 <div class="w-1/3 flex flex-col justify-center items-center gap-2 pt-5">
-                    <Button label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg" :loading="taskLoading"
+                    <Button v-if="isTask" label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                        :loading="taskLoading"
                         :disabled="!(taskChange.title.length > 0 && taskChange.point !== 0 && selectedDropTeammateChange && deadlinePeriod && taskChange.deadline.n !== 0 && taskChange.description)"
                         @click="editTask" />
+                    <Button v-if="isSuggestion" label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg"
+                        :loading="taskLoading"
+                        :disabled="!(taskChange.title.length > 0 && taskChange.point !== 0 && selectedDropTeammateChange && deadlinePeriod && taskChange.deadline.n !== 0 && taskChange.description)"
+                        @click="editSuggestion" />
                     <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
                         @click="taskChange = null" />
                 </div>
@@ -263,6 +288,7 @@ import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProfileStore } from '@/store/profileStore';
 import { useMemberStore } from '@/store/memberStore';
+import { useSuggestionStore } from '@/store/suggestionStore';
 import Dropdown from 'primevue/dropdown';
 import Chip from 'primevue/chip';
 import Button from 'primevue/button';
@@ -306,6 +332,7 @@ export default {
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
         const memberStore = useMemberStore()
+        const suggestionStore = useSuggestionStore()
 
         const taskSearch = ref('')
         const foundedTask = ref<any>([])
@@ -318,6 +345,8 @@ export default {
         const taskBars = ref<any>(null)
         const taskResponsibleMember = ref<any>(null)
         const taskResponsibleModal = ref(false)
+        const isTask = ref(false)
+        const isSuggestion = ref(false)
         const taskChange = ref<any>(null)
         const deadlinePeriod = ref<any>(null)
         const deadlinePeriodDrop = ref([
@@ -365,10 +394,19 @@ export default {
 
         function deleteTask() {
             taskStore.changeLoading(true)
-            taskStore.deleteTask(currentProject.value._id, taskDelete.value).then(() => {
-                taskStore.changeLoading(false)
-                taskDelete.value = null
-            })
+            if (taskDelete.value.type === 'task') {
+                taskStore.deleteTask(currentProject.value._id, taskDelete.value).then(() => {
+                    taskStore.changeLoading(false)
+                    taskDelete.value = null
+                })
+            } else {
+                suggestionStore.deleteSuggestion(taskDelete.value).then(() => {
+                    projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                        taskStore.changeLoading(false)
+                        taskDelete.value = null
+                    });
+                })
+            }
         }
 
         watch(currentTask, () => {
@@ -448,6 +486,13 @@ export default {
 
         function setChangedTask(task: any) {
             taskChange.value = Object.assign({}, task)
+            if (task.type === 'suggestion') {
+                isSuggestion.value = true
+                isTask.value = false
+            } else if (task.type === 'task') {
+                isTask.value = true
+                isSuggestion.value = false
+            }
             selectedDropTeammateChange.value = { name: task.responsible.username, code: task.responsible.username }
             if (task.deadline.unit === 'month') {
                 deadlinePeriod.value = { name: 'ماه', code: 'month' }
@@ -466,6 +511,16 @@ export default {
             })
         }
 
+        function editSuggestion() {
+            taskStore.changeLoading(true)
+            suggestionStore.editSuggestion(taskChange.value, selectedDropTeammateChange.value.code, deadlinePeriod.value.code).then(() => {
+                projectStore.setCurrentProject(currentProject.value._id).then(() => {
+                    taskStore.changeLoading(false)
+                    taskChange.value = null
+                })
+            })
+        }
+
 
         function callTaskResponsibleMember(username: any) {
             taskResponsibleModal.value = true
@@ -479,6 +534,9 @@ export default {
             setChangedTask,
             deleteTask,
             callTaskResponsibleMember,
+            editSuggestion,
+            isSuggestion,
+            isTask,
             taskResponsibleModal,
             taskResponsibleMember,
             chartData,
