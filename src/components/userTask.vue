@@ -364,7 +364,7 @@ export default {
         function deleteTask() {
             taskStore.changeLoading(true)
             taskStore.deleteTask(currentProject.value._id, taskDelete.value).then(() => {
-                taskStore.changeLoading(true)
+                taskStore.changeLoading(false)
                 taskDelete.value = null
             })
         }

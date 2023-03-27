@@ -25,7 +25,7 @@
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full flex flex-col gap-4 mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="isMyTask">
                                 <template v-for="task in currentDesk.tasks" :key="task._id">
                                     <div v-if="task.responsible.username === currentUsername"
@@ -47,14 +47,14 @@
                         </div>
                     </template>
                 </Card>
-                <Card class="w-full shadow-md rounded-lg overflow-hidden">
+                <Card class="w-full shadow-md rounded-lg">
                     <template #header>
                         <div class="bg-blue-400 rounded-t-sm p-2 text-white">
                             کارهای دیگران
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full flex flex-col gap-4 mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="isTeammateTask">
                                 <template v-for="task in currentDesk.tasks" :key="task._id">
                                     <div v-if="task.responsible.username !== currentUsername"
@@ -85,7 +85,7 @@
                         </div>
                     </template>
                     <template #content>
-                        <div class="w-full flex flex-col gap-4 mx-0">
+                        <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="currentDesk.projects.length > 0">
                                 <div v-for="project in currentDesk.projects" :key="project._id"
                                     class="bg-gray-100 text-sm py-2 px-4 rounded-md shadow-md">
