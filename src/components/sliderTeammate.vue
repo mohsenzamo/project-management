@@ -8,12 +8,12 @@
                         <Chip :label="teammate.username" icon="pi pi-user"
                             class="h-fit max-w-full border-t-2 border-blue-400 rounded-lg overflow-hidden py-1 px-5" />
                     </li>
-                    <li v-if="userPosition === 'manager'" class="splide__slide py-2 flex justify-center items-center">
+                    <li v-if="userPosition === 'manager' && members.length > 0" class="splide__slide py-2 flex justify-center items-center">
                         <Chip label="افزودن" icon="pi pi-plus" @click="currentEditDesk"
                             class="h-fit border-t-2 border-blue-400 rounded-lg py-1 px-5" />
                     </li>
                 </template>
-                <template v-else-if="userPosition === 'manager'">
+                <template v-else-if="userPosition === 'manager' && members.length > 0">
                     <li class="splide__slide py-2 flex justify-center items-center">
                         <Chip label="افزودن" icon="pi pi-plus" @click="currentEditDesk"
                             class="h-fit border-t-2 border-blue-400 rounded-lg py-1 px-5" />
@@ -36,8 +36,10 @@
                 <div class="flex flex-col justify-center items-center gap-2 my-2">
                     <Message v-if="notFoundedUser" severity="error" dir="ltr" icon="pi-user">همکاری با این نام کاربری ثبت
                         نشده است</Message>
-                    <InputText v-model="teammateUsername" type="text" placeholder="نام کاربری"
-                        class="w-full sm:w-1/2 rounded-lg" />
+                    <MultiSelect v-model="selectedMembers" :options="members" filter optionLabel="name"
+                        placeholder="انتخاب همکار" class="w-full md:w-20rem" />
+                    <!-- <InputText v-model="teammateUsername" type="text" placeholder="نام کاربری"
+                        class="w-full sm:w-1/2 rounded-lg" /> -->
                 </div>
             </div>
             <div class="w-full flex justify-center items-center gap-2">
@@ -83,11 +85,13 @@
 import { computed, onMounted, ref } from 'vue'
 import { useDeskStore } from '@/store/deskStore';
 import { useProfileStore } from '@/store/profileStore';
+import { useMemberStore } from '@/store/memberStore';
 import Chip from 'primevue/chip';
 import popUp from '@/components/popUp.vue';
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
 import Message from 'primevue/message';
+import MultiSelect from 'primevue/multiselect';
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
@@ -99,7 +103,8 @@ export default {
         popUp,
         Button,
         InputText,
-        Message
+        Message,
+        MultiSelect
     },
 
     setup() {
@@ -130,6 +135,7 @@ export default {
 
         const deskStore = useDeskStore()
         const profileStore = useProfileStore()
+        const memberStore = useMemberStore()
 
         const modalEditDesk = ref(false)
         const notFoundedUser = ref(false)
@@ -137,10 +143,28 @@ export default {
         const teammatePoint = ref('')
         const reasonPoint = ref('')
         const extraPoint = ref<number>(0)
+        const selectedMembers = ref<any>()
 
         const currentDesk = computed(() => deskStore.currentDesk)
         const currentTeammates = computed(() => deskStore.currentDesk.teammates)
         const userPosition = computed(() => profileStore.userProfile.position)
+        const members = computed(() => {
+            let arr: any = []
+            Object.values(memberStore.allMember).forEach((member: any) => {
+                member.forEach((index: any) => {
+                    let isThere = false
+                    currentDesk.value.teammates.forEach((item: any) => {
+                        if (item.username === index.username) {
+                            isThere = true
+                        }
+                    })
+                    if (!isThere) {
+                        arr.push({ name: index.username, code: index.username })
+                    }
+                })
+            })
+            return arr
+        })
 
         function currentEditDesk() {
             teammateUsername.value = ''
@@ -160,10 +184,12 @@ export default {
 
         function editDesk() {
             deskStore.changeLoading(true)
-            deskStore.addTeammate(currentDesk.value._id, teammateUsername.value).then(() => {
-                deskStore.setCurrentDesk(currentDesk.value._id).then(() => {
-                    deskStore.changeLoading(false)
-                })
+            deskStore.addTeammate(currentDesk.value._id, selectedMembers.value).then(() => {
+                setTimeout(() => {
+                    deskStore.setCurrentDesk(currentDesk.value._id).then(() => {
+                        deskStore.changeLoading(false)
+                    })
+                }, 1000);
             })
         }
 
@@ -179,7 +205,9 @@ export default {
             teammateUsername,
             notFoundedUser,
             reasonPoint,
-            teammatePoint
+            teammatePoint,
+            members,
+            selectedMembers
         }
     },
 }

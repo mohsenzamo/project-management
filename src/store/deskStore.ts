@@ -142,26 +142,33 @@ export const useDeskStore = defineStore("useDeskStore", {
           });
       });
     },
-    addTeammate(deskId: string, teammateUsername: string) {
-      const config = {
-        method: "post",
-        url: process.env.VUE_APP_BASE_API_URL + "/teammates/workdesk/" + deskId,
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json",
-        },
-        data: {
-          username: teammateUsername,
-        },
-      };
+    addTeammate(deskId: string, members: any) {
       return new Promise((resolve, reject) => {
-        axios(config)
-          .then((response) => {
-            resolve(response);
-          })
-          .catch((error) => {
-            reject(error);
+        let isDone = true;
+        members.forEach(async (member: any) => {
+          const config = {
+            method: "post",
+            url:
+              process.env.VUE_APP_BASE_API_URL +
+              "/teammates/workdesk/" +
+              deskId,
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+              "Content-Type": "application/json",
+            },
+            data: {
+              username: member.code,
+            },
+          };
+          await axios(config).catch(() => {
+            isDone = false;
           });
+        });
+        if (isDone) {
+          resolve("success");
+        } else {
+          reject("fail");
+        }
       });
     },
     changeLoading(bool: boolean) {

@@ -100,11 +100,12 @@
 
 <script lang="ts">
 import { ref, computed, watch } from 'vue'
-import InputText from 'primevue/inputtext';
-import Avatar from 'primevue/avatar';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useRouter } from 'vue-router';
+import { useMemberStore } from '@/store/memberStore';
+import InputText from 'primevue/inputtext';
+import Avatar from 'primevue/avatar';
 import userDashboard from '@/components/userDashboard.vue';
 import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
@@ -128,12 +129,15 @@ export default {
 
     beforeRouteEnter(to: any, from: any, next: any) {
         const deskStore = useDeskStore()
+        const memberStore = useMemberStore()
         deskStore.changeLoading(true)
         if (Object.values(deskStore.allDesk).length === 0) {
             next({ path: '/panel' })
         } else {
             deskStore.setCurrentDesk(to.params.id).then(() => {
-                deskStore.changeLoading(false)
+                memberStore.fetchMembers().then(() => {
+                    deskStore.changeLoading(false)
+                })
                 next()
             }).catch(() => {
                 next({ path: '/panel' })

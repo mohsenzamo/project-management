@@ -262,6 +262,7 @@ import { useTaskStore } from '@/store/taskStore';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProfileStore } from '@/store/profileStore';
+import { useMemberStore } from '@/store/memberStore';
 import Dropdown from 'primevue/dropdown';
 import Chip from 'primevue/chip';
 import Button from 'primevue/button';
@@ -304,6 +305,7 @@ export default {
         const taskStore = useTaskStore()
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
+        const memberStore = useMemberStore()
 
         const taskSearch = ref('')
         const foundedTask = ref<any>([])
@@ -384,7 +386,6 @@ export default {
             let textArray: any = []
             let isDoneArray: any = []
             let selectedTeammateArray: any = []
-            let selectedSortArray: any = []
             let data: any = []
             let result: any = []
             if (text && text.length > 0) {
@@ -468,7 +469,7 @@ export default {
 
         function callTaskResponsibleMember(username: any) {
             taskResponsibleModal.value = true
-            taskStore.getTaskResponsible(username).then((res: any) => {
+            memberStore.getMemberOne(username).then((res: any) => {
                 taskResponsibleMember.value = res.data.profile
             })
         }
