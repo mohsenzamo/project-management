@@ -111,6 +111,7 @@ import popUp from '@/components/popUp.vue';
 import Button from 'primevue/button';
 import ProgressSpinner from 'primevue/progressspinner';
 import errorMassege from '@/components/errorMassege.vue';
+import { useProfileStore } from '@/store/profileStore';
 
 export default {
     name: 'UserPanel',
@@ -130,14 +131,20 @@ export default {
     beforeRouteEnter(to: any, from: any, next: any) {
         const deskStore = useDeskStore()
         const memberStore = useMemberStore()
+        const profileStore = useProfileStore()
+        const userPosition = profileStore.userProfile.position
         deskStore.changeLoading(true)
         if (Object.values(deskStore.allDesk).length === 0) {
             next({ path: '/panel' })
         } else {
             deskStore.setCurrentDesk(to.params.id).then(() => {
-                memberStore.fetchMembers().then(() => {
+                if (userPosition === 'manager') {
+                    memberStore.fetchMembers().then(() => {
+                        deskStore.changeLoading(false)
+                    })
+                } else {
                     deskStore.changeLoading(false)
-                })
+                }
                 next()
             }).catch(() => {
                 next({ path: '/panel' })
