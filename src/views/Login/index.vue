@@ -83,7 +83,6 @@
                     </p>
                 </template>
             </Card>
-
         </transition>
         <transition name="scaleLeft" appear>
             <Card v-if="!formValue"

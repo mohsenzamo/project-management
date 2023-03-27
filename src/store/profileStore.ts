@@ -5,10 +5,12 @@ export const useProfileStore = defineStore("useProfileStore", {
   state: () => ({
     profile: {} as any,
     loading: false as boolean,
+    history: [] as any,
   }),
   getters: {
     userProfile: (state) => state.profile,
     profileLoading: (state) => state.loading,
+    exchangeHistory: (state) => state.history,
   },
   actions: {
     fetchProfile() {
@@ -110,6 +112,48 @@ export const useProfileStore = defineStore("useProfileStore", {
       return new Promise((resolve, reject) => {
         axios(config)
           .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    exchangePoint(point: number) {
+      const config = {
+        method: "post",
+        url: process.env.VUE_APP_BASE_API_URL + "/points/exchange",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+        data: {
+          point: point,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    fetchExchange() {
+      const config = {
+        method: "get",
+        url: process.env.VUE_APP_BASE_API_URL + "/points/exchange",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response: any) => {
+            this.history = response.data.history;
             resolve(response);
           })
           .catch((error) => {

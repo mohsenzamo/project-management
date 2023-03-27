@@ -121,6 +121,25 @@ export const useTaskStore = defineStore("useTaskStore", {
           });
       });
     },
+    getTaskResponsible(username: any) {
+      const config = {
+        method: "get",
+        url: process.env.VUE_APP_BASE_API_URL + "/members/one/" + username,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "application/json",
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
     changeStatus(taskId: any, status: string) {
       let config = {};
       if (status === "pending") {

@@ -40,7 +40,8 @@
                                     icon="pi pi-clock"
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip :label="task.responsible.username" icon="pi pi-user"
-                                    class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
+                                    class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg"
+                                    @click="userPosition === 'manager' ? callTaskResponsibleMember(task.responsible.username) : null" />
                                 <Chip :label="task.point + 'امتیاز'" icon="pi pi-star"
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Avatar icon="pi pi-bars" shape="circle"
@@ -140,6 +141,44 @@
             </div>
         </div>
     </div>
+
+    <transition name="modal">
+        <popUp v-if="taskResponsibleModal" @close="(taskResponsibleModal = false) && (taskResponsibleMember = null)">
+            <div v-if="taskResponsibleMember" class="grid grid-cols-2">
+                <p>
+                    <span>نام:</span>
+                    <span>{{ taskResponsibleMember.fname }}</span>
+                </p>
+                <p>
+                    <span>نام خانوادگی:</span>
+                    <span>{{ taskResponsibleMember.lname }}</span>
+                </p>
+                <p>
+                    <span>نام کاربری:</span>
+                    <span>{{ taskResponsibleMember.username }}</span>
+                </p>
+                <p>
+                    <span>ایمیل:</span>
+                    <span>{{ taskResponsibleMember.email }}</span>
+                </p>
+                <p>
+                    <span>پوینت:</span>
+                    <span>{{ taskResponsibleMember.point }}</span>
+                </p>
+                <p>
+                    <span>شماره:</span>
+                    <span>{{ taskResponsibleMember.phone }}</span>
+                </p>
+            </div>
+            <div v-else>
+                <ProgressSpinner />
+            </div>
+            <div class="w-full flex justify-center items-center gap-2 pt-5">
+                <Button label="بستن" class="p-button-sm p-button-danger w-20 h-10 rounded-lg"
+                    @click="(taskResponsibleModal = false) && (taskResponsibleMember = null)" />
+            </div>
+        </popUp>
+    </transition>
 
     <transition name="modal">
         <popUp v-if="taskChange" @close="taskChange = null">
@@ -275,6 +314,8 @@ export default {
         const selectedDropTeammateChange = ref<any>(null)
         const selectedSort = ref('not')
         const taskBars = ref<any>(null)
+        const taskResponsibleMember = ref<any>(null)
+        const taskResponsibleModal = ref(false)
         const taskChange = ref<any>(null)
         const deadlinePeriod = ref<any>(null)
         const deadlinePeriodDrop = ref([
@@ -423,10 +464,22 @@ export default {
                 taskChange.value = null
             })
         }
+
+
+        function callTaskResponsibleMember(username: any) {
+            taskResponsibleModal.value = true
+            taskStore.getTaskResponsible(username).then((res: any) => {
+                taskResponsibleMember.value = res.data.profile
+            })
+        }
+
         return {
             editTask,
             setChangedTask,
             deleteTask,
+            callTaskResponsibleMember,
+            taskResponsibleModal,
+            taskResponsibleMember,
             chartData,
             teammatesDropChange,
             taskDelete,
