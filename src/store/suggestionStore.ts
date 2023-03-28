@@ -100,10 +100,36 @@ export const useSuggestionStore = defineStore("useSuggestionStore", {
     deleteSuggestion(suggestion: any) {
       const config = {
         method: "delete",
-        url: process.env.VUE_APP_BASE_API_URL + "/suggestions/" + suggestion._id,
+        url:
+          process.env.VUE_APP_BASE_API_URL + "/suggestions/" + suggestion._id,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
           "Content-Type": "application/json",
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    attachFile(suggestionId: string, file: any) {
+      const config = {
+        method: "post",
+        url:
+          process.env.VUE_APP_BASE_API_URL_UPLOAD +
+          "/uploads/suggestion/" +
+          suggestionId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+        data: {
+          file: file,
         },
       };
       return new Promise((resolve, reject) => {

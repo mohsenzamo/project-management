@@ -26,7 +26,6 @@ export const useTaskStore = defineStore("useTaskStore", {
             resolve(res);
           })
           .catch((error) => {
-            console.log(error);
             reject(error);
           });
       });
@@ -41,42 +40,24 @@ export const useTaskStore = defineStore("useTaskStore", {
       selectedUnit: number,
       selectedTask: any
     ) {
-      let config = {};
-      if (selectedTask === 0) {
-        config = {
-          method: "post",
-          url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-          data: {
-            title: taskName,
-            description: taskDescription,
-            deadline_unit: selectedDropDeadlinePeriod,
-            deadline_n: selectedUnit,
-            responsible: selectedDropTeammate,
-            point: selectedPoint,
-          },
-        };
-      } else {
-        config = {
-          method: "post",
-          url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-            "Content-Type": "multipart/form-data",
-          },
-          data: {
-            title: taskName,
-            description: taskDescription,
-            deadline_unit: selectedDropDeadlinePeriod,
-            deadline_n: selectedUnit,
-            responsible: selectedDropTeammate,
-            point: selectedPoint,
-            dependentTaskId: selectedTask,
-          },
-        };
+      const config: any = {
+        method: "post",
+        url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+        data: {
+          title: taskName,
+          description: taskDescription,
+          deadline_unit: selectedDropDeadlinePeriod,
+          deadline_n: selectedUnit,
+          responsible: selectedDropTeammate,
+          point: selectedPoint,
+        },
+      };
+      if (selectedTask !== 0) {
+        config.data.dependentTaskId = selectedTask;
       }
       return new Promise((resolve, reject) => {
         axios(config)
@@ -90,8 +71,14 @@ export const useTaskStore = defineStore("useTaskStore", {
           });
       });
     },
-    editTask(projectId: any, task: any, responsible: any, deadlinePeriod: any) {
-      const config = {
+    editTask(
+      projectId: any,
+      task: any,
+      responsible: any,
+      deadlinePeriod: any,
+      selectedTask: any
+    ) {
+      const config: any = {
         method: "patch",
         url: process.env.VUE_APP_BASE_API_URL + "/tasks/one/" + task._id,
         headers: {
@@ -109,12 +96,38 @@ export const useTaskStore = defineStore("useTaskStore", {
           point: task.point,
         },
       };
+      if (selectedTask !== 0) {
+        config.data.dependentTaskId = selectedTask;
+      }
       return new Promise((resolve, reject) => {
         axios(config)
           .then((response) => {
             projectStore.setCurrentProject(projectId).then(() => {
               resolve(response);
             });
+          })
+          .catch((error) => {
+            reject(error);
+          });
+      });
+    },
+    attachFile(taskId: string, file: any) {
+      const config = {
+        method: "post",
+        url:
+          process.env.VUE_APP_BASE_API_URL_UPLOAD + "/uploads/task/" + taskId,
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("access_token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+        data: {
+          file: file,
+        },
+      };
+      return new Promise((resolve, reject) => {
+        axios(config)
+          .then((response) => {
+            resolve(response);
           })
           .catch((error) => {
             reject(error);

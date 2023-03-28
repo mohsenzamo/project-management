@@ -219,6 +219,11 @@
                     <p class="mb-2">پروژه مربوط:</p>
                     <p class="mt-3">{{ currentProject.title }}</p>
                 </div>
+                <div class="w-full sm:w-1/3 flex flex-col justify-center items-center mb-2 sm:mb-0">
+                    <p class="mb-2">تسک مربوط:</p>
+                    <Dropdown v-model="selectedDropTask" :options="taskDrop" optionLabel="name" placeholder="تسک"
+                        class="drop-down" />
+                </div>
             </div>
             <div class="flex items-center flex-shrink flex-wrap mb-4">
                 <div class="w-2/4 sm:w-1/4 flex flex-col justify-center items-center mb-2 sm:mb-0">
@@ -353,6 +358,7 @@ export default {
         const isSuggestion = ref(false)
         const taskChange = ref<any>(null)
         const deadlinePeriod = ref<any>(null)
+        const selectedDropTask = ref<any>(null)
         const deadlinePeriodDrop = ref([
             { name: 'ساعت', code: 'hour' },
             { name: 'روز', code: 'day' },
@@ -394,6 +400,15 @@ export default {
                 }
             }
             return optionChart
+        })
+        const taskDrop: any = computed(() => {
+            let arr: any = []
+            currentProject.value.tasks.forEach((task: any) => {
+                if (task.type === 'task') {
+                    arr.push({ name: task.title, code: task._id })
+                }
+            })
+            return arr
         })
 
         function deleteTask() {
@@ -490,6 +505,14 @@ export default {
 
         function setChangedTask(task: any) {
             taskChange.value = Object.assign({}, task)
+            if (task.dependentTaskId) {
+                taskDrop.value.forEach((index: any) => {
+                    if (index.code === task.dependentTaskId) {
+                        selectedDropTask.value = index
+                    }
+                })
+            }
+            console.log(selectedDropTask.value)
             if (task.type === 'suggestion') {
                 isSuggestion.value = true
                 isTask.value = false
@@ -509,7 +532,7 @@ export default {
 
         function editTask() {
             taskStore.changeLoading(true)
-            taskStore.editTask(currentProject.value._id, taskChange.value, selectedDropTeammateChange.value.code, deadlinePeriod.value.code).then(() => {
+            taskStore.editTask(currentProject.value._id, taskChange.value, selectedDropTeammateChange.value.code, deadlinePeriod.value.code, selectedDropTask.value.code).then(() => {
                 taskStore.changeLoading(false)
                 taskChange.value = null
             })
@@ -551,12 +574,14 @@ export default {
             editSuggestion,
             taskFound,
             isSuggestion,
+            selectedDropTask,
             isTask,
             taskResponsibleModal,
             taskResponsibleMember,
             chartData,
             teammatesDropChange,
             taskDelete,
+            taskDrop,
             currentTask,
             deadlinePeriod,
             foundedTask,

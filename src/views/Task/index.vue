@@ -84,7 +84,7 @@
                     <div v-if="currentTask.type === 'suggestion'"
                         class="cursor-pointer bg-gray-100 absolute top-7 left-44 rounded-full flex items-center justify-center shadow-lg"
                         @click="openStatus = !openStatus">
-                        <Button label="پیشنهاد در انتظار تایید" icon="pi pi-times-circle" :loading="taskLoading"
+                        <Button label="پیشنهاد در انتظار تایید" icon="pi pi-question" :loading="taskLoading"
                             class="p-button-sm p-button-warning text-md rounded-lg" @click="setSuggestionToTask"
                             :disabled="userPosition !== 'manager'" />
                     </div>
@@ -146,76 +146,97 @@
                                 class="w-full" />
                             <p v-else>----</p>
                         </div>
-                        <!-- <div class="splide splide_project mx-auto px-4" role="group" style="width: 99%;">
+                        <div v-if="!taskLoading && isSlider" class="splide splide_project mx-auto px-4" role="group"
+                            style="width: 99%;">
                             <div class="splide__track">
                                 <ul class="splide__list">
-                                    <li class="splide__slide">
-                                        <label
-                                            class="h-full w-100 flex flex-col justify-center items-center px-4 py-8 bg-gray-100 rounded-xl tracking-wide border cursor-pointer hover:text-light-blue">
-                                            <i class="pi pi-image text-xl"></i>
-                                            <span class="mt-2 text-lg leading-normal">انتخاب عکس</span>
-                                            <input type='file' class="hidden" />
-                                        </label>
-                                    </li>
-                                    <li class="splide__slide cursor-pointer relative rounded-xl overflow-hidden border border-gray-200" v-for="i in 5" :key="i"
-                                        @click="modalImage = true" @mouseenter="shadowBack = i"
-                                        @mouseleave="shadowBack = -1">
-                                        <img src="/images/dashboard.jpg" class="w-full h-auto mx-auto" />
-                                        <div v-if="shadowBack === i"
-                                            class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
-                                            <i class="pi pi-eye text-white cursor-pointer" style="font-size: 1.8rem;"></i>
-                                        </div>
-                                    </li>
+                                    <template v-if="currentTask.type === 'task'">
+                                        <li v-if="userPosition === 'manager'" class="splide__slide">
+                                            <label
+                                                class="h-full w-100 flex flex-col justify-center items-center px-4 py-8 bg-gray-100 rounded-xl tracking-wide border cursor-pointer hover:text-light-blue">
+                                                <i class="pi pi-image text-xl"></i>
+                                                <span class="mt-2 text-lg leading-normal">انتخاب عکس</span>
+                                                <input type='file' class="hidden" @change="taskFile" />
+                                            </label>
+                                        </li>
+                                    </template>
+                                    <template v-if="currentTask.type === 'suggestion'">
+                                        <li v-if="userPosition === 'employer'" class="splide__slide">
+                                            <label
+                                                class="h-full w-100 flex flex-col justify-center items-center px-4 py-8 bg-gray-100 rounded-xl tracking-wide border cursor-pointer hover:text-light-blue">
+                                                <i class="pi pi-image text-xl"></i>
+                                                <span class="mt-2 text-lg leading-normal">انتخاب عکس</span>
+                                                <input type='file' class="hidden" @change="taskFile" />
+                                            </label>
+                                        </li>
+                                    </template>
+                                    <template v-if="currentTask.attached">
+                                        <li class="splide__slide cursor-pointer relative rounded-xl overflow-hidden border border-gray-200"
+                                            v-for="image in currentTask.attached" :key="image" @click="modalImage = image"
+                                            @mouseenter="shadowBack = image" @mouseleave="shadowBack = -1">
+                                            <div class="h-full w-full flex items-center justify-center">
+                                                <img :src="image" class="w-full h-auto" />
+                                                <div v-if="shadowBack === image"
+                                                    class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
+                                                    <i class="pi pi-eye text-white cursor-pointer"
+                                                        style="font-size: 1.8rem;"></i>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </template>
                                 </ul>
                             </div>
-                        </div> -->
-                        <div class="w-full flex flex-col justify-center items-center gap-3 mt-5">
-                            <Dropdown v-model="selectedDropComment" :options="commentSubjectDrop" optionLabel="name"
-                                placeholder="موضوع کامنت" class="drop-down w-full sm:w-9/12 md:w-1/2 border rounded-lg" />
-                            <div class="w-full sm:w-9/12 md:w-1/2 flex items-center justify-center">
-                                <Textarea v-model="comment" :autoResize="true" rows="5" cols="500" class="rounded-lg"
-                                    placeholder="متن کامنت" />
+                        </div>
+                        <template v-if="currentTask.type === 'task'">
+                            <div class="w-full flex flex-col justify-center items-center gap-3 mt-5">
+                                <Dropdown v-model="selectedDropComment" :options="commentSubjectDrop" optionLabel="name"
+                                    placeholder="موضوع کامنت"
+                                    class="drop-down w-full sm:w-9/12 md:w-1/2 border rounded-lg" />
+                                <div class="w-full sm:w-9/12 md:w-1/2 flex items-center justify-center">
+                                    <Textarea v-model="comment" :autoResize="true" rows="5" cols="500" class="rounded-lg"
+                                        placeholder="متن کامنت" />
+                                </div>
+                                <Button label="ثبت" class="p-button-sm p-button-success w-24 sm:w-1/6 text-xl rounded-lg"
+                                    :disabled="comment.length === 0 || !selectedDropComment" @click="addTaskComment" />
                             </div>
-                            <Button label="ثبت" class="p-button-sm p-button-success w-24 sm:w-1/6 text-xl rounded-lg"
-                                :disabled="comment.length === 0 || !selectedDropComment" @click="addTaskComment" />
-                        </div>
 
-                        <div v-if="currentTask.comments.length > 0">
-                            <Card v-for="comment in currentTask.comments" :key="comment._id" class="mt-5">
-                                <template #header>
-                                    <div class="pr-5 text-white font-semibold text-lg"
-                                        :class="{ 'bg-yellow-500': comment.title === 'warning', 'bg-red-500': comment.title === 'error', 'bg-green-500': comment.title === 'successful', 'bg-blue-500': comment.title === 'guide' }">
-                                        <p v-if="comment.title === 'warning'">اخطار</p>
-                                        <p v-else-if="comment.title === 'error'">ارور</p>
-                                        <p v-else-if="comment.title === 'successful'">موفق</p>
-                                        <p v-else-if="comment.title === 'guide'">راهنما</p>
-                                    </div>
-                                </template>
-                                <template #content>
-                                    <p>
-                                        {{ comment.description }}
-                                    </p>
-                                </template>
-                                <template #footer>
-                                    <Chip icon="pi pi-user" :label="comment.user.username"
-                                        class="h-fit rounded-lg overflow-hidden py-1 px-2" />
-                                </template>
-                            </Card>
-                        </div>
+                            <div v-if="currentTask.comments.length > 0">
+                                <Card v-for="comment in currentTask.comments" :key="comment._id" class="mt-5">
+                                    <template #header>
+                                        <div class="pr-5 text-white font-semibold text-lg"
+                                            :class="{ 'bg-yellow-500': comment.title === 'warning', 'bg-red-500': comment.title === 'error', 'bg-green-500': comment.title === 'successful', 'bg-blue-500': comment.title === 'guide' }">
+                                            <p v-if="comment.title === 'warning'">اخطار</p>
+                                            <p v-else-if="comment.title === 'error'">ارور</p>
+                                            <p v-else-if="comment.title === 'successful'">موفق</p>
+                                            <p v-else-if="comment.title === 'guide'">راهنما</p>
+                                        </div>
+                                    </template>
+                                    <template #content>
+                                        <p>
+                                            {{ comment.description }}
+                                        </p>
+                                    </template>
+                                    <template #footer>
+                                        <Chip icon="pi pi-user" :label="comment.user.username"
+                                            class="h-fit rounded-lg overflow-hidden py-1 px-2" />
+                                    </template>
+                                </Card>
+                            </div>
+                        </template>
                     </div>
                 </template>
             </Card>
         </div>
     </div>
 
-    <!-- <transition name="modal">
+    <transition name="modal">
         <div v-if="modalImage" class="fixed inset-0 flex items-center justify-center z-50 lg:z-40">
-            <div class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-70" @click="modalImage = false" />
+            <div class="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-70" @click="modalImage = null" />
             <div class="w-10/12 bg-gray-300 rounded-md shadow-2xl relative animate-open p-2 h-auto lg:w-6/12">
-                <img src="/images/dashboard.jpg" class="w-100 h-auto" />
+                <img :src="modalImage" class="w-100 h-auto" />
             </div>
         </div>
-    </transition> -->
+    </transition>
 </template>
 
 <script lang="ts">
@@ -235,8 +256,8 @@ import Knob from 'primevue/knob';
 import Chip from 'primevue/chip';
 import errorMassege from '@/components/errorMassege.vue';
 import SelectButton from 'primevue/selectbutton';
-// import Splide from '@splidejs/splide';
-// import '@splidejs/splide/dist/css/themes/splide-default.min.css';
+import Splide from '@splidejs/splide';
+import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 
 export default {
     name: 'UserPanel',
@@ -270,26 +291,11 @@ export default {
     },
 
     setup(props: any) {
-        // onMounted(() => {
-        //     const splide = new Splide('.splide', {
-        //         perPage: 3,
-        //         perMove: 1,
-        //         direction: 'rtl',
-        //         pagination: false,
-        //         gap: '1rem',
-        //         autoplay: false,
-        //         breakpoints: {
-        //             1024: {
-        //                 perPage: 2
-        //             },
-        //             660: {
-        //                 perPage: 1
-        //             }
-        //         }
-        //     });
-        //     splide.mount();
-        // })
         onMounted(() => {
+            if (isSlider.value) {
+                createSlider()
+            }
+
             const collection = document.getElementsByClassName("ql-direction-rtl");
             if (Object.values(collection).length > 0) {
                 Object.values(collection).forEach((elmnt: any) => {
@@ -297,6 +303,7 @@ export default {
                 })
             }
         })
+
         const router = useRouter()
         const profileStore = useProfileStore()
         const deskStore = useDeskStore()
@@ -307,7 +314,7 @@ export default {
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const comment = ref('')
         const logOutPopup = ref(false)
-        const modalImage = ref(false)
+        const modalImage = ref<any>(null)
         const errorHandling = ref(false)
         const shadowBack = ref(-1)
         const selectedDropComment = ref<any>(null)
@@ -344,6 +351,21 @@ export default {
             }
             return Math.floor((mines * 100) / deadline)
         })
+        const isSlider = computed(() => {
+            if (currentTask.value.type === 'task') {
+                if (userPosition.value === 'manager') {
+                    return true
+                } else {
+                    return currentTask.value.attached.length > 0 ? true : false
+                }
+            } else {
+                if (userPosition.value === 'employer') {
+                    return true
+                } else {
+                    return currentTask.value.attached.length > 0 ? true : false
+                }
+            }
+        })
 
         function logOut() {
             localStorage.clear();
@@ -376,6 +398,48 @@ export default {
                 taskStore.changeLoading(false)
                 errorHandling.value = true
             })
+        }
+
+        function taskFile(e: any) {
+            const file = e.target.files[0];
+
+            const reader: any = new FileReader();
+            reader.onloadend = () => {
+                taskStore.changeLoading(true)
+                errorHandling.value = false
+                if (currentTask.value.type === 'task') {
+                    taskStore.attachFile(props.id, reader.result).then(() => {
+                        taskStore.setCurrentTask(props.id).then(() => {
+                            taskStore.changeLoading(false)
+                            setTimeout(createSlider, 1000)
+                        }).catch(() => {
+                            taskStore.changeLoading(false)
+                            errorHandling.value = true
+                            setTimeout(createSlider, 1000)
+                        })
+                    }).catch(() => {
+                        taskStore.changeLoading(false)
+                        errorHandling.value = true
+                        setTimeout(createSlider, 1000)
+                    })
+                } else {
+                    suggestionStore.attachFile(props.id, reader.result).then(() => {
+                        taskStore.setCurrentTask(props.id).then(() => {
+                            taskStore.changeLoading(false)
+                            setTimeout(createSlider, 1000)
+                        }).catch(() => {
+                            taskStore.changeLoading(false)
+                            errorHandling.value = true
+                            setTimeout(createSlider, 1000)
+                        })
+                    }).catch(() => {
+                        taskStore.changeLoading(false)
+                        errorHandling.value = true
+                        setTimeout(createSlider, 1000)
+                    })
+                }
+            };
+            reader.readAsDataURL(file);
         }
 
         watch(value, (newValue) => {
@@ -419,17 +483,40 @@ export default {
             return found
         }
 
+        function createSlider() {
+            const splide = new Splide('.splide', {
+                perPage: 3,
+                perMove: 1,
+                direction: 'rtl',
+                pagination: false,
+                gap: '1rem',
+                autoplay: false,
+                wheel: true,
+                breakpoints: {
+                    1024: {
+                        perPage: 2
+                    },
+                    660: {
+                        perPage: 1
+                    }
+                }
+            });
+            splide.mount();
+        }
+
         return {
             taskStatus,
             addTaskComment,
             logOut,
             setSuggestionToTask,
             taskFound,
+            taskFile,
             currentProject,
             sideBar,
             currentDesk,
             currentTask,
             selectedDropComment,
+            isSlider,
             commentSubjectDrop,
             comment,
             openStatus,
