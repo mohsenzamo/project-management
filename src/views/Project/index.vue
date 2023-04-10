@@ -46,6 +46,11 @@
         <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
             class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
             style="box-shadow: .3em 0 .3em .4em #ccc">
+            <p @click="router.go(-1)"
+                class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                <i class="text-green-500 pi pi-arrow-right text-lg"></i>
+                <span>بازگشت</span>
+            </p>
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
                     class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
@@ -54,7 +59,7 @@
                 </p>
             </RouterLink>
             <div class="divider-line mt-2.5"></div>
-            <div class="h-80 flex flex-col justify-start items-end overflow-y-scroll custom">
+            <div class="h-72 flex flex-col justify-start items-end overflow-y-scroll custom">
                 <p class="w-full flex items-center py-1.5 px-5 gap-3.5 rounded-sm cursor-default"
                     :class="{ 'cursor-not-allowed': currentProject.tasks.length === 0 }">
                     <i v-if="currentProject.tasks.length > 0" class="pi pi-angle-down text-yellow-600"
@@ -63,7 +68,7 @@
                     <span>وظایف</span>
                 </p>
                 <template v-if="currentProject.tasks.length > 0">
-                    <p v-for="task in currentProject.tasks" :key="task.name" @click="taskRoutePush(task)"
+                    <p v-for="task in currentProject.tasks" :key="task.name" @click="taskRoutePush(task._id)"
                         class="dashboard-item-hover cursor-pointer flex items-center py-1.5 px-4 gap-3 rounded-sm w-11/12">
                         <i class="pi pi-check-circle text-yellow-600" style="font-size: 1rem;"></i>
                         <span>{{ task.title }}</span>
@@ -87,13 +92,27 @@
                             <div v-for="teammate in currentProject.teammates" :key="teammate.username"
                                 class="flex items-center gap-2 my-1 justify-between">
                                 <p>{{ teammate.username }}</p>
-                                <div v-if="userPosition === 'manager' && currentUsername !== teammate.username">
+                                <div v-if="userPosition === 'manager' && currentUsername !== teammate.username"
+                                    class="relative">
                                     <Avatar icon="pi pi-star" shape="circle"
                                         class="ml-1 cursor-pointer hover:bg-yellow-500 hover:text-white"
                                         @click="teammatePoint = teammate.username" />
+                                    <transition name="modal">
+                                        <div v-if="teammateDelete === teammate.username"
+                                            class="task-popup-delete flex flex-col items-center justify-center gap-2 absolute top-12 left-0 bg-gray-300 w-44 px-2 py-4 rounded-lg shadow-lg z-20">
+                                            کاربر حذف شود؟
+                                            <div class="flex gap-2">
+                                                <Button label="انصراف"
+                                                    class="p-button-sm p-button-secondary w-16 h-8 rounded-md"
+                                                    @click="teammateDelete = null" />
+                                                <Button label="حذف" class="p-button-sm p-button-danger w-16 h-8 rounded-md"
+                                                    @click="removeProjectTeammate(teammateDelete)" />
+                                            </div>
+                                        </div>
+                                    </transition>
                                     <Avatar icon="pi pi-times" shape="circle"
                                         class="cursor-pointer hover:bg-red-500 hover:text-white"
-                                        @click="removeProjectTeammate(teammate.username)" />
+                                        @click="setTeammteDelete(teammate)" />
                                 </div>
                             </div>
                         </div>
@@ -136,7 +155,7 @@
                 </div>
                 <div class="w-full sm:w-1/3 flex flex-col justify-center items-center mb-2 sm:mb-0">
                     <p class="mb-2">تسک مربوط:</p>
-                    <Dropdown v-model="selectedDropTask" :options="taskDrop" optionLabel="name" placeholder="تسک"
+                    <Dropdown v-model="selectedDropTask" :options="taskDrop" optionLabel="name" placeholder="تسک" filter
                         class="drop-down" />
                 </div>
             </div>
@@ -347,6 +366,7 @@ export default {
             { name: 'روز', code: 'day' },
             { name: 'ماه', code: 'month' }
         ])
+        const teammateDelete = ref<any>(null)
 
         const projectLoading = computed(() => projectStore.projectLoading)
         const userPosition = computed(() => profileStore.userProfile.position)
@@ -413,6 +433,10 @@ export default {
             });
         }
 
+        function setTeammteDelete(teammate: any) {
+            teammateDelete.value = teammate.username
+        }
+
         function callProjectTeammate() {
             addProjectTeammate.value = true
             // currentProject.value.teammates.forEach((teammate: any) => {
@@ -450,10 +474,10 @@ export default {
             })
         }
 
-        function taskRoutePush(task: any) {
+        function taskRoutePush(taskId: any) {
             router.push({
                 name: "UserTask",
-                params: { id: task._id },
+                params: { id: taskId },
             });
         }
 
@@ -476,6 +500,7 @@ export default {
 
         function removeProjectTeammate(username: string) {
             projectStore.changeLoading(true)
+            teammateDelete.value = null
             errorHandling.value = false
             projectStore.removeTeammate(currentProject.value._id, username).then(() => {
                 projectStore.setCurrentProject(currentProject.value._id).then(() => {
@@ -511,6 +536,7 @@ export default {
             callProjectTeammate,
             logOut,
             addSuggestion,
+            setTeammteDelete,
             isSuggestion,
             selectedDropTask,
             isTask,
@@ -521,6 +547,7 @@ export default {
             selectedDropTeammate,
             selectedProjectTeammates,
             currentUsername,
+            teammateDelete,
             teammatePoint,
             taskDescription,
             taskName,
@@ -538,13 +565,31 @@ export default {
             taskLoading,
             addProjectTeammate,
             projectLoading,
-            extraPoint
+            extraPoint,
+            router
         }
     },
 }
 </script>
 
 <style lang="scss">
+.task-popup-delete {
+    &::before {
+        content: "\A";
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 13px solid;
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        @apply border-b-slate-300
+    }
+}
+
+.p-dropdown-panel .p-dropdown-header .p-dropdown-filter {
+    margin-right: 0 !important;
+}
+
 .project-temmate-box::-webkit-scrollbar {
     width: 5px;
 }

@@ -75,6 +75,13 @@
                         </Card>
                     </li>
                 </template>
+                <template v-else-if="userPosition !== 'manager'">
+                    <li class="splide__slide items-center flex justify-center py-4">
+                        <div class="h-full w-full text-center">
+                            <p>پروژه ثبت نشده است</p>
+                        </div>
+                    </li>
+                </template>
             </ul>
         </div>
     </div>
@@ -138,27 +145,51 @@ export default {
 
     setup() {
         onMounted(() => {
-            const splide1 = new Splide('#splide1', {
-                perPage: 4,
-                perMove: 1,
-                direction: 'rtl',
-                pagination: false,
-                gap: "1rem",
-                padding: "0 20px",
-                breakpoints: {
-                    1024: {
-                        perPage: 3,
-                    },
-                    730: {
-                        perPage: 2
-                    },
-                    500: {
-                        perPage: 1
+            if (currentProjects.value.length > 0) {
+                const splide1 = new Splide('#splide1', {
+                    perPage: 4,
+                    perMove: 1,
+                    direction: 'rtl',
+                    pagination: false,
+                    gap: "1rem",
+                    padding: "0 20px",
+                    breakpoints: {
+                        1024: {
+                            perPage: 3,
+                        },
+                        730: {
+                            perPage: 2
+                        },
+                        500: {
+                            perPage: 1
+                        }
                     }
-                }
-            });
+                });
+                splide1.mount();
+            } else {
+                const splide1 = new Splide('#splide1', {
+                    perPage: 4,
+                    perMove: 1,
+                    direction: 'rtl',
+                    pagination: false,
+                    arrows: false,
+                    gap: "1rem",
+                    padding: "0 20px",
+                    breakpoints: {
+                        1024: {
+                            perPage: 3,
+                        },
+                        730: {
+                            perPage: 2
+                        },
+                        500: {
+                            perPage: 1
+                        }
+                    }
+                });
+                splide1.mount();
+            }
 
-            splide1.mount();
         })
 
         const profileStore = useProfileStore()

@@ -28,8 +28,9 @@
                         <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="isMyTask">
                                 <template v-for="task in currentDesk.tasks" :key="task._id">
-                                    <div v-if="task.responsible.username === currentUsername"
-                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
+                                    <div @click="taskRoutePush(task._id)"
+                                        v-if="task.responsible.username === currentUsername"
+                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md cursor-pointer">
                                         <p class="flex items-center">
                                             <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
                                                 class="cursor-pointer bg-inherit" />
@@ -57,8 +58,9 @@
                         <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="isTeammateTask">
                                 <template v-for="task in currentDesk.tasks" :key="task._id">
-                                    <div v-if="task.responsible.username !== currentUsername"
-                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md">
+                                    <div @click="taskRoutePush(task._id)"
+                                        v-if="task.responsible.username !== currentUsername"
+                                        class="bg-gray-100 flex items-center rounded-md mb-1 p-2 justify-between shadow-md cursor-pointer">
                                         <p class="flex items-center">
                                             <Avatar v-if="task.status === 'done'" icon="pi pi-check" shape="circle"
                                                 class="cursor-pointer bg-inherit" />
@@ -87,8 +89,9 @@
                     <template #content>
                         <div class="w-full flex flex-col gap-4 mx-0 overflow-y-scroll h-96 custom">
                             <template v-if="currentDesk.projects.length > 0">
-                                <div v-for="project in currentDesk.projects" :key="project._id"
-                                    class="bg-gray-100 text-sm py-2 px-4 rounded-md shadow-md">
+                                <div @click="projectRoutePush(project._id)" v-for="project in currentDesk.projects"
+                                    :key="project._id"
+                                    class="bg-gray-100 text-sm py-2 px-4 rounded-md shadow-md cursor-pointer">
                                     <p class="text-xl font-medium mb-2">
                                         <span class="ml-1">پروژه:</span>
                                         <span>{{ project.title }}</span>
@@ -117,10 +120,11 @@
 </template>
 
 <script lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed } from 'vue';
 import { useDeskStore } from '@/store/deskStore';
 import { useProjectStore } from '@/store/projectStore';
 import { useProfileStore } from '@/store/profileStore';
+import { useRouter } from 'vue-router';
 import Avatar from 'primevue/avatar';
 import Card from 'primevue/card';
 import sliderTeammate from '@/components/sliderTeammate.vue';
@@ -144,6 +148,7 @@ export default {
         const deskStore = useDeskStore();
         const projectStore = useProjectStore();
         const profileStore = useProfileStore()
+        const router = useRouter()
 
         const checked = ref(true)
         const sideBar = ref(true)
@@ -172,7 +177,23 @@ export default {
             return isIt
         })
 
+        function taskRoutePush(taskId: any) {
+            router.push({
+                name: "UserTask",
+                params: { id: taskId },
+            });
+        }
+
+        function projectRoutePush(id: any) {
+            router.push({
+                name: "UserProject",
+                params: { id: id },
+            });
+        }
+
         return {
+            taskRoutePush,
+            projectRoutePush,
             isMyTask,
             isTeammateTask,
             sideBar,

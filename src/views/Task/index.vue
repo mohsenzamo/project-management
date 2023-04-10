@@ -50,6 +50,11 @@
         <div :class="{ 'block absolute top-0 right-0 lg:static p-2.5 translate-x-0': sideBar, 'hidden p-0 translate-x-full': !sideBar }"
             class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
             style="box-shadow: .3em 0 .3em .4em #ccc">
+            <p @click="router.go(-1)"
+                class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                <i class="text-yellow-500 pi pi-arrow-right text-lg"></i>
+                <span>بازگشت</span>
+            </p>
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
                     class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
@@ -175,7 +180,7 @@
                                             v-for="image in currentTask.attached" :key="image" @click="modalImage = image"
                                             @mouseenter="shadowBack = image" @mouseleave="shadowBack = -1">
                                             <div class="h-full w-full flex items-center justify-center">
-                                                <img :src="image" class="w-full h-auto" />
+                                                <img :src="image" class="w-full h-36" />
                                                 <div v-if="shadowBack === image"
                                                     class="absolute top-0 left-0 w-full h-full bg-gray-900 bg-opacity-60 flex items-center justify-center">
                                                     <i class="pi pi-eye text-white cursor-pointer"
@@ -530,7 +535,8 @@ export default {
             taskLoading,
             userName,
             value,
-            options
+            options,
+            router
             // currentTaskDeadline
         }
     },

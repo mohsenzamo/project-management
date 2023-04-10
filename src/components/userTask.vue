@@ -35,11 +35,12 @@
                                 </template>
                                 <Avatar v-else icon="pi pi-question" shape="circle" class="cursor-pointer bg-inherit" />
 
-                                <p @click="$emit('goTask', task)" class="cursor-pointer">{{ task.title }}</p>
+                                <p @click="$emit('goTask', task._id)" class="cursor-pointer">{{ task.title }}</p>
                             </div>
                             <div class="flex gap-2 items-center relative">
                                 <Chip v-if="task.dependentTaskId && taskFound(task.dependentTaskId)"
-                                    :label="taskFound(task.dependentTaskId)" icon="pi pi-paperclip"
+                                    @click="$emit('goTask', task.dependentTaskId)" :label="taskFound(task.dependentTaskId)"
+                                    icon="pi pi-paperclip"
                                     class="hidden sm:flex bg-inherit hover:bg-gray-400 hover:text-white rounded-lg" />
                                 <Chip v-if="task.deadline.unit === 'month'" :label="task.deadline.n + 'ماه'"
                                     icon="pi pi-clock"
@@ -128,6 +129,10 @@
                         <p v-else-if="isDoneTask === false">تسک های در حال انجام</p>
                         <p v-else-if="isDoneTask === null" :class="{ 'text-gray-400': currentTask.length === 0 }">همه تسک ها
                         </p>
+                    </div>
+                    <div v-if="userPosition === 'freelancer'" class="flex items-center gap-2">
+                        <Checkbox v-model="selectedfreelancer" :binary="true" />
+                        <p>تسک های خودم</p>
                     </div>
                     <div>
                         <p :class="{ 'text-gray-400': currentTask.length === 0 }">افراد:</p>
@@ -313,6 +318,7 @@ import Chart from 'primevue/chart';
 import popUp from '@/components/popUp.vue';
 import InputNumber from 'primevue/inputnumber';
 import Editor from 'primevue/editor';
+import Checkbox from 'primevue/checkbox';
 
 export default {
     name: "UserTask",
@@ -332,7 +338,8 @@ export default {
         TriStateCheckbox,
         popUp,
         InputNumber,
-        Editor
+        Editor,
+        Checkbox
     },
 
     setup() {
@@ -344,6 +351,7 @@ export default {
         const suggestionStore = useSuggestionStore()
 
         const taskSearch = ref('')
+        const selectedfreelancer = ref(false)
         const foundedTask = ref<any>([])
         const notFoundedTask = ref(false)
         const isDoneTask = ref(null)
@@ -368,6 +376,7 @@ export default {
         const deskLoading = computed(() => deskStore.deskLoading)
         const currentTask: any = computed(() => currentProject.value.tasks)
         const userPosition = computed(() => profileStore.userProfile.position)
+        const username = computed(() => profileStore.userProfile.username)
         const taskLoading = computed(() => taskStore.taskLoading)
         const currentProject: any = computed(() => projectStore.currentProject)
         const teammatesDrop: any = computed(() => {
@@ -437,12 +446,13 @@ export default {
             selectedSort.value = 'not'
         })
 
-        watch([taskSearch, isDoneTask, selectedDropTeammate, selectedSort], ([text, isDone, selectedTeammate, selectedSort]) => {
+        watch([taskSearch, isDoneTask, selectedDropTeammate, selectedSort, selectedfreelancer], ([text, isDone, selectedTeammate, selectedSort, freelancer]) => {
             foundedTask.value = []
             notFoundedTask.value = false
             let textArray: any = []
             let isDoneArray: any = []
             let selectedTeammateArray: any = []
+            let selectedFreelancerArray: any = []
             let data: any = []
             let result: any = []
             if (text && text.length > 0) {
@@ -473,6 +483,14 @@ export default {
                 result = selectedTeammateArray
             }
 
+            if (freelancer === true) {
+                currentTask.value.forEach((task: any) => {
+                    task.responsible.username === username.value ? selectedFreelancerArray.push(task) : null
+                })
+                data.push(selectedFreelancerArray)
+                result = selectedFreelancerArray
+            }
+
             // if (selectedSort !== 'not') {
             //     if (selectedSort === 'point') {
             //         selectedSortArray = Object.values(currentTask.value).sort((r1: any, r2: any) => (r1.point > r2.point) ? 1 : (r1.point < r2.point) ? -1 : 0);
@@ -487,7 +505,7 @@ export default {
                 result = data.reduce((a: any, b: any) => a.filter((c: any) => b.includes(c)));
             }
 
-            if (!text && isDone === null && selectedTeammate.code === 'همه' && selectedSort === 'not') {
+            if (!text && isDone === null && selectedTeammate.code === 'همه' && selectedSort === 'not' && freelancer === false) {
                 notFoundedTask.value = false
                 foundedTask.value = []
             } else {
@@ -512,7 +530,6 @@ export default {
                     }
                 })
             }
-            console.log(selectedDropTask.value)
             if (task.type === 'suggestion') {
                 isSuggestion.value = true
                 isTask.value = false
@@ -580,6 +597,7 @@ export default {
             taskResponsibleMember,
             chartData,
             teammatesDropChange,
+            selectedfreelancer,
             taskDelete,
             taskDrop,
             currentTask,
