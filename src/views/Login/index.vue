@@ -193,7 +193,7 @@ export default {
                 profileStore.login(userNameR.value, passwordR.value).then(() => {
                     profileStore.changeLoading(false)
                     router.push({
-                        name: "UserPanel"
+                        name: "UserDetails"
                     });
                 }).catch(() => {
                     profileStore.changeLoading(false)
@@ -211,7 +211,7 @@ export default {
             profileStore.login(userNameL.value, passwordL.value).then(() => {
                 profileStore.changeLoading(false)
                 router.push({
-                    name: "UserPanel"
+                    name: "UserDetails"
                 });
             }).catch(() => {
                 profileStore.changeLoading(false)

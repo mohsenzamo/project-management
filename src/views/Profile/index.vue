@@ -31,13 +31,13 @@
             class="sidebar w-56 lg:w-1/5 bg-white transition-all z-30 h-screen pt-16"
             style="box-shadow: .3em 0 .3em .4em #ccc">
             <p @click="router.go(-1)"
-                class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-purple-500 pi pi-arrow-right text-lg"></i>
                 <span>بازگشت</span>
             </p>
             <RouterLink :to="{ name: 'UserPanel' }">
                 <p
-                    class="selected-sidebar flex items-center font-bold py-1.5 px-5 gap-3.5 rounded-sm shadow-sm mt-1 cursor-pointer">
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                     <i class="home-icon pi pi-home text-lg"></i>
                     <span>داشبورد</span>
                 </p>
@@ -395,6 +395,10 @@ export default {
     .p-card-body {
         @apply w-full;
     }
+}
+
+.divider-line {
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .selected-sidebar {

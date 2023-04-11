@@ -40,7 +40,7 @@
                     </div>
                 </div>
             </transition>
-            <RouterLink :to="{ name: 'UserProfile' }">
+            <RouterLink :to="{ name: 'UserDetails' }">
                 <Avatar icon="pi pi-user" class="" shape="circle" />
             </RouterLink>
         </div>

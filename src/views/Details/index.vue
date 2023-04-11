@@ -127,19 +127,20 @@
                                         <i class="pi pi-star text-yellow-400"></i>
                                     </span>
                                     <p>امتیاز های من</p>
-                                    <p class="text-yellow-400">0</p>
+                                    <p class="text-yellow-400">{{ userPoint }}</p>
                                 </div>
                             </template>
                         </Card>
                     </div>
                     <div class="flex mt-5">
-                        <p class="w-1/6 text-xl mt-2">همکاران من:</p>
-                        <div class="splide splide_teammate px-2 w-5/6" role="group">
+                        <p class="w-1/12 text-xl text-center">همکاران من:</p>
+                        <div class="splide splide_teammate px-2 w-11/12" role="group">
                             <div class="splide__track">
                                 <ul class="splide__list">
-                                    <li class="splide__slide py-2 flex justify-center items-center">
-                                        <Avatar label="U" class="mr-2" style="background-color:#9c27b0; color: #ffffff"
-                                            shape="circle" />
+                                    <li v-for="i in 20" :key="i"
+                                        class="splide__slide py-2 flex justify-center items-center">
+                                        <Avatar :label="'U' + i" class="mr-2"
+                                            style="background-color:#9c27b0; color: #ffffff" shape="circle" />
 
                                     </li>
                                 </ul>
@@ -180,7 +181,7 @@
                     </Card>
                     <Card class="w-full shadow-md rounded-lg">
                         <template #header>
-                            <div class="bg-red-400 p-2 text-white text-center">
+                            <div class="bg-red-400 p-2 text-white text-center rounded-t-lg">
                                 پیگیری از دیگران
                             </div>
                         </template>
@@ -246,24 +247,65 @@
                     </Card>
                 </div>
             </div>
-            <div class="w-1/4 flex flex-col p-3 gap-5">
-                <div class="flex flex-col items-center">
+            <div class="w-1/4 flex flex-col gap-5 h-full relative">
+                <RouterLink :to="{ name: 'UserProfile' }">
+                    <div class="ribbon">
+                        <span class="font-iransans shadow-md bg-light-blue">مشخصات</span>
+                    </div>
+                </RouterLink>
+                <div class="flex flex-col items-center mx-3">
                     <div class="w-40 h-40 rounded-full bg-gray-300 flex items-center justify-center shadow-md">
                         <i class="pi pi-user" style="font-size: 3rem;"></i>
                     </div>
-                    <p>محسن زهرایی</p>
-                    <p>تاریخ</p>
+                    <p>{{ userFullname }}</p>
+                    <p>{{ today }}</p>
                 </div>
-                <div>
+                <div class="mx-3">
                     <p>میزکارشما:</p>
-                    <Card class="w-full h-20 flex justify-center items-center rounded-xl shadow-md">
-                        <template #content>
-                            <div class="h-full w-full text-center">
-                                <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" />
-                                <p>ساخت پروژه جدید</p>
-                            </div>
-                        </template>
-                    </Card>
+                    <div class="splide splide_desk px-2 w-full" role="group">
+                        <div class="splide__track">
+                            <ul class="splide__list">
+                                <li v-if="Object.values(alldesks).length === 0 && userPosition === 'manager'"
+                                    class="splide__slide py-2 flex justify-center items-center">
+                                    <Card
+                                        class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
+                                        <template #content>
+                                            <div class="h-full w-full text-center">
+                                                <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" />
+                                                <p>ساخت پروژه جدید</p>
+                                            </div>
+                                        </template>
+                                    </Card>
+                                </li>
+                                <template v-if="Object.values(alldesks).length > 0">
+                                    <li v-for="desk in alldesks" :key="desk._id"
+                                        class="splide__slide py-2 flex justify-center items-center">
+                                        <Card
+                                            class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
+                                            <template #content>
+                                                <div class="h-full w-full text-center">
+                                                    <!-- <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" /> -->
+                                                    <p>{{ desk.title }}</p>
+                                                </div>
+                                            </template>
+                                        </Card>
+                                    </li>
+                                    <li v-if="userPosition === 'manager'"
+                                        class="splide__slide py-2 flex justify-center items-center">
+                                        <Card
+                                            class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
+                                            <template #content>
+                                                <div class="h-full w-full text-center">
+                                                    <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" />
+                                                    <p>ساخت پروژه جدید</p>
+                                                </div>
+                                            </template>
+                                        </Card>
+                                    </li>
+                                </template>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -285,6 +327,7 @@ import InlineMessage from 'primevue/inlinemessage';
 import popUp from '@/components/popUp.vue';
 import Splide from '@splidejs/splide';
 import '@splidejs/splide/dist/css/themes/splide-default.min.css';
+import { useDeskStore } from '@/store/deskStore';
 
 export default {
     name: 'UserProfile',
@@ -295,9 +338,29 @@ export default {
         Card
     },
 
+    beforeRouteEnter(to: any, from: any, next: any) {
+        const deskStore = useDeskStore()
+        const profileStore = useProfileStore()
+        deskStore.changeLoading(true)
+        const accessToken = localStorage.getItem("access_token")
+        const refreshToken = localStorage.getItem("refresh_token")
+        if (accessToken && refreshToken) {
+            deskStore.fetchDesks().then(() => {
+                profileStore.fetchProfile().then(() => {
+                    deskStore.changeLoading(false)
+                    next()
+                })
+            }).catch(() => {
+                next({ path: '/' })
+            })
+        } else {
+            next({ path: '/' })
+        }
+    },
+
     setup() {
         onMounted(() => {
-            const splide = new Splide('.splide_teammate', {
+            const splideTeammate = new Splide('.splide_teammate', {
                 perPage: 10,
                 perMove: 1,
                 direction: 'rtl',
@@ -305,11 +368,32 @@ export default {
                 arrows: false,
             });
 
-            splide.mount();
+            const splideDesk = new Splide('.splide_desk', {
+                direction: 'ttb',
+                height: '20rem',
+                perPage: 3,
+                pagination: false,
+                arrows: false,
+                wheel: true,
+            });
+
+            splideDesk.mount();
+            splideTeammate.mount();
         })
         const router = useRouter()
+        const profileStore = useProfileStore()
+        const deskStore = useDeskStore();
+        const userPosition = computed(() => profileStore.userProfile.position)
+        const userFullname = computed(() => profileStore.profile.fname + ' ' + profileStore.profile.lname)
+        const userPoint = computed(() => profileStore.profile.point)
+        const alldesks = computed(() => {
+            console.log(deskStore.allDesk)
+            return deskStore.allDesk
+        })
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const logOutPopup = ref(false)
+        const today = new Date().toLocaleDateString('fa-IR');
+
         function logOut() {
             localStorage.clear();
             router.push({
@@ -319,15 +403,46 @@ export default {
 
         return {
             logOut,
+            alldesks,
+            userPoint,
             sideBar,
+            userPosition,
+            userFullname,
             logOutPopup,
-            router
+            router,
+            today
         }
     },
 }
 </script>
 
 <style lang="scss">
+.ribbon {
+    width: 110px;
+    height: 110px;
+    display: block;
+    position: absolute;
+    overflow: hidden;
+}
+
+.ribbon span {
+    width: 150px;
+    height: 34px;
+    top: 20px;
+    right: -40px;
+    position: absolute;
+    display: block;
+    color: #333;
+    font-family: arial;
+    font-size: 18px;
+    color: white;
+    text-align: center;
+    line-height: 34px;
+    transform: rotate(45deg);
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+}
+
 .modal-enter-from {
     opacity: 0;
 }
