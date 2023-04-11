@@ -45,11 +45,13 @@
                 </p>
             </RouterLink>
             <div class="divider-line mt-2.5"></div>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-blue-400 pi pi-comments text-lg"></i>
-                <span>گفتگو</span>
-            </p>
+            <RouterLink :to="{ name: 'UserChat' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-blue-400 pi pi-comments text-lg"></i>
+                    <span>گفتگو</span>
+                </p>
+            </RouterLink>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-purple-400 pi pi-wallet text-lg"></i>
@@ -254,57 +256,24 @@
                     </div>
                 </RouterLink>
                 <div class="flex flex-col items-center mx-3">
-                    <div class="w-40 h-40 rounded-full bg-gray-300 flex items-center justify-center shadow-md">
-                        <i class="pi pi-user" style="font-size: 3rem;"></i>
+                    <div class="w-28 h-28 rounded-full bg-gray-300 flex items-center justify-center shadow-md">
+                        <i class="pi pi-user" style="font-size: 2.2rem;"></i>
                     </div>
                     <p>{{ userFullname }}</p>
                     <p>{{ today }}</p>
                 </div>
                 <div class="mx-3">
                     <p>میزکارشما:</p>
-                    <div class="splide splide_desk px-2 w-full" role="group">
-                        <div class="splide__track">
-                            <ul class="splide__list">
-                                <li v-if="Object.values(alldesks).length === 0 && userPosition === 'manager'"
-                                    class="splide__slide py-2 flex justify-center items-center">
-                                    <Card
-                                        class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
-                                        <template #content>
-                                            <div class="h-full w-full text-center">
-                                                <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" />
-                                                <p>ساخت پروژه جدید</p>
-                                            </div>
-                                        </template>
-                                    </Card>
-                                </li>
-                                <template v-if="Object.values(alldesks).length > 0">
-                                    <li v-for="desk in alldesks" :key="desk._id"
-                                        class="splide__slide py-2 flex justify-center items-center">
-                                        <Card
-                                            class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
-                                            <template #content>
-                                                <div class="h-full w-full text-center">
-                                                    <!-- <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" /> -->
-                                                    <p>{{ desk.title }}</p>
-                                                </div>
-                                            </template>
-                                        </Card>
-                                    </li>
-                                    <li v-if="userPosition === 'manager'"
-                                        class="splide__slide py-2 flex justify-center items-center">
-                                        <Card
-                                            class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400 cursor-default">
-                                            <template #content>
-                                                <div class="h-full w-full text-center">
-                                                    <Button icon="pi pi-plus" class="w-8 h-8 rounded-full" />
-                                                    <p>ساخت پروژه جدید</p>
-                                                </div>
-                                            </template>
-                                        </Card>
-                                    </li>
-                                </template>
-                            </ul>
-                        </div>
+                    <div class="h-72 overflow-y-scroll custom flex flex-col gap-2">
+                        <Card v-for="desk in alldesks" :key="desk._id"
+                            class="w-full h-20 flex justify-center items-center rounded-xl shadow-md border-t-2 border-pink-400"
+                            :class="{ 'cursor-pointer': desk.isActive, 'cursor-not-allowed bg-slate-300': !desk.isActive }">
+                            <template #content>
+                                <div class="h-full w-full text-center" @click="desk.isActive ? deskRoutePush(desk) : null">
+                                    <p>{{ desk.title }}</p>
+                                </div>
+                            </template>
+                        </Card>
                     </div>
                 </div>
             </div>
@@ -330,7 +299,7 @@ import '@splidejs/splide/dist/css/themes/splide-default.min.css';
 import { useDeskStore } from '@/store/deskStore';
 
 export default {
-    name: 'UserProfile',
+    name: 'UserDetails',
 
     components: {
         Button,
@@ -368,16 +337,6 @@ export default {
                 arrows: false,
             });
 
-            const splideDesk = new Splide('.splide_desk', {
-                direction: 'ttb',
-                height: '20rem',
-                perPage: 3,
-                pagination: false,
-                arrows: false,
-                wheel: true,
-            });
-
-            splideDesk.mount();
             splideTeammate.mount();
         })
         const router = useRouter()
@@ -386,10 +345,7 @@ export default {
         const userPosition = computed(() => profileStore.userProfile.position)
         const userFullname = computed(() => profileStore.profile.fname + ' ' + profileStore.profile.lname)
         const userPoint = computed(() => profileStore.profile.point)
-        const alldesks = computed(() => {
-            console.log(deskStore.allDesk)
-            return deskStore.allDesk
-        })
+        const alldesks = computed(() => deskStore.allDesk)
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const logOutPopup = ref(false)
         const today = new Date().toLocaleDateString('fa-IR');
@@ -401,8 +357,16 @@ export default {
             });
         }
 
+        function deskRoutePush(desk: any) {
+            router.push({
+                name: "UserDesk",
+                params: { id: desk._id },
+            });
+        }
+
         return {
             logOut,
+            deskRoutePush,
             alldesks,
             userPoint,
             sideBar,
