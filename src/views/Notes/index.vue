@@ -1,5 +1,5 @@
 <template>
-    <nav class="bg-blue-400 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
+    <nav class="bg-green-400 flex justify-between py-1 absolute top-0 left-0 z-40 w-screen h-14">
         <div class="flex flex-row items-center gap-4 justify-center px-4">
             <i v-if="!sideBar" class="pi pi-align-justify cursor-pointer text-white" style="font-size: 1.1rem"
                 @click="sideBar = !sideBar"></i>
@@ -36,7 +36,7 @@
             style="box-shadow: .3em 0 .3em .4em #ccc">
             <p @click="router.go(-1)"
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-red-500 pi pi-arrow-right text-lg"></i>
+                <i class="text-green-500 pi pi-arrow-right text-lg"></i>
                 <span>بازگشت</span>
             </p>
             <RouterLink :to="{ name: 'UserPanel' }">
@@ -47,11 +47,13 @@
                 </p>
             </RouterLink>
             <div class="divider-line mt-2.5"></div>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-blue-400 pi pi-comments text-lg"></i>
-                <span>گفتگو</span>
-            </p>
+            <RouterLink :to="{ name: 'UserChat' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-blue-400 pi pi-comments text-lg"></i>
+                    <span>گفتگو</span>
+                </p>
+            </RouterLink>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-purple-400 pi pi-wallet text-lg"></i>
@@ -62,13 +64,11 @@
                 <i class="text-yellow-400 pi pi-star text-lg"></i>
                 <span>امتیازها</span>
             </p>
-            <RouterLink :to="{ name: 'UserNotes' }">
-                <p
-                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                    <i class="text-green-400 pi pi-book text-lg"></i>
-                    <span>یادداشت ها</span>
-                </p>
-            </RouterLink>
+            <p
+                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                <i class="text-green-400 pi pi-book text-lg"></i>
+                <span>یادداشت ها</span>
+            </p>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-pink-400 pi pi-bell text-lg"></i>
@@ -76,82 +76,53 @@
             </p>
         </div>
 
-        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }" class="bg-white z-20 h-screen pt-14 flex">
-            <div class="w-3/4 border h-full flex flex-col grow-0">
-                <template v-if="chatUser !== 0">
-                    <div class="border-b-2 flex p-2 gap-2 h-1/12">
-                        <Avatar icon="pi pi-user" class="" shape="circle" />
-                        <p>کاربر فعال{{ chatUser }}</p>
-                    </div>
-                    <div class="grow flex flex-col">
-                        <div
-                            class="grow h-12 border-b-2 p-7 flex flex-col-reverse gap-3 overflow-y-scroll custom overflow-x-hidden">
-                            <template v-for="msg in chats" :key="msg">
-                                <div v-if="msg.set === 0"
-                                    class="talk-bubble-right tri-right round right-top w-fit h-auto self-start shadow-md">
-                                    <div class="talktext">
-                                        <p class="whitespace-pre">{{ msg.msg }}</p>
-                                    </div>
-                                </div>
-                                <div v-if="msg.set === 1"
-                                    class="talk-bubble-left tri-left round right-top w-fit h-auto self-end shadow-md">
-                                    <div class="talktext">
-                                        <p class="whitespace-pre">{{ msg.msg }}</p>
-                                    </div>
-                                </div>
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }" class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
+            <p class="mt-3 mr-3 text-3xl">یادداشت های من:</p>
+            <TabView class="p-3 w-full">
+                <TabPanel header="همه یادداشت ها">
+                    <calendar class="mr-48" @customChange="mohsen" />
+                </TabPanel>
+                <TabPanel header="یادداشت های حذف شده">
+                    <div class="w-full flex gap-4 flex-wrap">
+                        <Card v-for="i in 3" :key="i" class="w-60 rounded-xl shadow-md border-t-2 border-green-400">
+                            <template #title>
+                                <p>کارهای اولیه</p>
                             </template>
-                        </div>
-                        <div class="grow-0 flex gap-2 p-2">
-                            <Button label="ارسال" icon="pi pi-send" @click="pushChat" />
-                            <textarea v-model="chatText" rows="1" cols="100" />
-                        </div>
+                            <template #content>
+                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
+                                    ut labore et dolore magna aliqua.</p>
+                            </template>
+                            <template #footer>
+                                <p class="float-left font-iransans">1402/3/3</p>
+                            </template>
+                        </Card>
                     </div>
-                </template>
-                <div v-else class="bg-slate-100 flex items-center justify-center h-full">
-                    یک صفحه چت انتخاب کنید
-                </div>
-            </div>
-            <div class="w-1/4 flex flex-col h-full relative p-2 overflow-y-scroll custom">
-                <InputText type="text" placeholder="جستجو..." />
-                <div v-for="i in 10" :key="i" @click="chatUser = i"
-                    class="flex gap-1 hover:bg-slate-100 items-center p-2 hover:rounded-md border-t-2 border-slate-100 cursor-pointer">
-                    <Avatar icon="pi pi-user" class="w-12 h-12" shape="circle" />
-                    <p class="flex flex-col">
-                        <span>اسم کاربر{{ i }}</span>
-                        <small class="mr-2">چتتتتتتتتتت</small>
-                    </p>
-                </div>
-            </div>
+                </TabPanel>
+            </TabView>
         </div>
     </div>
 </template>
 
 <script lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
-import { useProfileStore } from '@/store/profileStore';
 import { useRouter } from 'vue-router';
-import Card from 'primevue/card';
-import InputNumber from 'primevue/inputnumber';
 import Avatar from 'primevue/avatar';
-import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import ProgressSpinner from 'primevue/progressspinner';
-import InputSwitch from 'primevue/inputswitch';
-import InlineMessage from 'primevue/inlinemessage';
-import popUp from '@/components/popUp.vue';
-import Splide from '@splidejs/splide';
-import '@splidejs/splide/dist/css/themes/splide-default.min.css';
-import { useDeskStore } from '@/store/deskStore';
-import Textarea from 'primevue/textarea';
+import TabView from 'primevue/tabview';
+import TabPanel from 'primevue/tabpanel';
+import calendar from '@/components/calendar.vue';
+import Card from 'primevue/card';
 
 export default {
-    name: 'UserChat',
+    name: 'UserNotes',
 
     components: {
         Button,
         Avatar,
-        InputText,
-        // Textarea
+        TabPanel,
+        TabView,
+        calendar,
+        Card
     },
 
     setup() {
@@ -179,6 +150,10 @@ export default {
             });
         }
 
+        function mohsen(x: any) {
+            console.log(x, 'done')
+        }
+
         watch(chatUser, () => {
             chatText.value = ''
             chats.value = []
@@ -187,6 +162,7 @@ export default {
         return {
             logOut,
             pushChat,
+            mohsen,
             chatUser,
             chats,
             chatText,

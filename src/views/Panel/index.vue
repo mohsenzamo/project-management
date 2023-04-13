@@ -92,7 +92,7 @@
                 <template v-else>
                     <Button v-if="userPosition === 'manager'" label="ایجاد میزکار جدید" icon="pi pi-plus"
                         class="p-button-sm text-sm rounded-md mt-4 mr-4" @click="createNewDesk = true" />
-                    <div :class="{ ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-2': sideBar, ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-3': !sideBar }"
+                    <div :class="{ 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-2': sideBar, ' grid-cols-1 sm:grid-cols-2 lg:grid-cols-3': !sideBar }"
                         class="grid items-center gap-x-5 md:gap-x-10 gap-y-5 p-4 flex-wrap xl:grid-cols-3">
                         <Card v-for="desk in alldesks" :key="desk._id"
                             class="w-full h-full shadow-md relative border-t-2 border-pink-400 rounded-xl cursor-default">

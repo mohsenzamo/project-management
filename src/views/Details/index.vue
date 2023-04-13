@@ -62,11 +62,13 @@
                 <i class="text-yellow-400 pi pi-star text-lg"></i>
                 <span>امتیازها</span>
             </p>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-green-400 pi pi-book text-lg"></i>
-                <span>یادداشت ها</span>
-            </p>
+            <RouterLink :to="{ name: 'UserNotes' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-green-400 pi pi-book text-lg"></i>
+                    <span>یادداشت ها</span>
+                </p>
+            </RouterLink>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-pink-400 pi pi-bell text-lg"></i>
