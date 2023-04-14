@@ -3,15 +3,11 @@
 </template>
 
 <script lang="ts">
-import { computed, ref, watch, onMounted } from 'vue'
+import { onMounted } from 'vue'
 import moment from 'jalali-moment'
 
 export default {
-    name: 'UserNotes',
-
-    components: {
-
-    },
+    name: 'NotesCalendar',
 
     setup(props: any, context: any) {
         onMounted(() => {
@@ -107,7 +103,7 @@ export default {
 
 <style lang="scss">
 $primaryColor: rgb(172, 106, 226);
-$width: 550px;
+$width: 750px;
 $itemSize: (
     $width) / 7;
 
@@ -118,10 +114,10 @@ $itemSize: (
 .event:after {
     content: '•';
     color: $primaryColor;
-    font-size: 1.4em;
+    font-size: 2em;
     position: absolute;
-    right: 7px;
-    top: -2px;
+    right: 15px;
+    top: 10px;
 }
 
 .calendar {

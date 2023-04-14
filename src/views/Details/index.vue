@@ -52,11 +52,13 @@
                     <span>گفتگو</span>
                 </p>
             </RouterLink>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-purple-400 pi pi-wallet text-lg"></i>
-                <span>برداشت ها</span>
-            </p>
+            <RouterLink :to="{ name: 'UserWallet' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-purple-400 pi pi-wallet text-lg"></i>
+                    <span>کیف پول</span>
+                </p>
+            </RouterLink>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-yellow-400 pi pi-star text-lg"></i>
@@ -69,11 +71,13 @@
                     <span>یادداشت ها</span>
                 </p>
             </RouterLink>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-pink-400 pi pi-bell text-lg"></i>
-                <span>اعلان ها</span>
-            </p>
+            <RouterLink :to="{ name: 'UserNotification' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-pink-400 pi pi-bell text-lg"></i>
+                    <span>اعلان ها</span>
+                </p>
+            </RouterLink>
         </div>
 
         <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }" class="bg-white z-20 h-screen pt-14 flex">
@@ -113,7 +117,7 @@
                                 </div>
                             </template>
                         </Card>
-                        <Card class="rounded-xl shadow-md w-32 h-40">
+                        <Card class="rounded-xl shadow-md w-32 h-40 cursor-pointer" @click="addCarts = true">
                             <template #content>
                                 <div class="flex flex-col items-center gap-1 text-center">
                                     <span class="p-2 rounded-full bg-slate-200 flex items-center justify-center w-8">
@@ -281,6 +285,32 @@
             </div>
         </div>
     </div>
+
+    <transition name="modal">
+        <popUp v-if="addCarts" @close="addCarts = false">
+            <p class="font-bold my-3">لیست کارت ها:</p>
+            <div class="mb-3">
+                <p class="mb-2">اضافه کردن کارت:</p>
+                <div class="flex items-center justify-around gap-2">
+                    <InputText type="text" placeholder="شماره کارت..." class="w-full sm:w-3/5 h-10 rounded-lg" />
+                    <InputText type="text" placeholder="شماره شبا..." class="w-full sm:w-3/5 h-10 rounded-lg" />
+                    <Button label="ثبت" class="p-button-sm p-button-success w-20 h-10 rounded-lg" />
+                </div>
+            </div>
+            <div>
+                <p>کارت های من:</p>
+                <div class="grid grid-cols-3 gap-y-5 overflow-y-scroll h-36 items-center card-box mb-3">
+                    <div v-for="i in 5" :key="i" class="flex bg-white w-fit gap-2 rounded-md p-2 flex-col">
+                        <p>6037603760376037</p>
+                        <p>شباااااااااااا</p>
+                    </div>
+                </div>
+            </div>
+            <div class="w-full flex justify-center items-center gap-2">
+                <Button label="انصراف" class="p-button-sm p-button-danger w-20 h-10 rounded-lg" @click="addCarts = false" />
+            </div>
+        </popUp>
+    </transition>
 </template>
 
 <script lang="ts">
@@ -306,7 +336,9 @@ export default {
     components: {
         Button,
         Avatar,
-        Card
+        Card,
+        popUp,
+        InputText
     },
 
     beforeRouteEnter(to: any, from: any, next: any) {
@@ -350,6 +382,7 @@ export default {
         const alldesks = computed(() => deskStore.allDesk)
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const logOutPopup = ref(false)
+        const addCarts = ref(false)
         const today = new Date().toLocaleDateString('fa-IR');
 
         function logOut() {
@@ -376,13 +409,41 @@ export default {
             userFullname,
             logOutPopup,
             router,
-            today
+            today,
+            addCarts
         }
     },
 }
 </script>
 
 <style lang="scss">
+.card-box::-webkit-scrollbar {
+    width: 5px;
+}
+
+.card-box::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    @apply rounded;
+}
+
+.card-box::-webkit-scrollbar-thumb {
+    background: #888;
+    @apply rounded;
+}
+
+.logout-popup {
+    &::before {
+        content: "\A";
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 13px solid;
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        @apply border-b-slate-300
+    }
+}
+
 .ribbon {
     width: 110px;
     height: 110px;

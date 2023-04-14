@@ -54,11 +54,13 @@
                     <span>گفتگو</span>
                 </p>
             </RouterLink>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-purple-400 pi pi-wallet text-lg"></i>
-                <span>برداشت ها</span>
-            </p>
+            <RouterLink :to="{ name: 'UserWallet' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-purple-400 pi pi-wallet text-lg"></i>
+                    <span>کیف پول</span>
+                </p>
+            </RouterLink>
             <p
                 class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
                 <i class="text-yellow-400 pi pi-star text-lg"></i>
@@ -69,36 +71,69 @@
                 <i class="text-green-400 pi pi-book text-lg"></i>
                 <span>یادداشت ها</span>
             </p>
-            <p
-                class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
-                <i class="text-pink-400 pi pi-bell text-lg"></i>
-                <span>اعلان ها</span>
-            </p>
+            <RouterLink :to="{ name: 'UserNotification' }">
+                <p
+                    class="hover:bg-slate-200 flex items-center hover:font-bold py-1.5 px-5 gap-3.5 rounded-sm hover:shadow-sm mt-1 cursor-pointer">
+                    <i class="text-pink-400 pi pi-bell text-lg"></i>
+                    <span>اعلان ها</span>
+                </p>
+            </RouterLink>
         </div>
 
-        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }" class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
-            <p class="mt-3 mr-3 text-3xl">یادداشت های من:</p>
-            <TabView class="p-3 w-full">
-                <TabPanel header="همه یادداشت ها">
-                    <calendar class="mr-48" @customChange="mohsen" />
-                </TabPanel>
-                <TabPanel header="یادداشت های حذف شده">
-                    <div class="w-full flex gap-4 flex-wrap">
-                        <Card v-for="i in 3" :key="i" class="w-60 rounded-xl shadow-md border-t-2 border-green-400">
-                            <template #title>
-                                <p>کارهای اولیه</p>
-                            </template>
-                            <template #content>
-                                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt
-                                    ut labore et dolore magna aliqua.</p>
-                            </template>
-                            <template #footer>
-                                <p class="float-left font-iransans">1402/3/3</p>
-                            </template>
-                        </Card>
+        <div :class="{ 'w-full lg:w-4/5': sideBar, 'w-full': !sideBar }"
+            class="bg-white z-20 h-screen pt-14 overflow-y-scroll custom">
+            <div class="flex justify-between items-center p-3 ">
+                <p class="text-3xl">یادداشت های من:</p>
+                <Button v-if="notesEvent" label="بازگشت" icon="pi pi-arrow-left"
+                    class="p-button-sm w-fit p-button-help rounded-lg float-right" @click="notesEvent = null" />
+            </div>
+            <transition name="scaleLeft" appear>
+                <template v-if="!notesEvent">
+                    <TabView class="p-3 w-full">
+                        <TabPanel header="همه یادداشت ها">
+                            <calendar class="mx-auto" @customChange="mohsen" />
+                        </TabPanel>
+                        <TabPanel header="یادداشت های حذف شده">
+                            <div class="w-full flex gap-4 flex-wrap">
+                                <Card v-for="i in 3" :key="i" class="w-60 rounded-xl shadow-md border-t-2 border-red-400">
+                                    <template #title>
+                                        <p>کارهای اولیه</p>
+                                    </template>
+                                    <template #content>
+                                        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                                            incididunt
+                                            ut labore et dolore magna aliqua.</p>
+                                    </template>
+                                    <template #footer>
+                                        <p class="float-left font-iransans">1402/3/3</p>
+                                    </template>
+                                </Card>
+                            </div>
+                        </TabPanel>
+                    </TabView>
+                </template>
+            </transition>
+            <transition name="scaleRight" appear>
+                <template v-if="notesEvent">
+                    <div class="flex flex-col">
+                        <div class="w-full flex gap-5 flex-wrap px-5">
+                            <Card v-for="i in 3" :key="i" class="w-60 rounded-xl shadow-md border-t-2 border-green-400">
+                                <template #title>
+                                    <p>کارهای اولیه</p>
+                                </template>
+                                <template #content>
+                                    <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor
+                                        incididunt
+                                        ut labore et dolore magna aliqua.</p>
+                                </template>
+                                <template #footer>
+                                    <p class="float-left font-iransans">{{ notesEvent }}</p>
+                                </template>
+                            </Card>
+                        </div>
                     </div>
-                </TabPanel>
-            </TabView>
+                </template>
+            </transition>
         </div>
     </div>
 </template>
@@ -110,7 +145,7 @@ import Avatar from 'primevue/avatar';
 import Button from 'primevue/button';
 import TabView from 'primevue/tabview';
 import TabPanel from 'primevue/tabpanel';
-import calendar from '@/components/calendar.vue';
+import calendar from '@/components/notesCalendar.vue';
 import Card from 'primevue/card';
 
 export default {
@@ -129,6 +164,7 @@ export default {
         const router = useRouter()
         const sideBar = ref(window.innerWidth <= 1024 ? false : true)
         const logOutPopup = ref(false)
+        const notesEvent = ref<any>(null)
         const chats = ref<any>([])
         const chatText = ref('')
         const chatUser = ref(0)
@@ -151,7 +187,7 @@ export default {
         }
 
         function mohsen(x: any) {
-            console.log(x, 'done')
+            notesEvent.value = x
         }
 
         watch(chatUser, () => {
@@ -163,6 +199,7 @@ export default {
             logOut,
             pushChat,
             mohsen,
+            notesEvent,
             chatUser,
             chats,
             chatText,
@@ -175,6 +212,19 @@ export default {
 </script>
 
 <style lang="scss">
+.logout-popup {
+    &::before {
+        content: "\A";
+        border-left: 8px solid transparent;
+        border-right: 8px solid transparent;
+        border-bottom: 13px solid;
+        position: absolute;
+        top: -12px;
+        left: 8px;
+        @apply border-b-slate-300
+    }
+}
+
 .ribbon {
     width: 110px;
     height: 110px;

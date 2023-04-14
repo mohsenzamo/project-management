@@ -22,6 +22,16 @@ const routes: Array<RouteRecordRaw> = [
     component: () => import("../views/Notes/index.vue"),
   },
   {
+    path: "/notification",
+    name: "UserNotification",
+    component: () => import("../views/Notification/index.vue"),
+  },
+  {
+    path: "/wallet",
+    name: "UserWallet",
+    component: () => import("../views/Wallet/index.vue"),
+  },
+  {
     path: "/panel",
     name: "UserPanel",
     component: () => import("../views/Panel/index.vue"),
