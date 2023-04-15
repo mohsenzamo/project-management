@@ -449,14 +449,25 @@ export default {
         function addTask() {
             taskStore.changeLoading(true)
             errorHandling.value = false
-            taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, selectedDropTask.value.code).then(() => {
-                taskStore.changeLoading(false)
-                createNewTask.value = false
-            }).catch(() => {
-                taskStore.changeLoading(false)
-                createNewTask.value = false
-                errorHandling.value = true
-            })
+            if (selectedDropTask.value) {
+                taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, selectedDropTask.value.code).then(() => {
+                    taskStore.changeLoading(false)
+                    createNewTask.value = false
+                }).catch(() => {
+                    taskStore.changeLoading(false)
+                    createNewTask.value = false
+                    errorHandling.value = true
+                })
+            } else {
+                taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, selectedDropTask.value).then(() => {
+                    taskStore.changeLoading(false)
+                    createNewTask.value = false
+                }).catch(() => {
+                    taskStore.changeLoading(false)
+                    createNewTask.value = false
+                    errorHandling.value = true
+                })
+            }
         }
 
         function addSuggestion() {
