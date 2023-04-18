@@ -45,7 +45,7 @@ export const useTaskStore = defineStore("useTaskStore", {
         url: process.env.VUE_APP_BASE_API_URL + "/tasks/" + projectId,
         headers: {
           Authorization: `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
         data: {
           title: taskName,
@@ -54,11 +54,9 @@ export const useTaskStore = defineStore("useTaskStore", {
           deadline_n: selectedUnit,
           responsible: selectedDropTeammate,
           point: selectedPoint,
+          dependentTaskId: selectedTask,
         },
       };
-      if (selectedTask !== 0) {
-        config.data.dependentTaskId = selectedTask;
-      }
       return new Promise((resolve, reject) => {
         axios(config)
           .then((response) => {

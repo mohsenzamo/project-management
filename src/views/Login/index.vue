@@ -34,15 +34,16 @@
                             <InputText v-model="phoneR" type="number" placeholder="شماره همراه"
                                 class="w-10/12 text-sm rounded-lg" @keyup.enter="register" />
 
-
-
-                            <InputNumber v-model="ageR" showButtons dir="ltr" inputClass="w-16" :min="0"
-                                class="rounded-lg overflow-hidden" @keyup.enter="register" />
+                            <div class="flex justify-between items-center w-10/12">
+                                <p>سن:</p>
+                                <InputNumber v-model="ageR" showButtons dir="ltr" inputClass="w-16" :min="0"
+                                    class="rounded-lg overflow-hidden" @keyup.enter="register" />
+                            </div>
 
                             <!-- <InputText v-model="passwordR" type="password" placeholder="رمز عبور"
                                 class="w-10/12 text-sm rounded-lg" /> -->
 
-                            <Password v-model="passwordR">
+                            <Password v-model="passwordR" placeholder="رمز عبور">
                                 <template #footer>
                                     <Divider />
                                     <p class="mt-2">پیشنهادات</p>
@@ -52,7 +53,7 @@
                                 </template>
                             </Password>
 
-                            <Password v-model="passwordRR">
+                            <Password v-model="passwordRR" placeholder="تکرار رمز عبور">
                                 <template #footer>
                                     <Divider />
                                     <p class="mt-2">پیشنهادات</p>

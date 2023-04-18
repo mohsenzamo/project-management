@@ -153,7 +153,8 @@
                     <p class="mb-2">پروژه مربوط:</p>
                     <p class="mt-3">{{ currentProject.title }}</p>
                 </div>
-                <div class="w-full sm:w-1/3 flex flex-col justify-center items-center mb-2 sm:mb-0">
+                <div v-if="taskDrop.length > 1"
+                    class="w-full sm:w-1/3 flex flex-col justify-center items-center mb-2 sm:mb-0">
                     <p class="mb-2">تسک مربوط:</p>
                     <Dropdown v-model="selectedDropTask" :options="taskDrop" optionLabel="name" placeholder="تسک" filter
                         class="drop-down" />
@@ -418,6 +419,7 @@ export default {
             taskDescription.value = ''
             selectedDropTeammate.value = null
             selectedDropDeadlinePeriod.value = null
+            selectedDropTask.value = null
             selectedPoint.value = 0
             selectedUnit.value = 0
             if (!newValue) {
@@ -459,7 +461,7 @@ export default {
                     errorHandling.value = true
                 })
             } else {
-                taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, selectedDropTask.value).then(() => {
+                taskStore.setTask(currentProject.value._id, taskName.value, taskDescription.value, selectedDropTeammate.value.code, selectedPoint.value, selectedDropDeadlinePeriod.value.code, selectedUnit.value, '').then(() => {
                     taskStore.changeLoading(false)
                     createNewTask.value = false
                 }).catch(() => {
